@@ -54,6 +54,31 @@ docker-compose up -d
 echo "⏳ 等待服务启动..."
 sleep 15
 
+# 安装PHP依赖
+echo "📦 安装PHP依赖..."
+if docker exec yixue-php test -f /usr/local/bin/composer; then
+    echo "✅ Composer已安装"
+else
+    echo "📥 安装Composer..."
+    docker exec yixue-php bash -c "curl -sS https://getcomposer.org/installer | php && mv composer.phar /usr/local/bin/composer"
+fi
+
+echo "📦 安装项目依赖..."
+docker exec yixue-php bash -c "cd /var/www/yixue && composer install --no-dev --optimize-autoloader" || {
+    echo "⚠️  Composer install失败，请手动执行："
+    echo "    docker exec -it yixue-php bash"
+    echo "    cd /var/www/yixue"
+    echo "    composer install --no-dev"
+}
+
+# 设置文件权限
+echo "🔐 设置文件权限..."
+docker exec yixue-php chown -R www-data:www-data /var/www/yixue/vendor
+docker exec yixue-php chown -R www-data:www-data /var/www/yixue/runtime
+docker exec yixue-php chown -R www-data:www-data /var/www/yixue/public/uploads
+docker exec yixue-php chmod -R 755 /var/www/yixue/runtime
+docker exec yixue-php chmod -R 755 /var/www/yixue/public/uploads
+
 # 检查服务状态
 echo "✅ 检查服务状态..."
 docker-compose ps

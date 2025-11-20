@@ -1,12 +1,16 @@
 {
     "id": "test-calendar",
-    "name": "公农历转换",
+    "name": "yixue-h5",
     "displayName": "公农历转换",
     "version": "1.0.1",
     "description": "一个公农历相关的日期转换插件",
     "keywords": [
         "calendar"
     ],
+    "scripts": {
+        "dev:h5": "uni",
+        "build:h5": "uni build"
+    },
     "dcloudext": {
         "category": [
             "前端组件",
@@ -14,6 +18,25 @@
         ]
     },
     "dependencies": {
-        "uview-ui": "^2.0.38"
-    }
+        "@dcloudio/uni-app": "3.0.0-4080420251103001",
+        "@dcloudio/uni-app-plus": "3.0.0-4080420251103001",
+        "@dcloudio/uni-components": "3.0.0-4080420251103001",
+        "@dcloudio/uni-h5": "3.0.0-4080420251103001",
+        "uview-ui": "^2.0.38",
+        "vue": "^3.4.21",
+        "vuex": "^4.0.2"
+    },
+    "devDependencies": {
+        "@dcloudio/types": "^3.4.8",
+        "@dcloudio/uni-automator": "3.0.0-4080420251103001",
+        "@dcloudio/uni-cli-shared": "3.0.0-4080420251103001",
+        "@dcloudio/vite-plugin-uni": "3.0.0-4080420251103001",
+        "@vue/runtime-core": "^3.4.21",
+        "sass": "^1.69.5",
+        "vite": "5.2.8"
+    },
+    "browserslist": [
+        "Android >= 4.4",
+        "ios >= 9"
+    ]
 }

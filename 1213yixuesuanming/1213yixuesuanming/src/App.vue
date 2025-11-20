@@ -1,5 +1,5 @@
 <script>
-	import Vue from 'vue';
+	import { getCurrentInstance } from 'vue';
 	export default {
 		onLaunch: function() {
 			console.log('App Launch')
@@ -12,7 +12,11 @@
 
 			uni.getSystemInfo({
 				success: res => {
-					Vue.prototype.$windowHeight = res.windowHeight
+					// Vue3 使用 globalProperties
+					const app = getCurrentInstance();
+					if (app) {
+						app.appContext.config.globalProperties.$windowHeight = res.windowHeight
+					}
 				}
 			});
 		},

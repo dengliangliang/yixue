@@ -31,7 +31,13 @@ read -p "是否同时部署H5前端？(y/n): " deploy_h5
 
 if [ "$deploy_h5" = "y" ] || [ "$deploy_h5" = "Y" ]; then
     echo "🎨 构建H5前端..."
-    bash build-h5.sh || {
+    # 在Docker容器中构建H5
+    docker run --rm \
+        -v "$(pwd)/../1213yixuesuanming:/workspace/1213yixuesuanming" \
+        -v "$(pwd):/workspace/docker-deploy" \
+        -w /workspace/docker-deploy \
+        node:18-alpine \
+        sh -c "apk add --no-cache bash && bash build-h5.sh" || {
         echo "⚠️  H5构建失败，仅部署后端API"
         deploy_h5="n"
     }

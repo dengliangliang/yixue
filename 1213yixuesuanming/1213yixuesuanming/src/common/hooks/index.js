@@ -1,4 +1,4 @@
-import Vue from 'vue';
+// import Vue from 'vue'; // Vue3 不需要直接导入
 import website from '@/config/website.js'
 
 const URL = website.URL;
@@ -455,7 +455,7 @@ const use = {
 	}
 };
 
-Vue.prototype.$goBack = (num = 1) => {
+const $goBack = (num = 1) => {
 	const pages = getCurrentPages();
 	if (pages.length < 2) return uni.switchTab({
 		url: "/pages/index/index"
@@ -464,22 +464,29 @@ Vue.prototype.$goBack = (num = 1) => {
 		delta: num
 	})
 }
-Vue.prototype.$go = (href, type = 0, time = 300) => uni.navigateTo({
+const $go = (href, type = 0, time = 300) => uni.navigateTo({
 	url: href,
 	animationDuration: time,
 	animationType: type == 0 ? "slide-in-right" : "zoom-fade-out"
 })
-Vue.prototype.$goTab = (url = "/pages/index/index") => uni.switchTab({
+const $goTab = (url = "/pages/index/index") => uni.switchTab({
 	url
 })
-Vue.prototype.$toast = (title) => uni.showToast({
+const $toast = (title) => uni.showToast({
 	title,
 	icon: "none"
 });
-Vue.prototype.$use = {
-	...use
-};
-// $u挂载到uni对象上
+
+uni.$goBack = $goBack;
+uni.$go = $go;
+uni.$goTab = $goTab;
+uni.$toast = $toast;
 uni.$use = use;
 
-// export default use
+module.exports = {
+	use,
+	$goBack,
+	$go,
+	$goTab,
+	$toast
+}

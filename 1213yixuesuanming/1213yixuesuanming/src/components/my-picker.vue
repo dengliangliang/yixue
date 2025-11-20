@@ -357,12 +357,12 @@
 				}
 			}
 
-			picker-view {
+			::v-deep picker-view {
 				width: 100%;
 				height: 650rpx;
 				margin-top: 20rpx;
 
-				/deep/.item {
+				.item {
 					display: flex;
 					align-items: center;
 					justify-content: center;
@@ -372,7 +372,7 @@
 				}
 
 				.uni-picker-view-wrapper {
-					uni-picker-view-column {
+					::v-deep uni-picker-view-column {
 						display: flex;
 						align-items: center;
 						justify-content: center;
@@ -398,7 +398,7 @@
 					}
 				}
 
-				/deep/.uni-picker-view-indicator {
+				.uni-picker-view-indicator {
 					// text-align: center;
 					// line-height: 110rpx;
 				}
