@@ -70,7 +70,7 @@
 
 <script>
 	import myPicker from '@/components/my-picker.vue';
-	import uPicker from "uview-ui/components/u-picker/u-picker.vue";
+	import uPicker from "uview-plus/components/u-picker/u-picker.vue";
 	export default {
 		components: {
 			uPicker,
