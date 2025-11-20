@@ -281,10 +281,19 @@ function requestAndroidPermissionArr(permissionID) {
 	});
 }
 
-module.exports = {
-	judgeIosPermission: judgeIosPermission,
-	requestAndroidPermission: requestAndroidPermission,
-	checkSystemEnableLocation: checkSystemEnableLocation,
-	requestAndroidPermissionArr: requestAndroidPermissionArr,
-	gotoAppPermissionSetting: gotoAppPermissionSetting
+// 改为 ES6 模块导出，符合 Vue3 + uni-app 规范
+export {
+	judgeIosPermission,
+	requestAndroidPermission,
+	checkSystemEnableLocation,
+	requestAndroidPermissionArr,
+	gotoAppPermissionSetting
+}
+
+export default {
+	judgeIosPermission,
+	requestAndroidPermission,
+	checkSystemEnableLocation,
+	requestAndroidPermissionArr,
+	gotoAppPermissionSetting
 }

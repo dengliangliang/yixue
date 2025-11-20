@@ -110,7 +110,10 @@
 				const res = await this.$api.post('api/user/getProvinceList');
 				// if (res.code != 1) return this.$toast(res.msg);
 				this.province_list = res.data;
-				this.loadCity(res.data[0].id);
+				// 添加空值检查，防止数据为空时报错
+				if (res.data && res.data.length > 0) {
+					this.loadCity(res.data[0].id);
+				}
 			},
 			async loadCity(id) {
 				const {

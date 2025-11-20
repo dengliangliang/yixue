@@ -1,5 +1,4 @@
 {
-	// 下载安装时easycom配置
 	"easycom": {
 		"autoscan": true,
 		"custom": {
@@ -7,7 +6,7 @@
 		},
 		"^u-(.*)": "uview-plus/components/u-$1/u-$1.vue"
 	},
-	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
+	"pages": [
 		{
 			"path": "pages/index/index",
 			"style": {

@@ -10,5 +10,15 @@ export default defineConfig({
         manualChunks: undefined,
       }
     }
+  },
+  // 开发服务器配置 - 解决CORS跨域问题
+  server: {
+    proxy: {
+      '/api': {
+        target: 'http://1.12.230.141:8080',
+        changeOrigin: true,
+        rewrite: (path) => path
+      }
+    }
   }
 })

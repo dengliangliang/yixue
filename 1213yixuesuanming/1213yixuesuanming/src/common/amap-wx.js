@@ -422,4 +422,8 @@ AMapWX.prototype.getWxLocation = function(a, b) {
 			})
 		}
 	})
-}, module.exports.AMapWX = AMapWX;
+}
+
+// 改为 ES6 模块导出，符合 Vue3 + uni-app 规范
+export default AMapWX;
+export { AMapWX };
