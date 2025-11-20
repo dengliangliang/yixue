@@ -1,6 +1,6 @@
 import App from './App'
 import { createSSRApp } from 'vue'
-import uView from 'uview-ui'
+import uviewPlus from 'uview-plus'
 import util from '@/common/util.js'
 import API from "@/common/request/api.js"
 import website from './config/website'
@@ -13,8 +13,8 @@ export function createApp() {
 	app.config.globalProperties.$api = API;
 	app.config.globalProperties.$config = website;
 	
-	// 使用 uView
-	app.use(uView)
+	// 使用 uView Plus
+	app.use(uviewPlus)
 	
 	return {
 		app
