@@ -9,6 +9,13 @@ echo ""
 REPO_URL="https://github.com/dengliangliang/yixue.git"
 INSTALL_DIR="/home/wwwroot/yixue"
 
+# 检查目录冲突
+if [ -d "/home/wwwroot/default" ]; then
+    echo "⚠️  检测到现有项目目录: /home/wwwroot/default"
+    echo "✅ 新项目将安装到: $INSTALL_DIR"
+    echo "✅ 不会影响现有项目"
+fi
+
 # 检查是否为root用户
 if [ "$EUID" -ne 0 ]; then 
     echo "❌ 请使用root用户运行此脚本"
@@ -46,8 +53,25 @@ if ! command -v docker-compose &> /dev/null; then
     chmod +x /usr/local/bin/docker-compose
 fi
 
+# 检查端口占用
+echo "🔍 检查端口占用..."
+PORTS_IN_USE=""
+for port in 8080 8443 3307 6380 8081; do
+    if netstat -tulpn | grep -q ":$port "; then
+        PORTS_IN_USE="$PORTS_IN_USE $port"
+    fi
+done
+
+if [ -n "$PORTS_IN_USE" ]; then
+    echo "❌ 以下端口已被占用:$PORTS_IN_USE"
+    echo "请修改 docker-compose.yml 中的端口映射"
+    exit 1
+fi
+
+echo "✅ 端口检查通过（8080, 8443, 3307, 6380, 8081 可用）"
+
 # 克隆项目
-echo "📥 克隆项目..."
+echo "📥 克隆项目到独立目录..."
 if [ -d "$INSTALL_DIR" ]; then
     echo "⚠️  目录已存在: $INSTALL_DIR"
     read -p "是否删除并重新克隆？(y/n): " confirm
