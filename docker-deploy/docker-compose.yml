@@ -82,10 +82,12 @@ services:
 
   # H5前端服务（可选）
   yixue-h5:
-    build: ./h5
+    image: nginx:alpine
     container_name: yixue-h5
     ports:
       - "8081:80"      # H5访问端口
+    volumes:
+      - ./h5:/usr/share/nginx/html:ro
     depends_on:
       - yixue-nginx
     networks:
