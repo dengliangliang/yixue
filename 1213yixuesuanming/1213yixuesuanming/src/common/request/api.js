@@ -1,6 +1,7 @@
 import website from '@/config/website.js'
 
-const URL = website.URL + '/';
+// ThinkPHP需要通过index.php?s=路由
+const URL = website.URL + '/index.php?s=/';
 
 export const get = (url, data, timeout = 100000) => {
 	const header = {
