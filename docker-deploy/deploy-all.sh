@@ -22,6 +22,14 @@ if [ ! -f .env ]; then
     exit 1
 fi
 
+# 检查端口和防火墙
+echo "🔍 检查端口占用和防火墙配置..."
+if [ -f check-ports.sh ]; then
+    bash check-ports.sh || {
+        echo "⚠️  端口检查失败，继续使用默认端口"
+    }
+fi
+
 # 创建必要的目录
 echo "📁 创建数据目录..."
 mkdir -p data/mysql data/redis data/logs/nginx data/ssl
