@@ -490,3 +490,12 @@ module.exports = {
 	$goTab,
 	$toast
 }
+
+// ES模块导出
+export default {
+	use,
+	$goBack,
+	$go,
+	$goTab,
+	$toast
+}

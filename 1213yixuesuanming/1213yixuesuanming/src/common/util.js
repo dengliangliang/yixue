@@ -1,5 +1,5 @@
 var app = getApp();
-var api = require('./api.js');
+import api from './api.js';
 
 
 /**
@@ -737,6 +737,31 @@ module.exports = {
 	wxUpdate,
 	lookImg,
 	getDistrict,
+	uploadFile,
+	getLaterDay,
+	secChange,
+	backTo,
+	addImg,
+	addVideo,
+	getLiveTimeCount,
+	copy,
+	dial,
+	GetQueryString,
+	getMapApp,
+	api,
+	seeimg,
+	getGenderFromIdCard,
+	subScribeMsg
+}
+
+// ES模块导出
+export default {
+	request,
+	toLogin,
+	showToast,
+	showModal,
+	showLoading,
+	hideLoading,
 	uploadFile,
 	getLaterDay,
 	secChange,
