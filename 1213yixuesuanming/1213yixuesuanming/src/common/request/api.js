@@ -165,3 +165,5 @@ export const file = (url, filePath, formData, timeout = 100000) => {
 		reject(error)
 	})
 }
+
+export default { get, post, file }
