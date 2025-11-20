@@ -1,0 +1,19 @@
+{
+    "id": "test-calendar",
+    "name": "公农历转换",
+    "displayName": "公农历转换",
+    "version": "1.0.1",
+    "description": "一个公农历相关的日期转换插件",
+    "keywords": [
+        "calendar"
+    ],
+    "dcloudext": {
+        "category": [
+            "前端组件",
+            "通用组件"
+        ]
+    },
+    "dependencies": {
+        "uview-ui": "^2.0.38"
+    }
+}

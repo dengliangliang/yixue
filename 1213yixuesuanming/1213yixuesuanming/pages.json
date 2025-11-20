@@ -1,0 +1,111 @@
+{
+	// 下载安装时easycom配置
+	"easycom": {
+		"autoscan": true,
+		"custom": {
+			"fui-(.*)": "@/components/firstui/fui-$1/fui-$1.vue"
+		},
+		"^u-(.*)": "uview-ui/components/u-$1/u-$1.vue"
+	},
+	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
+		{
+			"path": "pages/index/index",
+			"style": {
+				"navigationBarTitleText": "来自2025的好消息",
+				"navigationBarBackgroundColor": "#E2C289"
+			}
+		},
+		{
+			"path": "pages/login/index",
+			"style": {
+				"navigationBarTitleText": "来自2025的好消息",
+				"navigationBarBackgroundColor": "#E2C289"
+			}
+		},
+		{
+			"path": "pages/index/Message",
+			"style": {
+				"navigationBarTitleText": "来自2025的好消息",
+				"navigationBarBackgroundColor": "#E2C289"
+			}
+		},
+		{
+			"path": "pages/index/gossip",
+			"style": {
+				"navigationBarTitleText": "来自2025的好消息",
+				"navigationBarBackgroundColor": "#E2C289"
+			}
+		},
+		{
+			"path": "pages/index/Generated",
+			"style": {
+				"navigationBarTitleText": "来自2025的好消息",
+				"navigationBarBackgroundColor": "#E2C289"
+			}
+		},
+		{
+			"path": "pages/login/login",
+			"style": {
+				"navigationBarTitleText": "来自2025的好消息",
+				"navigationBarBackgroundColor": "#E2C289"
+			}
+		},
+		{
+			"path": "pages/yinsi",
+			"style": {
+				"navigationBarTitleText": "来自2025的好消息",
+				"navigationBarBackgroundColor": "#E2C289"
+			}
+		},
+		{
+			"path": "pages/login/setInfo",
+			"style": {
+				"navigationBarTitleText": "来自2025的好消息",
+				"navigationBarBackgroundColor": "#E2C289"
+			}
+		},
+		{
+			"path": "pages/result/result",
+			"style": {
+				"navigationBarTitleText": "来自2025的好消息",
+				"navigationBarBackgroundColor": "#E2C289"
+			}
+		},
+		{
+			"path" : "pages/result/miji",
+			"style" : 
+			{
+				"navigationBarTitleText" : "来自2025的好消息"
+			}
+		},
+		{
+			"path" : "pages/result/yijiesuo",
+			"style" : 
+			{
+				"navigationBarTitleText" : "来自2025的好消息"
+			}
+		},
+		{
+			"path" : "pages/result/share",
+			"style" : 
+			{
+				"navigationBarTitleText" : "来自2025的好消息"
+			}
+		},
+		{
+			"path" : "pages/result/share-haibao",
+			"style" : 
+			{
+				"navigationBarTitleText" : ""
+			}
+		}
+	],
+	"globalStyle": {
+		"navigationStyle": "custom",
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "uni-app",
+		"navigationBarBackgroundColor": "#E2C289",
+		"backgroundColor": "#F8F8F8"
+	},
+	"uniIdRouter": {}
+}

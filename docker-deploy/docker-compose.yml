@@ -1,0 +1,102 @@
+version: '3.8'
+
+services:
+  # Nginx Web服务器
+  yixue-nginx:
+    build: ./nginx
+    container_name: yixue-nginx
+    ports:
+      - "8080:80"      # HTTP端口（避免与宿主机80冲突）
+      - "8443:443"     # HTTPS端口（避免与宿主机443冲突）
+    volumes:
+      - ../1213-easy-to-learn:/var/www/yixue:ro
+      - ../1213-easy-to-learn/public/uploads:/var/www/yixue/public/uploads:rw
+      - ./data/logs/nginx:/var/log/nginx
+      - ./data/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - yixue-php
+    networks:
+      - yixue-network
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # PHP-FPM应用服务
+  yixue-php:
+    build: ./php
+    container_name: yixue-php
+    volumes:
+      - ../1213-easy-to-learn:/var/www/yixue
+      - ../1213-easy-to-learn/public/uploads:/var/www/yixue/public/uploads
+      - ../1213-easy-to-learn/runtime:/var/www/yixue/runtime
+    environment:
+      - DB_HOST=yixue-mysql
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASS=${DB_PASS}
+      - REDIS_HOST=yixue-redis
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
+    depends_on:
+      - yixue-mysql
+      - yixue-redis
+    networks:
+      - yixue-network
+    restart: unless-stopped
+
+  # MySQL数据库
+  yixue-mysql:
+    image: mysql:5.7
+    container_name: yixue-mysql
+    ports:
+      - "3307:3306"    # 使用3307端口（避免与宿主机3306冲突）
+    volumes:
+      - ./data/mysql:/var/lib/mysql
+      - ./mysql/my.cnf:/etc/mysql/conf.d/custom.cnf:ro
+      - ../../yixue.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    environment:
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASS}
+      - MYSQL_DATABASE=${DB_NAME}
+      - MYSQL_USER=${DB_USER}
+      - MYSQL_PASSWORD=${DB_PASS}
+    networks:
+      - yixue-network
+    restart: unless-stopped
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+
+  # Redis缓存服务
+  yixue-redis:
+    image: redis:7.2-alpine
+    container_name: yixue-redis
+    ports:
+      - "6380:6379"    # 使用6380端口（避免与宿主机6379冲突）
+    volumes:
+      - ./data/redis:/data
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    command: redis-server /usr/local/etc/redis/redis.conf
+    networks:
+      - yixue-network
+    restart: unless-stopped
+
+  # H5前端服务（可选）
+  yixue-h5:
+    build: ./h5
+    container_name: yixue-h5
+    ports:
+      - "8081:80"      # H5访问端口
+    depends_on:
+      - yixue-nginx
+    networks:
+      - yixue-network
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  yixue-network:
+    driver: bridge
