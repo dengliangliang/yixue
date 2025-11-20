@@ -99,6 +99,29 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  # phpMyAdmin数据库管理工具
+  yixue-phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: yixue-phpmyadmin
+    ports:
+      - "8082:80"      # phpMyAdmin访问端口
+    environment:
+      - PMA_HOST=yixue-mysql
+      - PMA_PORT=3306
+      - PMA_USER=root
+      - PMA_PASSWORD=${DB_ROOT_PASS}
+      - UPLOAD_LIMIT=300M
+    depends_on:
+      - yixue-mysql
+    networks:
+      - yixue-network
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
 networks:
   yixue-network:
     driver: bridge

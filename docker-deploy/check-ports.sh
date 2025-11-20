@@ -7,8 +7,9 @@ echo "🔍 检查端口占用情况..."
 
 # 定义端口配置
 declare -A PORTS=(
-    ["API_PORT"]="8080 8082 8083"
-    ["H5_PORT"]="8081 8084 8085"
+    ["API_PORT"]="8080 8083 8086"
+    ["H5_PORT"]="8081 8084 8087"
+    ["PHPMYADMIN_PORT"]="8082 8085 8088"
     ["MYSQL_PORT"]="3307 3308 3309"
     ["REDIS_PORT"]="6380 6381 6382"
 )
@@ -73,20 +74,22 @@ select_port() {
 generate_env() {
     local api_port=$(select_port "API_PORT")
     local h5_port=$(select_port "H5_PORT")
+    local pma_port=$(select_port "PHPMYADMIN_PORT")
     local mysql_port=$(select_port "MYSQL_PORT")
     local redis_port=$(select_port "REDIS_PORT")
     
-    if [ -z "$api_port" ] || [ -z "$h5_port" ] || [ -z "$mysql_port" ] || [ -z "$redis_port" ]; then
+    if [ -z "$api_port" ] || [ -z "$h5_port" ] || [ -z "$pma_port" ] || [ -z "$mysql_port" ] || [ -z "$redis_port" ]; then
         echo "❌ 无法分配所有必需的端口"
         exit 1
     fi
     
     echo ""
     echo "📋 端口分配结果:"
-    echo "  API端口:   $api_port"
-    echo "  H5端口:    $h5_port"
-    echo "  MySQL端口: $mysql_port"
-    echo "  Redis端口: $redis_port"
+    echo "  API端口:        $api_port"
+    echo "  H5端口:         $h5_port"
+    echo "  phpMyAdmin端口: $pma_port"
+    echo "  MySQL端口:      $mysql_port"
+    echo "  Redis端口:      $redis_port"
     echo ""
     
     # 更新 docker-compose.yml 中的端口
@@ -113,10 +116,11 @@ main() {
     echo "✅ 端口检查完成！"
     echo ""
     echo "📌 访问地址:"
-    echo "  - API:   http://服务器IP:$(select_port API_PORT)"
-    echo "  - H5:    http://服务器IP:$(select_port H5_PORT)"
-    echo "  - MySQL: 服务器IP:$(select_port MYSQL_PORT)"
-    echo "  - Redis: 服务器IP:$(select_port REDIS_PORT)"
+    echo "  - API:        http://服务器IP:$(select_port API_PORT)"
+    echo "  - H5:         http://服务器IP:$(select_port H5_PORT)"
+    echo "  - phpMyAdmin: http://服务器IP:$(select_port PHPMYADMIN_PORT)"
+    echo "  - MySQL:      服务器IP:$(select_port MYSQL_PORT)"
+    echo "  - Redis:      服务器IP:$(select_port REDIS_PORT)"
 }
 
 main
