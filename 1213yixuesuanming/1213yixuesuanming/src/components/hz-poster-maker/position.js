@@ -1,5 +1,5 @@
-import image from 'uview-plus/libs/config/props/image.js'
-import line from 'uview-plus/libs/config/props/line.js';
+import image from 'uview-plus/components/u-image/image.js'
+import line from 'uview-plus/components/u-line/line.js';
 import { PositionType } from './constant.js' 
 export default {
 	methods: {
