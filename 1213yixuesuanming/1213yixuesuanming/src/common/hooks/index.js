@@ -483,14 +483,6 @@ uni.$goTab = $goTab;
 uni.$toast = $toast;
 uni.$use = use;
 
-module.exports = {
-	use,
-	$goBack,
-	$go,
-	$goTab,
-	$toast
-}
-
 // ES模块导出
 export default {
 	use,

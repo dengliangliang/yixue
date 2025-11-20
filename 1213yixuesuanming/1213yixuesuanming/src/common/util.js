@@ -716,43 +716,6 @@ function getMapApp(mapType, lat, lng, address) {
 	}
 	window.location.href = url;
 }
-module.exports = {
-	request,
-	toLogin,
-	showToast,
-	showMsg,
-	checkPhone,
-	checkName,
-	checkDate,
-	urlTo,
-	phoneMask,
-	getUserInfo,
-	timeChange,
-	isWeiXin,
-	checkEmail,
-	checkIDCard,
-	getVersion,
-	appPay,
-	wxPay,
-	wxUpdate,
-	lookImg,
-	getDistrict,
-	uploadFile,
-	getLaterDay,
-	secChange,
-	backTo,
-	addImg,
-	addVideo,
-	getLiveTimeCount,
-	copy,
-	dial,
-	GetQueryString,
-	getMapApp,
-	api,
-	seeimg,
-	getGenderFromIdCard,
-	subScribeMsg
-}
 
 // ES模块导出
 export default {
