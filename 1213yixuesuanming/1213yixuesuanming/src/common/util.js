@@ -100,6 +100,27 @@ function showToast(msg = '') {
 	});
 }
 /**
+ * 模态对话框
+ */
+function showModal(options = {}) {
+	return uni.showModal(options);
+}
+/**
+ * 显示加载提示
+ */
+function showLoading(title = '加载中...') {
+	uni.showLoading({
+		title,
+		mask: true
+	});
+}
+/**
+ * 隐藏加载提示
+ */
+function hideLoading() {
+	uni.hideLoading();
+}
+/**
  *  弹出提示信息结束后执行方法
  */
 function showMsg(msg, callback) {
