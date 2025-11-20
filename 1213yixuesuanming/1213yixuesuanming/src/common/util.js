@@ -717,7 +717,32 @@ function getMapApp(mapType, lat, lng, address) {
 	window.location.href = url;
 }
 
-// ES模块导出
+// ES模块导出 - 命名导出
+export {
+	request,
+	toLogin,
+	showToast,
+	showModal,
+	showLoading,
+	hideLoading,
+	uploadFile,
+	getLaterDay,
+	secChange,
+	backTo,
+	addImg,
+	addVideo,
+	getLiveTimeCount,
+	copy,
+	dial,
+	GetQueryString,
+	getMapApp,
+	api,
+	seeimg,
+	getGenderFromIdCard,
+	subScribeMsg
+}
+
+// 默认导出
 export default {
 	request,
 	toLogin,
