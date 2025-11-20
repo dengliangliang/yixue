@@ -1,5 +1,5 @@
 var app = getApp();
-import api from './api.js';
+const api = require('./api.js');
 
 
 /**
