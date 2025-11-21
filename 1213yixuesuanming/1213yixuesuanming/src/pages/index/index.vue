@@ -21,8 +21,6 @@
 			console.log('----', op);
 			if (op.sign) {
 				uni.setStorageSync('app_parmas', op)
-			} else {
-				this.$toast('获取参数失败~')
 			}
 		},
 		methods: {
