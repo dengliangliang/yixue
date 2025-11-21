@@ -159,24 +159,20 @@
 					return this.$toast('请选择出生日期');
 				}
 				
-				let app_parmas = uni.getStorageSync('app_parmas')
-				// 检查app_parmas是否存在必需参数
-				if (!app_parmas || !app_parmas.customerNo) {
-					return this.$toast('缺少必需参数，请从正确入口进入');
-				}
-				
-				const {
-					data,
-					code,
-					msg
-				} = await this.$api.post('api/user/addRecord', {
-					...app_parmas,
-					hour: Number(this.shi),
-					minute: Number(this.fen),
-					gender: this.xb_che == '男' ? 1 : 0,
-					area_id: this.city_id,
-					date: `${this.nian}-${this.yue}-${this.ri}`,
-				})
+				let app_parmas = uni.getStorageSync('app_parmas') || {}
+			
+			const {
+				data,
+				code,
+				msg
+			} = await this.$api.post('api/user/addRecord', {
+				...app_parmas,
+				hour: Number(this.shi),
+				minute: Number(this.fen),
+				gender: this.xb_che == '男' ? 1 : 0,
+				area_id: this.city_id,
+				date: `${this.nian}-${this.yue}-${this.ri}`,
+			})
 				if (code != 1) return this.$toast(msg);
 				uni.setStorageSync('loc_date', this.loc_date);
 				uni.navigateTo({
