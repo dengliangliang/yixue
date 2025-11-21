@@ -13,7 +13,25 @@ export function createApp() {
 	app.config.globalProperties.util = util;
 	app.config.globalProperties.$api = API;
 	app.config.globalProperties.$config = website;
-	// 添加$toast方法到全局属性
+	
+	// 添加全局导航方法
+	app.config.globalProperties.$go = (href, type = 0, time = 300) => uni.navigateTo({
+		url: href,
+		animationDuration: time,
+		animationType: type == 0 ? "slide-in-right" : "zoom-fade-out"
+	});
+	app.config.globalProperties.$goBack = (num = 1) => {
+		const pages = getCurrentPages();
+		if (pages.length < 2) return uni.switchTab({
+			url: "/pages/index/index"
+		});
+		uni.navigateBack({
+			delta: num
+		})
+	};
+	app.config.globalProperties.$goTab = (url = "/pages/index/index") => uni.switchTab({
+		url
+	});
 	app.config.globalProperties.$toast = (title) => uni.showToast({
 		title,
 		icon: "none"
