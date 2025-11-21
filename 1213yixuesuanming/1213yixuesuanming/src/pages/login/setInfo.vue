@@ -160,6 +160,11 @@
 				}
 				
 				let app_parmas = uni.getStorageSync('app_parmas')
+				// 检查app_parmas是否存在必需参数
+				if (!app_parmas || !app_parmas.customerNo) {
+					return this.$toast('缺少必需参数，请从正确入口进入');
+				}
+				
 				const {
 					data,
 					code,

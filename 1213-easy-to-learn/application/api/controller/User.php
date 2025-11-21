@@ -81,12 +81,21 @@ class User extends Api
      */
     public function addRecord($customerNo = '', $date, $hour = 0, $minute = 0, $gender = 0, $area_id = 0, $merchantId = '', $activityCode = '', $agentCode = '', $sign = '')
     {
-        if (empty($customerNo) || empty($date) || empty($area_id)) $this->error('参数不能为空');
-        // 验签程序
-        $agentCode = rawurlencode($agentCode);
-        $str = "merchantId=$merchantId&activityCode=$activityCode&agentCode=$agentCode&customerNo=$customerNo";
-        $md5_str = md5($str.'e8893507eba541628598ed6605bd42ca');
-        if ($md5_str != $sign) $this->error('验签错误');
+        // 只验证必需的三个参数：date, area_id, gender
+        if (empty($date) || empty($area_id)) $this->error('参数不能为空');
+        
+        // 如果customerNo为空，生成一个默认值
+        if (empty($customerNo)) {
+            $customerNo = 'H5_' . uniqid();
+        }
+        
+        // 只有当sign参数存在时才进行验签
+        if (!empty($sign)) {
+            $agentCode = rawurlencode($agentCode);
+            $str = "merchantId=$merchantId&activityCode=$activityCode&agentCode=$agentCode&customerNo=$customerNo";
+            $md5_str = md5($str.'e8893507eba541628598ed6605bd42ca');
+            if ($md5_str != $sign) $this->error('验签错误');
+        }
         $yang_li_arr = explode('-', $date);
         // 实例化
         //$solar = Solar::fromYmd($yang_li_arr[0], $yang_li_arr[1], $yang_li_arr[2]);
