@@ -151,6 +151,14 @@
 				this.fen = e.minute;
 			},
 			async useSubmit() {
+				// 参数验证
+				if (!this.city_id) {
+					return this.$toast('请选择出生地');
+				}
+				if (!this.nian || !this.yue || !this.ri) {
+					return this.$toast('请选择出生日期');
+				}
+				
 				let app_parmas = uni.getStorageSync('app_parmas')
 				const {
 					data,
