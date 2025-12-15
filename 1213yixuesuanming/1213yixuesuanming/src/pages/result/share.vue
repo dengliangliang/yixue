@@ -1,34 +1,43 @@
 <template>
-	<view class="max_page" :style="'min-height:'+windowHeight+'px'">
-		<view class="bom_box po_fi b-0 l-0 flex_column jc_b">
-			<view class="w_100">
-				<view class="c_f text-align-center mb-28">
-					中信保诚更多精彩活动，请关注下方二维码
-				</view>
-				<view class="w_100 flex_auto px-50">
-					<view class="flex_column fz_24 c_f">
-						<image src="/static/erweima.png" class="erweima_img" mode="aspectFill"></image>
-						- 视频号 -
+	<view class="page-bg">
+		<view class="page-overlay" :style="'min-height:'+windowHeight+'px'">
+			<view class="bom_box po_fi b-0 l-0 flex_column jc_b animate__animated animate__fadeInUp">
+				<!-- 二维码区域 -->
+				<view class="w_100 px-30">
+					<view class="card-glass mb-24 text-center">
+						<text class="text-base text-gray-700">中信保诚更多精彩活动，请关注下方二维码</text>
 					</view>
-					<view class="flex_column fz_24 c_f">
-						<image src="/static/douyin.png" class="erweima_img" mode="aspectFill"></image>
-						- 抖音号 -
-					</view>
-				</view>
-			</view>
-			<view class="w_100">
-				<view class="w_100 px-15 flex_between pb-30">
-					<view @click="$go('/pages/login/setInfo')" class="bom_btn">
-						重新测算
-					</view>
-					<!-- ;$refs.popups.open('bottom') -->
-					<view @click="()=>{$refs.popup.open('center')}" class="bom_btns flex_center">
-						分享
+					<view class="flex justify-around items-center">
+						<view class="flex flex-col items-center">
+							<view class="card-white p-16 mb-12 rounded-xl">
+								<image src="/static/erweima.png" class="erweima_img" mode="aspectFill"></image>
+							</view>
+							<text class="text-sm text-white">- 视频号 -</text>
+						</view>
+						<view class="flex flex-col items-center">
+							<view class="card-white p-16 mb-12 rounded-xl">
+								<image src="/static/douyin.png" class="erweima_img" mode="aspectFill"></image>
+							</view>
+							<text class="text-sm text-white">- 抖音号 -</text>
+						</view>
 					</view>
 				</view>
-				<view class="bom_h"> </view>
+				
+				<!-- 底部按钮 -->
+				<view class="w_100 px-30 pb-30">
+					<view class="flex gap-16">
+						<view class="btn-secondary flex-1" @click="$go('/pages/login/setInfo')">
+							<text class="btn-secondary-text">重新测算</text>
+						</view>
+						<view class="btn-primary flex-1" @click="()=>{$refs.popup.open('center')}">
+							<text class="btn-primary-text">分享</text>
+						</view>
+					</view>
+					<view class="bom_h"></view>
+				</view>
 			</view>
 		</view>
+		
 		<l-qrcode style="opacity: 0;" ref="qrcodeRef" :value="qr_code" />
 		<uni-popup ref="popup">
 			<view class="w_100 flex_center round-8">
@@ -38,30 +47,11 @@
 		</uni-popup>
 		<uni-popup borderRadius="20px 20px 0 0" :is-mask-click="false" mask-background-color="rgba(0,0,0,0)"
 			ref="popups" background-color="#fff">
-			<!-- <view class="share-pro-dialog round-10">
-				<view class="fz_32 pt-24 pl-32 fz_500">
-					分享到
+			<view class="flex_center py-30 px-30">
+				<view class="btn-primary w-full" @click="useSaveImg()">
+					<text class="btn-primary-text">保存本地相册后可转发</text>
 				</view>
-				<view class="w_100 flex a_c pt-20 pl-48 pb-32 border-b-1">
-					<button open-type="share" class="flex_column" @tap="useShare(1)">
-						<image src="/static/share-wx.png" class="shaicon" mode="aspectFill"></image>
-						<view class="fz_24 mt-16 text-align-center">微信好友</view>
-					</button>
-					<view class="flex_column ml-50 pl-24" @tap="useShare(2)">
-						<image src="/static/pyq.png" class="shaicon" mode="aspectFill"></image>
-						<view class="fz_24 mt-16">朋友圈</view>
-					</view>
-				</view>
-				<view @click="()=>{$refs.popups.close();$refs.popup.close()}" class="w_100 py-24 flex_column c_9">
-					取消
-					<view class="bom_h mt-30"> </view>
-				</view>
-			</view> -->
-			<view class="flex_center py-30">
-				<view @click="useSaveImg()" class="bom_btn_download fz_32 po_re">
-					保存本地相册后可转发
-				</view>
-				<view class="bom_h mt-50 pt-50"> </view>
+				<view class="bom_h mt-50 pt-50"></view>
 			</view>
 		</uni-popup>
 
@@ -150,7 +140,7 @@
 						{
 							key: 'contactLabel',
 							type: NodeType.Text,
-							text: '快来获取您的2025好消息吧~',
+							text: '快来获取您的2026好消息吧~',
 							textGap: 10,
 							color: '#FFE89C',
 							breakWord: true,
@@ -259,9 +249,9 @@
 				if (data.code != 1) return this.$toast(data.msg);
 				let shareData = {
 					"shareType": "0",
-					"title": "来自2025的好消息",
+					"title": "解密2026",
 					"url": this.qr_code,
-					"des": "来自2025的好消息",
+					"des": "解密2026",
 					image: this.$use.loadImg(data.url),
 					"shareWeChatType": wechatType,
 					"xType": "sendNonGifcontent"
@@ -276,7 +266,12 @@
 </script>
 <style lang="scss">
 	page {
-		background-color: #bf0f06;
+		/* 使用红色祥云背景 */
+		background-image: url(/static/beijing.jpg);
+		background-size: cover;
+		background-repeat: no-repeat;
+		background-position: center center;
+		background-color: #BF0000;
 	}
 
 	.shaicon {
@@ -432,58 +427,66 @@
 	}
 </style>
 <style scoped lang="scss">
-	.max_page {
-		width: 100%;
-		background-color: #a81a21;
-		background-image: url("@/static/share-bj.png");
-		background-size: cover;
-		background-repeat: no-repeat;
-	}
-
-	.bom_btn_download {
-		width: 690rpx;
-		height: 110rpx;
-		line-height: 110rpx;
-		text-align: center;
-		color: #fff;
-		background-image: url("/static/jiesuo-btn.png");
-		background-repeat: no-repeat;
-		background-size: cover;
-	}
-
-	.bom_btn {
-		background-image: url("@/static/chongxin.png");
-		background-repeat: no-repeat;
-		background-size: cover;
-		width: 344rpx;
-		height: 128rpx;
-		line-height: 128rpx;
-		text-align: center;
-		color: #fff;
-		font-size: 32rpx;
-	}
-
-	.bom_btns {
-		background-image: url("@/static/share-btn.png");
-		background-repeat: no-repeat;
-		background-size: cover;
-		width: 344rpx;
-		height: 128rpx;
-		line-height: 128rpx;
-		text-align: center;
-		color: #fff;
-		font-size: 32rpx;
-		padding-left: 50rpx;
-	}
-
 	.erweima_img {
-		width: 108rpx;
-		height: 108rpx;
-		border-radius: 8rpx;
+		width: 160rpx;
+		height: 160rpx;
+		border-radius: 12rpx;
 	}
 
 	.bom_box {
 		height: 665rpx;
 		width: 100%;
+	}
+
+	/* 国风卡片 */
+	.card-glass {
+		background: linear-gradient(180deg, #F5E6C8 0%, #EDD9B5 100%);
+		padding: 24rpx;
+		border-radius: 12rpx;
+		border: 2rpx solid #DAA520;
+	}
+
+	.card-white {
+		background: linear-gradient(180deg, #FFFEF9 0%, #F5E6C8 100%);
+		border: 2rpx solid #DAA520;
+	}
+
+	/* 国风主按钮 - 印章风格 */
+	.btn-primary {
+		background: linear-gradient(135deg, #8B0000 0%, #A22823 50%, #8B0000 100%);
+		border: 3rpx solid #DAA520;
+		border-radius: 12rpx;
+		padding: 24rpx 40rpx;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		box-shadow: 
+			0 4rpx 12rpx rgba(139, 0, 0, 0.4),
+			inset 0 2rpx 4rpx rgba(255, 215, 0, 0.2);
+	}
+
+	.btn-primary-text {
+		color: #FFD700;
+		font-size: 30rpx;
+		font-weight: bold;
+		text-shadow: 1rpx 1rpx 2rpx rgba(0, 0, 0, 0.3);
+	}
+
+	/* 国风次要按钮 */
+	.btn-secondary {
+		background: linear-gradient(180deg, #F5E6C8 0%, #EDD9B5 100%);
+		border: 3rpx solid #DAA520;
+		border-radius: 12rpx;
+		padding: 24rpx 40rpx;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		box-shadow: 0 4rpx 12rpx rgba(139, 105, 20, 0.2);
+	}
+
+	.btn-secondary-text {
+		color: #8B0000;
+		font-size: 30rpx;
+		font-weight: bold;
 	}
 </style>

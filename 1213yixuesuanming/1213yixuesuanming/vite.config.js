@@ -15,7 +15,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://1.12.230.141:8080',
+        target: 'https://yixueadmin.linqingkeji.com',
         changeOrigin: true,
         rewrite: (path) => path
       }

@@ -4,11 +4,11 @@
 			<view class="richtext">
 				<scroll-view scroll-y="true">
 					<view style="padding: 20rpx 28rpx;color: #AC0202;line-height: 54rpx;">
-						2024年大家过的如何， <br />
-						2025年是不是有更多期待， <br />
-						辰巳交替之际， <br />
-						中信保诚人寿推出《来自2025的好消息》， <br />
-						带您了解每个人生日里隐藏的人生密码解锁2025年剧本，抢占人生先机。
+						2025年大家过的如何， <br />
+						2026年是不是有更多期待， <br />
+						巳午交替之际， <br />
+						中信保诚人寿推出《解密2026》， <br />
+						带您了解每个人生日里隐藏的人生密码解锁2026年剧本，抢占人生先机。
 						<!-- <rich-text :nodes="title"></rich-text> -->
 					</view>
 				</scroll-view>

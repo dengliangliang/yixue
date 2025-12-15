@@ -1,0 +1,50 @@
+# 查看服务器错误日志命令
+
+## 方法1：SSH登录查看
+ssh -p 3522 root@1.12.230.141
+
+# 查看今天的日志
+tail -f /home/wwwroot/yixue/1213-easy-to-learn/runtime/log/$(date +%y%m%d).log
+
+# 查看最近50行日志
+tail -n 50 /home/wwwroot/yixue/1213-easy-to-learn/runtime/log/$(date +%y%m%d).log
+
+# 搜索getSiZhuRes相关错误
+grep -A 10 "getSiZhuRes" /home/wwwroot/yixue/1213-easy-to-learn/runtime/log/*.log
+
+# 搜索错误信息
+grep -i "error" /home/wwwroot/yixue/1213-easy-to-learn/runtime/log/$(date +%y%m%d).log
+
+# 搜索RecordService相关日志
+grep "RecordService" /home/wwwroot/yixue/1213-easy-to-learn/runtime/log/$(date +%y%m%d).log
+
+## 方法2：通过Docker查看PHP容器日志
+ssh -p 3522 root@1.12.230.141
+
+# 查看PHP容器日志
+docker logs yixue-php --tail 100 -f
+
+# 进入PHP容器查看日志
+docker exec -it yixue-php bash
+cd /var/www/yixue/runtime/log
+ls -lh
+tail -f $(date +%y%m%d).log
+
+## 方法3：下载日志到本地查看
+# 使用scp下载最新日志文件
+scp -P 3522 root@1.12.230.141:/home/wwwroot/yixue/1213-easy-to-learn/runtime/log/$(date +%y%m%d).log ./
+
+## 日志文件命名规则
+# ThinkPHP 5默认按日期生成日志文件
+# 格式：YYMMDD.log
+# 例如：251214.log (2025年12月14日)
+
+## 关键错误信息搜索
+# 搜索getSiZhuRes异常
+grep -B 5 -A 20 "\[getSiZhuRes\]" /home/wwwroot/yixue/1213-easy-to-learn/runtime/log/*.log
+
+# 搜索RecordService异常
+grep -B 5 -A 20 "\[RecordService\]" /home/wwwroot/yixue/1213-easy-to-learn/runtime/log/*.log
+
+# 搜索PHP致命错误
+grep -i "fatal\|exception\|error" /home/wwwroot/yixue/1213-easy-to-learn/runtime/log/*.log | tail -50

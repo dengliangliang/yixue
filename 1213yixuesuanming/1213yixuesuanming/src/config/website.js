@@ -11,12 +11,12 @@ const getBaseURL = () => {
 	if (import.meta.env.DEV) {
 		return ''; // 开发环境使用Vite代理
 	}
-	return 'http://1.12.230.141:8080'; // 生产环境使用完整地址
+	return 'https://yixueadmin.linqingkeji.com'; // 生产环境使用域名
 	// #endif
 	
 	// #ifndef H5
 	// 非H5环境（小程序、APP）直接使用完整地址
-	return 'http://1.12.230.141:8080';
+	return 'https://yixueadmin.linqingkeji.com';
 	// #endif
 }
 

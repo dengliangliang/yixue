@@ -93,18 +93,84 @@
 		onLoad({
 			record_id
 		}) {
+			console.log('[Gossip] onLoad 开始, record_id:', record_id, '时间:', new Date().toISOString());
 			this.record_id = record_id;
-			this.startAnimation();
+			
+			// 🚀 性能优化：去除动画，直接加载和跳转
+			this.quickLoad();
 		},
 		methods: {
+			// 🚀 快速加载：显示loading提示，后台加载数据，完成后跳转
+			async quickLoad() {
+				const startTime = Date.now();
+				
+				// 显示简单的加载提示
+				uni.showLoading({
+					title: '正在生成命盘...',
+					mask: true
+				});
+				
+				try {
+					console.log('[Gossip] 开始加载数据');
+					
+					// 并行请求两个API
+					const [siZhuRes, resultRes] = await Promise.all([
+						this.$api.post('api/si_zhu/getSiZhuRes', { record_id: this.record_id }),
+						this.$api.post('api/si_zhu/getResult', { record_id: this.record_id })
+					]);
+					
+					console.log('[Gossip] 数据加载完成, 耗时:', Date.now() - startTime, 'ms');
+					
+					// 缓存数据供后续页面使用
+					uni.setStorageSync('preload_siZhuRes_' + this.record_id, siZhuRes);
+					uni.setStorageSync('preload_resultRes_' + this.record_id, resultRes);
+					
+					// 关闭loading
+					uni.hideLoading();
+					
+					// 立即跳转到结果页
+					uni.redirectTo({
+						url: "/pages/index/Generated?record_id=" + this.record_id
+					});
+					
+				} catch (e) {
+					console.error('[Gossip] 加载失败', e);
+					uni.hideLoading();
+					uni.showToast({
+						title: '加载失败，请重试',
+						icon: 'none'
+					});
+				}
+			},
+			
+			// ⚠️ 以下方法已废弃，保留以防回滚
+			async preloadData() {
+				try {
+					console.log('[Gossip] 开始预加载数据');
+					const [siZhuRes, resultRes] = await Promise.all([
+						this.$api.post('api/si_zhu/getSiZhuRes', { record_id: this.record_id }),
+						this.$api.post('api/si_zhu/getResult', { record_id: this.record_id })
+					]);
+					uni.setStorageSync('preload_siZhuRes_' + this.record_id, siZhuRes);
+					uni.setStorageSync('preload_resultRes_' + this.record_id, resultRes);
+					console.log('[Gossip] 预加载完成');
+				} catch (e) {
+					console.log('[Gossip] 预加载失败', e);
+				}
+			},
 			startAnimation() {
+				const startTime = Date.now();
+				console.log('[Gossip] startAnimation 开始, 时间:', new Date().toISOString());
 				this.isRotate = true;
 				setTimeout(() => {
+					console.log('[Gossip] 第一阶段动画完成, 耗时:', Date.now() - startTime, 'ms');
 					this.donghua_show = 1;
 					setTimeout(() => {
+						console.log('[Gossip] 第二阶段动画开始');
 						this.isRotate = false;
 						this.textList.forEach((item, index) => {
 							setTimeout(() => {
+								console.log('[Gossip] 显示文字', index, '耗时:', Date.now() - startTime, 'ms');
 								this.showText[index] = true;
 								this.showText[index] = true;
 								if (index != 0) this.showText[index - 1] = false;
@@ -330,7 +396,10 @@
 
 
 	page {
-		background: #A22823;
+		background: url('/static/ma2.jpg') no-repeat center top;
+		background-size: 100% auto;
+		background-color: #FDF5E6;
+		min-height: 100vh;
 		overflow: hidden;
 	}
 

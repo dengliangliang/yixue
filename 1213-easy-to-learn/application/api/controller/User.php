@@ -45,11 +45,16 @@ class User extends Api
      */
     public function getProvinceList()
     {
-        $province_list = Db::name('area')
-            ->where('pid', 0)
-            //->order('first asc')
-            ->field('id, name')
-            ->select();
+        // 优化：使用缓存，省份数据基本不变
+        $cache_key = 'province_list';
+        $province_list = cache($cache_key);
+        if (empty($province_list)) {
+            $province_list = Db::name('area')
+                ->where('pid', 0)
+                ->field('id, name')
+                ->select();
+            cache($cache_key, $province_list, 86400); // 缓存1天
+        }
         $this->success('获取成功', $province_list);
     }
 
@@ -61,11 +66,17 @@ class User extends Api
     public function getCityList($id)
     {
         if (empty($id)) $this->error('未获取到省份');
-        $city_list = Db::name('area')
-            ->where('pid', $id)
-            ->order('first asc')
-            ->field('id, name')
-            ->select();
+        // 优化：使用缓存
+        $cache_key = 'city_list_' . $id;
+        $city_list = cache($cache_key);
+        if (empty($city_list)) {
+            $city_list = Db::name('area')
+                ->where('pid', $id)
+                ->order('first asc')
+                ->field('id, name')
+                ->select();
+            cache($cache_key, $city_list, 86400); // 缓存1天
+        }
         $this->success('获取成功', $city_list);
     }
 
@@ -159,8 +170,9 @@ class User extends Api
 
         ]);
         if (!empty($add_id)) {
-            $this->updRecordRes($add_id);
-            $this->success('添加成功', ['record_id' => $add_id]);
+            // 优化：先返回record_id，让前端快速跳转，后台异步计算
+            // updRecordRes 将在 getSiZhuRes 中按需调用
+            $this->success('添加成功', ['record_id' => $add_id, 'need_calc' => true]);
         }
         $this->error('添加记录失败');
     }
@@ -182,28 +194,47 @@ class User extends Api
 
         $da_yun = $this->getQiYun($record_id);
 
-        $year_gan_wu_xing = Db::name('tian_gan')->where('tian_gan_name', $time_res['year_gan_name'])->value('attribute');
-        $month_gan_wu_xing = Db::name('tian_gan')->where('tian_gan_name', $month_gan_name)->value('attribute');
-        $ri_gan_wu_xing = Db::name('tian_gan')->where('tian_gan_name', $ri_gan_name)->value('attribute');
-        $time_gan_wu_xing = Db::name('tian_gan')->where('tian_gan_name', $time_gan_name)->value('attribute');
-        $year_zhi_wu_xing = Db::name('month_zhi')->where('month_name', $time_res['year_zhi_name'])->value('attribute');
-        $month_zhi_wu_xing = Db::name('month_zhi')->where('month_name', $month_zhi_name)->value('attribute');
-        $ri_zhi_wu_xing = Db::name('month_zhi')->where('month_name', $ri_zhi_name)->value('attribute');
-        $time_zhi_wu_xing = Db::name('month_zhi')->where('month_name', $time_res['time_text'])->value('attribute');
+        // 优化：批量查询天干五行属性（原8次查询 -> 2次查询）
+        $gan_names = [$time_res['year_gan_name'], $month_gan_name, $ri_gan_name, $time_gan_name];
+        $gan_attrs = Db::name('tian_gan')->whereIn('tian_gan_name', $gan_names)->column('attribute', 'tian_gan_name');
+        $year_gan_wu_xing = $gan_attrs[$time_res['year_gan_name']] ?? '';
+        $month_gan_wu_xing = $gan_attrs[$month_gan_name] ?? '';
+        $ri_gan_wu_xing = $gan_attrs[$ri_gan_name] ?? '';
+        $time_gan_wu_xing = $gan_attrs[$time_gan_name] ?? '';
+        
+        $zhi_names = [$time_res['year_zhi_name'], $month_zhi_name, $ri_zhi_name, $time_res['time_text']];
+        $zhi_attrs = Db::name('month_zhi')->whereIn('month_name', $zhi_names)->column('attribute', 'month_name');
+        $year_zhi_wu_xing = $zhi_attrs[$time_res['year_zhi_name']] ?? '';
+        $month_zhi_wu_xing = $zhi_attrs[$month_zhi_name] ?? '';
+        $ri_zhi_wu_xing = $zhi_attrs[$ri_zhi_name] ?? '';
+        $time_zhi_wu_xing = $zhi_attrs[$time_res['time_text']] ?? '';
 
+        // 优化：批量查询十神（原3次查询 -> 1次查询）
+        $shi_shen_list = Db::name('si_zhu_shi_shen')
+            ->where('ri_gan_name', $ri_gan_name)
+            ->whereIn('gan_name', [$time_res['year_gan_name'], $month_gan_name, $time_gan_name])
+            ->column('shi_shen_name', 'gan_name');
         $gan_shi_shen = [
-            Db::name('si_zhu_shi_shen')->where('ri_gan_name', $ri_gan_name)->where('gan_name', $time_res['year_gan_name'])->value('shi_shen_name'),
-            Db::name('si_zhu_shi_shen')->where('ri_gan_name', $ri_gan_name)->where('gan_name', $month_gan_name)->value('shi_shen_name'),
+            $shi_shen_list[$time_res['year_gan_name']] ?? '',
+            $shi_shen_list[$month_gan_name] ?? '',
             '日元',
-            Db::name('si_zhu_shi_shen')->where('ri_gan_name', $ri_gan_name)->where('gan_name', $time_gan_name)->value('shi_shen_name'),
+            $shi_shen_list[$time_gan_name] ?? '',
             $da_yun['gan_shi_shen']
         ];
-        //print_r($time_res);exit;
+        
+        // 优化：批量查询支十神（原4次查询 -> 1次查询）
+        $zhi_gan_names = [
+            $ri_gan_name.$time_res['year_zhi_name'],
+            $ri_gan_name.$month_zhi_name,
+            $ri_gan_name.$ri_zhi_name,
+            $ri_gan_name.$time_res['time_text']
+        ];
+        $zhi_shi_shen_list = Db::name('tian_gan_zhi')->whereIn('gan_zhi_name', $zhi_gan_names)->column('shi_shen', 'gan_zhi_name');
         $zhi_shi_shen = [
-            Db::name('tian_gan_zhi')->where('gan_zhi_name', $ri_gan_name.$time_res['year_zhi_name'])->value('shi_shen'),
-            Db::name('tian_gan_zhi')->where('gan_zhi_name', $ri_gan_name.$month_zhi_name)->value('shi_shen'),
-            Db::name('tian_gan_zhi')->where('gan_zhi_name', $ri_gan_name.$ri_zhi_name)->value('shi_shen'),
-            Db::name('tian_gan_zhi')->where('gan_zhi_name', $ri_gan_name.$time_res['time_text'])->value('shi_shen'),
+            $zhi_shi_shen_list[$ri_gan_name.$time_res['year_zhi_name']] ?? '',
+            $zhi_shi_shen_list[$ri_gan_name.$month_zhi_name] ?? '',
+            $zhi_shi_shen_list[$ri_gan_name.$ri_zhi_name] ?? '',
+            $zhi_shi_shen_list[$ri_gan_name.$time_res['time_text']] ?? '',
             $da_yun['zhi_shi_shen']
         ];
         $pian_shen = ['七杀', '枭神', '偏财', '伤官', '劫财'];
@@ -222,108 +253,110 @@ class User extends Api
             in_array($zhi_shi_shen[4], $pian_shen) ? 0 : 1
         ];
 
-        Db::name('record_shen')->insert([
-            'record_id' => $record_id,
-            'shen_name' => $gan_shi_shen[0],
-            'shen_style' => $gan_shi_shen_style[0],
-            'gan_zhi_style' => 0,
-            'shen_in' => 0,
-            'is_da_yun' => 0,
-            'gan_zhi_name' => $time_res['year_gan_name'],
-            'wu_xing' => $year_gan_wu_xing
-        ]);
-        Db::name('record_shen')->insert([
-            'record_id' => $record_id,
-            'shen_name' => $gan_shi_shen[1],
-            'shen_style' => $gan_shi_shen_style[1],
-            'gan_zhi_style' => 0,
-            'shen_in' => 1,
-            'is_da_yun' => 0,
-            'gan_zhi_name' => $month_gan_name,
-            'wu_xing' => $month_gan_wu_xing
-        ]);
-        Db::name('record_shen')->insert([
-            'record_id' => $record_id,
-            'shen_name' => $gan_shi_shen[2],
-            'shen_style' => 2,
-            'gan_zhi_style' => 0,
-            'shen_in' => 2,
-            'is_da_yun' => 0,
-            'gan_zhi_name' => $ri_gan_name,
-            'wu_xing' => $ri_gan_wu_xing
-        ]);
-        Db::name('record_shen')->insert([
-            'record_id' => $record_id,
-            'shen_name' => $gan_shi_shen[3],
-            'shen_style' => $gan_shi_shen_style[3],
-            'gan_zhi_style' => 0,
-            'shen_in' => 3,
-            'is_da_yun' => 0,
-            'gan_zhi_name' => $time_gan_name,
-            'wu_xing' => $time_gan_wu_xing
-        ]);
-        Db::name('record_shen')->insert([
-            'record_id' => $record_id,
-            'shen_name' => $gan_shi_shen[4],
-            'shen_style' => $gan_shi_shen_style[4],
-            'gan_zhi_style' => 0,
-            'shen_in' => 4,
-            'is_da_yun' => 1,
-            'gan_zhi_name' => mb_substr($da_yun['gan_zhi'], 0, 1),
-            'wu_xing' => $da_yun['gan_xing']
-        ]);
-        Db::name('record_shen')->insert([
-            'record_id' => $record_id,
-            'shen_name' => $zhi_shi_shen[0],
-            'shen_style' => $zhi_shi_shen_style[0],
-            'gan_zhi_style' => 1,
-            'shen_in' => 5,
-            'is_da_yun' => 0,
-            'gan_zhi_name' => $time_res['year_zhi_name'],
-            'wu_xing' => $year_zhi_wu_xing
-        ]);
-        Db::name('record_shen')->insert([
-            'record_id' => $record_id,
-            'shen_name' => $zhi_shi_shen[1],
-            'shen_style' => $zhi_shi_shen_style[1],
-            'gan_zhi_style' => 1,
-            'shen_in' => 6,
-            'is_da_yun' => 0,
-            'gan_zhi_name' => $month_zhi_name,
-            'wu_xing' => $month_zhi_wu_xing
-        ]);
-        Db::name('record_shen')->insert([
-            'record_id' => $record_id,
-            'shen_name' => $zhi_shi_shen[2],
-            'shen_style' => $zhi_shi_shen_style[2],
-            'gan_zhi_style' => 1,
-            'shen_in' => 7,
-            'is_da_yun' => 0,
-            'gan_zhi_name' => $ri_zhi_name,
-            'wu_xing' => $ri_zhi_wu_xing
-        ]);
-        Db::name('record_shen')->insert([
-            'record_id' => $record_id,
-            'shen_name' => $zhi_shi_shen[3],
-            'shen_style' => $zhi_shi_shen_style[3],
-            'gan_zhi_style' => 1,
-            'shen_in' => 8,
-            'is_da_yun' => 0,
-            'gan_zhi_name' => $time_res['time_text'],
-            'wu_xing' => $time_zhi_wu_xing
-        ]);
-        Db::name('record_shen')->insert([
-            'record_id' => $record_id,
-            'shen_name' => $zhi_shi_shen[4],
-            'shen_style' => $zhi_shi_shen_style[4],
-            'gan_zhi_style' => 1,
-            'shen_in' => 9,
-            'is_da_yun' => 1,
-            'gan_zhi_name' => mb_substr($da_yun['gan_zhi'], -1),
-            'wu_xing' => $da_yun['zhi_xing']
-        ]);
-
-
+        // 优化：批量插入（原10次insert -> 1次insertAll）
+        $insert_data = [
+            [
+                'record_id' => $record_id,
+                'shen_name' => $gan_shi_shen[0],
+                'shen_style' => $gan_shi_shen_style[0],
+                'gan_zhi_style' => 0,
+                'shen_in' => 0,
+                'is_da_yun' => 0,
+                'gan_zhi_name' => $time_res['year_gan_name'],
+                'wu_xing' => $year_gan_wu_xing
+            ],
+            [
+                'record_id' => $record_id,
+                'shen_name' => $gan_shi_shen[1],
+                'shen_style' => $gan_shi_shen_style[1],
+                'gan_zhi_style' => 0,
+                'shen_in' => 1,
+                'is_da_yun' => 0,
+                'gan_zhi_name' => $month_gan_name,
+                'wu_xing' => $month_gan_wu_xing
+            ],
+            [
+                'record_id' => $record_id,
+                'shen_name' => $gan_shi_shen[2],
+                'shen_style' => 2,
+                'gan_zhi_style' => 0,
+                'shen_in' => 2,
+                'is_da_yun' => 0,
+                'gan_zhi_name' => $ri_gan_name,
+                'wu_xing' => $ri_gan_wu_xing
+            ],
+            [
+                'record_id' => $record_id,
+                'shen_name' => $gan_shi_shen[3],
+                'shen_style' => $gan_shi_shen_style[3],
+                'gan_zhi_style' => 0,
+                'shen_in' => 3,
+                'is_da_yun' => 0,
+                'gan_zhi_name' => $time_gan_name,
+                'wu_xing' => $time_gan_wu_xing
+            ],
+            [
+                'record_id' => $record_id,
+                'shen_name' => $gan_shi_shen[4],
+                'shen_style' => $gan_shi_shen_style[4],
+                'gan_zhi_style' => 0,
+                'shen_in' => 4,
+                'is_da_yun' => 1,
+                'gan_zhi_name' => mb_substr($da_yun['gan_zhi'], 0, 1),
+                'wu_xing' => $da_yun['gan_xing']
+            ],
+            [
+                'record_id' => $record_id,
+                'shen_name' => $zhi_shi_shen[0],
+                'shen_style' => $zhi_shi_shen_style[0],
+                'gan_zhi_style' => 1,
+                'shen_in' => 5,
+                'is_da_yun' => 0,
+                'gan_zhi_name' => $time_res['year_zhi_name'],
+                'wu_xing' => $year_zhi_wu_xing
+            ],
+            [
+                'record_id' => $record_id,
+                'shen_name' => $zhi_shi_shen[1],
+                'shen_style' => $zhi_shi_shen_style[1],
+                'gan_zhi_style' => 1,
+                'shen_in' => 6,
+                'is_da_yun' => 0,
+                'gan_zhi_name' => $month_zhi_name,
+                'wu_xing' => $month_zhi_wu_xing
+            ],
+            [
+                'record_id' => $record_id,
+                'shen_name' => $zhi_shi_shen[2],
+                'shen_style' => $zhi_shi_shen_style[2],
+                'gan_zhi_style' => 1,
+                'shen_in' => 7,
+                'is_da_yun' => 0,
+                'gan_zhi_name' => $ri_zhi_name,
+                'wu_xing' => $ri_zhi_wu_xing
+            ],
+            [
+                'record_id' => $record_id,
+                'shen_name' => $zhi_shi_shen[3],
+                'shen_style' => $zhi_shi_shen_style[3],
+                'gan_zhi_style' => 1,
+                'shen_in' => 8,
+                'is_da_yun' => 0,
+                'gan_zhi_name' => $time_res['time_text'],
+                'wu_xing' => $time_zhi_wu_xing
+            ],
+            [
+                'record_id' => $record_id,
+                'shen_name' => $zhi_shi_shen[4],
+                'shen_style' => $zhi_shi_shen_style[4],
+                'gan_zhi_style' => 1,
+                'shen_in' => 9,
+                'is_da_yun' => 1,
+                'gan_zhi_name' => mb_substr($da_yun['gan_zhi'], -1),
+                'wu_xing' => $da_yun['zhi_xing']
+            ]
+        ];
+        Db::name('record_shen')->insertAll($insert_data);
     }
 
     public static function getYearMonthDayTimeRes($date, $hour = 0, $minute = 0)

@@ -305,6 +305,7 @@
 		width: 750rpx;
 		box-sizing: border-box;
 		background: rgba(0, 0, 0, 0.3);
+		z-index: 9999;
 	}
 
 	.u-mask-zoom {

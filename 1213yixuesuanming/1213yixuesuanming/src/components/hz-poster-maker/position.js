@@ -1,5 +1,5 @@
-import image from 'uview-plus/components/u-image/image.js'
-import line from 'uview-plus/components/u-line/line.js';
+// import image from 'uview-plus/components/u-image/image.js'  // ❌ uview-plus 已移除
+// import line from 'uview-plus/components/u-line/line.js';    // ❌ uview-plus 已移除
 import { PositionType } from './constant.js' 
 export default {
 	methods: {

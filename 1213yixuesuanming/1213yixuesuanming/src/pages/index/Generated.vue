@@ -35,13 +35,11 @@
 
 			<view :style="k==3?{'border':'none'}:{}" v-for="i,k in table_data" :key="k"
 				class="td_item flex_column jc_a py-10">
-				<view class="w_100 flex_auto px-20">
-					<text :class="loadClass(i.icon_top)">{{i.text_top}}</text>
-					<image :src="loadImg(i.icon_top)" class="wuxing_icon" mode="aspectFill"></image>
+				<view class="w_100 flex_center">
+					<text class="ganzhi-text" :class="loadClass(i.icon_top)">{{i.text_top}}</text>
 				</view>
-				<view class="w_100 flex_auto px-20">
-					<text :class="loadClass(i.icon_bom)">{{i.text_bom}}</text>
-					<image :src="loadImg(i.icon_bom)" class="wuxing_icon" mode="aspectFill"></image>
+				<view class="w_100 flex_center">
+					<text class="ganzhi-text" :class="loadClass(i.icon_bom)">{{i.text_bom}}</text>
 				</view>
 			</view>
 		</view>
@@ -88,37 +86,69 @@
 		onLoad({
 			record_id
 		}) {
+			console.log('[Generated] onLoad 开始, record_id:', record_id, '时间:', new Date().toISOString());
 			this.record_id = record_id;
 			this.loadData();
 		},
 		methods: {
 			async loadData() {
-				const res = await this.$api.post('api/si_zhu/getSiZhuRes', {
-					record_id: this.record_id
-				});
-				if (res.code != 1) return this.$toast(res.msg);
-				const {
-					record_res,
-					zao
-				} = res.data;
-				let loc_date = uni.getStorageSync('loc_date');
-				console.log('loc_date---', loc_date);
-				let time_text = record_res.yang_li_date.split('-');
-				this.user_info = [{
-					name: '生辰公历',
-					text: time_text[0] + '年' + time_text[1] + '月' + time_text[2] + '日' +
-						` ${record_res.hour}时${record_res.minute}分`
-				}, {
-					name: '生辰农历',
-					text: `${loc_date.gzYear}年 ${loc_date.gzMonth}月 ${loc_date.gzDay}日 ${this.calculateShiChen(record_res.hour)}`
-				}, {
-					name: '出生地',
-					text: `${record_res.province},${record_res.city}`
-				}, {
-					name: '性别',
-					text: record_res.gender == 0 ? '女' : '男'
-				}]
-				this.table_data = zao;
+				const startTime = Date.now();
+				console.log('[Generated] loadData 开始请求 getSiZhuRes, 时间:', new Date().toISOString());
+				
+				try {
+					const res = await this.$api.post('api/si_zhu/getSiZhuRes', {
+						record_id: this.record_id
+					});
+					
+					console.log('[Generated] getSiZhuRes 响应完成, 耗时:', Date.now() - startTime, 'ms');
+					console.log('[Generated] 完整响应:', JSON.stringify(res));
+					console.log('[Generated] 响应状态:', res?.code, res?.msg);
+					console.log('[Generated] 响应数据:', res?.data);
+					
+					if (!res) {
+						console.error('[Generated] 响应为空');
+						return this.$toast('网络请求失败');
+					}
+					
+					if (res.code != 1) {
+						console.error('[Generated] 请求失败:', res.msg || '未知错误');
+						return this.$toast(res.msg || '获取数据失败');
+					}
+					
+					if (!res.data) {
+						console.error('[Generated] 响应数据为空');
+						return this.$toast('数据格式错误');
+					}
+					
+					const {
+						record_res,
+						zao
+					} = res.data;
+				
+					console.log('[Generated] 数据解析完成, zao长度:', zao?.length);
+					
+					let loc_date = uni.getStorageSync('loc_date');
+					console.log('[Generated] loc_date---', loc_date);
+					let time_text = record_res.yang_li_date.split('-');
+					this.user_info = [{
+						name: '生辰公历',
+						text: time_text[0] + '年' + time_text[1] + '月' + time_text[2] + '日' +
+							` ${record_res.hour}时${record_res.minute}分`
+					}, {
+						name: '生辰农历',
+						text: `${loc_date.gzYear}年 ${loc_date.gzMonth}月 ${loc_date.gzDay}日 ${this.calculateShiChen(record_res.hour)}`
+					}, {
+						name: '出生地',
+						text: `${record_res.province},${record_res.city}`
+					}, {
+						name: '性别',
+						text: record_res.gender == 0 ? '女' : '男'
+					}]
+					this.table_data = zao;
+				} catch (error) {
+					console.error('[Generated] loadData 请求异常:', error);
+					this.$toast('获取数据失败，请稍后重试');
+				}
 			},
 			calculateShiChen(hour) {
 				if (hour >= 23 || hour <= 1) {
@@ -195,7 +225,12 @@
 
 <style scoped lang="scss">
 	page {
-		background-color: #f9f9f9;
+		/* 使用红色祥云背景 */
+		background-image: url(/static/beijing.jpg);
+		background-size: cover;
+		background-repeat: no-repeat;
+		background-position: center center;
+		background-color: #BF0000;
 	}
 
 	.top_tr {
@@ -203,8 +238,10 @@
 		height: 80rpx;
 		text-align: center;
 		line-height: 80rpx;
-		background: #FFFFFF;
+		background: #FFF1F1;
 		border-right: 1rpx solid #BDBDBD;
+		color: #D0000F;
+		font-weight: 500;
 	}
 
 	.wuxing_icon {
@@ -232,7 +269,7 @@
 
 	.table_box_data {
 		width: 692rpx;
-		height: 136rpx;
+		min-height: 200rpx;
 		background: #FFF1F1;
 		border: 1rpx solid #BDBDBD;
 		border-top: 1rpx solid #fff;
@@ -243,18 +280,55 @@
 			font-size: 26rpx;
 			color: #CD2A2A;
 			border-right: 1rpx solid #FFBEBE;
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			padding: 16rpx 0;
 		}
 	}
 
 	.bom_btn {
 		width: 690rpx;
-		height: 110rpx;
-		line-height: 110rpx;
+		height: 96rpx;
+		line-height: 96rpx;
 		text-align: center;
 		color: #fff;
-		background-image: url("/static/lijichakan.png");
-		background-repeat: no-repeat;
-		background-size: cover;
+		font-weight: bold;
+		font-size: 36rpx;
+		letter-spacing: 8rpx;
+		border-radius: 48rpx;
+		background: linear-gradient(135deg, #D0000F 0%, #C41E1E 25%, #A22823 50%, #8B0000 100%);
+		box-shadow: 0 8rpx 24rpx rgba(208, 0, 15, 0.4),
+					inset 0 2rpx 0 rgba(255, 255, 255, 0.2),
+					inset 0 -2rpx 0 rgba(0, 0, 0, 0.2);
+		position: relative;
+		overflow: hidden;
+		
+		&::before {
+			content: '';
+			position: absolute;
+			top: -50%;
+			left: -50%;
+			width: 200%;
+			height: 200%;
+			background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+			transform: rotate(45deg);
+			animation: shimmer 3s infinite;
+		}
+		
+		&:active {
+			transform: scale(0.98);
+			box-shadow: 0 4rpx 12rpx rgba(208, 0, 15, 0.3);
+		}
+	}
+	
+	@keyframes shimmer {
+		0% {
+			transform: translateX(-100%) rotate(45deg);
+		}
+		100% {
+			transform: translateX(100%) rotate(45deg);
+		}
 	}
 
 	.jinian_box {
@@ -278,12 +352,27 @@
 
 	.ganzhijinian {
 		width: 690rpx;
-		// height: 576rpx;
-		background: #FFF1F1;
+		background: rgba(255, 241, 241, 0.95);
 		border-radius: 16rpx;
+		border: 2rpx solid rgba(255, 190, 190, 0.5);
+		box-shadow: 0 8rpx 24rpx rgba(208, 0, 15, 0.15);
 	}
 
 	.table {
 		margin-top: 34rpx;
 	}
+
+	/* 干支大字体样式 */
+	.ganzhi-text {
+		font-size: 56rpx;
+		font-weight: bold;
+		font-family: "KaiTi", "楷体", "STKaiti", serif;
+	}
+
+	/* 五行颜色 */
+	.c_jin { color: #B8860B; }
+	.c_mu { color: #228B22; }
+	.c_shui { color: #1E90FF; }
+	.c_huo { color: #D0000F; }
+	.c_tu { color: #8B4513; }
 </style>

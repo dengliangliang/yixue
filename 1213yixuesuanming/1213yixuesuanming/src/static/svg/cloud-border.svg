@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 750 60" preserveAspectRatio="none">
+  <defs>
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#D4AF37;stop-opacity:0.3"/>
+      <stop offset="50%" style="stop-color:#FFD700;stop-opacity:0.8"/>
+      <stop offset="100%" style="stop-color:#D4AF37;stop-opacity:0.3"/>
+    </linearGradient>
+  </defs>
+  <!-- 祥云纹饰边框 -->
+  <path d="M0,30 Q30,10 60,30 T120,30 T180,30 T240,30 T300,30 T360,30 T420,30 T480,30 T540,30 T600,30 T660,30 T720,30 L750,30" 
+        fill="none" stroke="url(#goldGradient)" stroke-width="2" opacity="0.6"/>
+  <path d="M0,35 Q25,20 50,35 T100,35 T150,35 T200,35 T250,35 T300,35 T350,35 T400,35 T450,35 T500,35 T550,35 T600,35 T650,35 T700,35 L750,35" 
+        fill="none" stroke="url(#goldGradient)" stroke-width="1.5" opacity="0.4"/>
+  <!-- 左侧祥云 -->
+  <circle cx="40" cy="30" r="12" fill="url(#goldGradient)" opacity="0.5"/>
+  <circle cx="55" cy="25" r="8" fill="url(#goldGradient)" opacity="0.4"/>
+  <circle cx="25" cy="35" r="6" fill="url(#goldGradient)" opacity="0.3"/>
+  <!-- 右侧祥云 -->
+  <circle cx="710" cy="30" r="12" fill="url(#goldGradient)" opacity="0.5"/>
+  <circle cx="695" cy="25" r="8" fill="url(#goldGradient)" opacity="0.4"/>
+  <circle cx="725" cy="35" r="6" fill="url(#goldGradient)" opacity="0.3"/>
+</svg>

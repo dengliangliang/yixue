@@ -1,0 +1,108 @@
+/* ========================================
+   自定义字体配置 - 仅使用已有字体
+   ======================================== */
+
+/* ==================== 正文字体 ==================== */
+
+/* 霞鹜文楷 - 正文、描述文字 (25MB) */
+@font-face {
+  font-family: 'XiaWuWenKai';
+  src: url('/static/ttf/XiaWuWenKai-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* 霞鹜文楷粗体 - 复用Regular作为粗体 */
+@font-face {
+  font-family: 'XiaWuWenKai';
+  src: url('/static/ttf/XiaWuWenKai-Regular.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ==================== 按钮字体 ==================== */
+
+/* 思源黑体 Bold - 按钮、强调标题 (8.2MB) */
+@font-face {
+  font-family: 'SourceHanSans';
+  src: url('/static/ttf/SourceHanSansCN-Bold.otf') format('opentype');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ==================== 应用字体到元素 ==================== */
+
+/* 全局正文使用霞鹜文楷 */
+body,
+page {
+  font-family: 'XiaWuWenKai', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}
+
+/* 普通文字、描述文字 */
+.text-body {
+  font-family: 'XiaWuWenKai', 'PingFang SC', sans-serif;
+}
+
+/* 优雅标题 - 使用霞鹜文楷 */
+.text-elegant {
+  font-family: 'XiaWuWenKai', 'KaiTi', serif;
+}
+
+/* 手写风格 - 使用霞鹜文楷 */
+.text-handwriting {
+  font-family: 'XiaWuWenKai', 'KaiTi', cursive;
+}
+
+/* 按钮文字 - 思源黑体粗体 */
+.btn-primary-text,
+.btn-secondary-text,
+.btn-small-text {
+  font-family: 'SourceHanSans', 'Microsoft YaHei', sans-serif !important;
+  font-weight: bold;
+  letter-spacing: 4rpx;
+}
+
+/* 强调标题 - 思源黑体粗体 */
+.title-primary,
+.title-bold {
+  font-family: 'SourceHanSans', 'Microsoft YaHei', sans-serif;
+  font-weight: bold;
+}
+
+/* 副标题 - 使用思源黑体 */
+.title-secondary {
+  font-family: 'SourceHanSans', 'Microsoft YaHei', sans-serif;
+  font-weight: 500;
+}
+
+/* Tab文字 */
+.tab-item {
+  font-family: 'SourceHanSans', 'Microsoft YaHei', sans-serif;
+}
+
+.tab-item-active {
+  font-family: 'SourceHanSans', 'Microsoft YaHei', sans-serif;
+  font-weight: bold;
+}
+
+/* 徽章文字 */
+.badge-gold,
+.badge-outline {
+  font-family: 'SourceHanSans', sans-serif;
+  font-weight: bold;
+}
+
+/* 特殊：九紫离火等艺术字 - 使用霞鹜文楷 */
+.zhuanti-char {
+  font-family: 'XiaWuWenKai', 'KaiTi', serif !important;
+}
+
+/* 输入框保持系统字体 */
+input,
+textarea,
+.input-field {
+  font-family: 'XiaWuWenKai', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+}

@@ -64,34 +64,72 @@
 	</view>
 </template>
 
-<style>
+<style lang="scss">
 	page {
-		background-color: #bf0f06;
+		/* 使用红色祥云背景 */
+		background-image: url(/static/beijing.jpg);
+		background-size: cover;
+		background-repeat: no-repeat;
+		background-position: center center;
+		background-color: #BF0000;
 	}
 
 	.max_page {
 		width: 100%;
-		background-image: url("@/static/yijiesuo-bj.png");
-		background-repeat: no-repeat;
-		background-size: 100% 100%;
+		min-height: 100vh;
 	}
 
 	.bom_btn {
 		width: 690rpx;
-		height: 110rpx;
-		line-height: 110rpx;
+		height: 96rpx;
+		line-height: 96rpx;
 		text-align: center;
 		color: #fff;
-		background-image: url("/static/jiesuo-btn.png");
-		background-repeat: no-repeat;
-		background-size: cover;
+		font-weight: bold;
+		font-size: 36rpx;
+		letter-spacing: 8rpx;
+		border-radius: 48rpx;
+		background: linear-gradient(135deg, #D0000F 0%, #C41E1E 25%, #A22823 50%, #8B0000 100%);
+		box-shadow: 0 8rpx 24rpx rgba(208, 0, 15, 0.4),
+					inset 0 2rpx 0 rgba(255, 255, 255, 0.2),
+					inset 0 -2rpx 0 rgba(0, 0, 0, 0.2);
+		position: relative;
+		overflow: hidden;
+		
+		&::before {
+			content: '';
+			position: absolute;
+			top: -50%;
+			left: -50%;
+			width: 200%;
+			height: 200%;
+			background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+			transform: rotate(45deg);
+			animation: shimmer 3s infinite;
+		}
+		
+		&:active {
+			transform: scale(0.98);
+			box-shadow: 0 4rpx 12rpx rgba(208, 0, 15, 0.3);
+		}
+	}
+	
+	@keyframes shimmer {
+		0% {
+			transform: translateX(-100%) rotate(45deg);
+		}
+		100% {
+			transform: translateX(100%) rotate(45deg);
+		}
 	}
 
 	.boxs_center {
 		width: 100%;
-		/* height: 664rpx; */
 		color: #D0000F;
 		line-height: 48rpx;
-		background-color: #FFF1F1;
+		background: rgba(255, 241, 241, 0.95);
+		border-radius: 16rpx;
+		border: 2rpx solid rgba(255, 190, 190, 0.5);
+		box-shadow: 0 8rpx 24rpx rgba(208, 0, 15, 0.15);
 	}
 </style>

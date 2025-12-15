@@ -15,8 +15,8 @@ use think\Env;
 return [
     // 数据库类型
     'type'            => Env::get('database.type', 'mysql'),
-    // 服务器地址
-    'hostname'        => Env::get('database.hostname', '47.104.249.160'),
+    // 服务器地址（Docker内网）
+    'hostname'        => Env::get('database.hostname', 'yixue-mysql'),
     // 数据库名
     'database'        => Env::get('database.database', 'yixue'),
     // 用户名

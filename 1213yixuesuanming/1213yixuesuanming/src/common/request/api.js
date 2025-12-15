@@ -69,6 +69,9 @@ export const post = (url, data, timeout = 100000) => {
 	const header = {
 		'token': uni.getStorageSync('token')
 	}
+	const requestStart = Date.now();
+	console.log(`[API] POST 请求开始: ${url}`, '时间:', new Date().toISOString());
+	
 	return new Promise((resolve, reject) => {
 		uni.request({
 			url: URL + url,
@@ -77,11 +80,9 @@ export const post = (url, data, timeout = 100000) => {
 			timeout,
 			method: 'POST',
 			success: (res) => {
-				// console.log(
-				// 	`%c${url}==========`,
-				// 	'background-color:#bffaff;color:#000;border-radius: 4px;padding:3px 10px;',
-				// 	res.data
-				// );
+				const duration = Date.now() - requestStart;
+				console.log(`[API] POST 响应完成: ${url}`, '耗时:', duration, 'ms', '状态:', res.data?.code);
+				
 				if (res.data.code == 401) {
 					const pages = getCurrentPages();
 					const currentRoute = pages[pages.length - 1].route;

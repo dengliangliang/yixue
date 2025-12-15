@@ -2,7 +2,9 @@
 	import { getCurrentInstance } from 'vue';
 	export default {
 		onLaunch: function() {
-			console.log('App Launch')
+			const launchTime = Date.now();
+			console.log('🚀 [应用] App Launch', new Date().toISOString());
+			
 			if (this.isWeChatBrowser()) {
 				const pages = getCurrentPages();
 				pages.forEach((page) => {
@@ -17,14 +19,22 @@
 					if (app) {
 						app.appContext.config.globalProperties.$windowHeight = res.windowHeight
 					}
+					
+					const initTime = Date.now() - launchTime;
+					console.log('✅ [应用] 初始化完成', {
+						耗时: initTime + 'ms',
+						平台: res.platform,
+						系统: res.system,
+						分辨率: res.windowWidth + 'x' + res.windowHeight
+					});
 				}
 			});
 		},
 		onShow: function() {
-			console.log('App Show')
+			console.log('👀 [应用] App Show', new Date().toISOString())
 		},
 		onHide: function() {
-			console.log('App Hide')
+			console.log('👋 [应用] App Hide', new Date().toISOString())
 		},
 		methods: {
 			isWeChatBrowser() {
@@ -39,7 +49,7 @@
 	/*每个页面公共css */
 	@import url("common/style/index.css");
 	/* 注意要写在第一行，同时给style标签加入lang="scss"属性 */
-	@import "uview-plus/index.scss";
+	/* @import "uview-plus/index.scss"; */  /* ❌ 未使用，已移除 */
 
 	@font-face {
 		font-family: 'YouSheBiaoTiHei';

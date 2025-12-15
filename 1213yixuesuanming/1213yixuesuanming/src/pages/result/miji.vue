@@ -1,5 +1,15 @@
 <template>
 	<view class="pt-50 px-30 w_100">
+		<!-- Loading遮罩 - 使用 Animate.css -->
+		<view v-if="loading" class="loading-overlay">
+			<view class="loading-content animate__animated animate__fadeIn">
+				<view class="loading-box animate__animated animate__pulse animate__infinite">
+					<view class="loading-icon">⚡</view>
+				</view>
+				<text class="loading-text animate__animated animate__fadeInUp animate__delay-1s">正在加载您的旺运秘籍...</text>
+			</view>
+		</view>
+		
 		<view class="w_100 my_color flex a_c fz_24 fz_500 po_re zIndex-11 mb-24" style="height: 84rpx;">
 			<view style="width: 8rpx;height: 35rpx;background-color: #D0000F;border-radius: 30rpx;margin-right: 15rpx;">
 			</view>
@@ -8,7 +18,7 @@
 			</view>
 		</view>
 
-		<view class="w_100 boxs_1 mb-24">
+		<view class="w_100 boxs_1 mb-24" :class="{'skeleton-box': loading}">
 			<view class="w_100 flex_wrap pt-32">
 				<view v-for="i,k in text_list" :key="k" class="item_box flex a_bom jc_b">
 					<view class="flex_column h_100 flex_1">
@@ -87,6 +97,7 @@
 	export default {
 		data() {
 			return {
+				loading: true,
 				record_id: '',
 				text_list: [{
 					name: '旺运方位',
@@ -121,14 +132,30 @@
 		},
 		methods: {
 			async loadData() {
-				const res = await this.$api.post('api/si_zhu/getResult', {
-					record_id: this.record_id
-				});
-				if (res.code != 1) return this.$toast(res.msg);
-				this.wang_yun = res.data.wang_yun;
-				this.xing_ge_max = res.data.xing_ge_max;
-				this.xing_ge_min = res.data.xing_ge_min;
-				this.wang_yun.color = res.data.wang_yun.color.split(',');
+				this.loading = true;
+				try {
+					// 优先使用预加载的缓存数据
+					const cacheKey = 'preload_resultRes_' + this.record_id;
+					let res = uni.getStorageSync(cacheKey);
+					
+					if (res && res.code == 1) {
+						console.log('[miji] 使用预加载缓存数据');
+						uni.removeStorageSync(cacheKey); // 用完清除
+					} else {
+						console.log('[miji] 缓存未命中，重新请求');
+						res = await this.$api.post('api/si_zhu/getResult', {
+							record_id: this.record_id
+						});
+					}
+					
+					if (res.code != 1) return this.$toast(res.msg);
+					this.wang_yun = res.data.wang_yun;
+					this.xing_ge_max = res.data.xing_ge_max;
+					this.xing_ge_min = res.data.xing_ge_min;
+					this.wang_yun.color = res.data.wang_yun.color.split(',');
+				} finally {
+					this.loading = false;
+				}
 			},
 			loadColor(type) {
 				let color_;
@@ -172,25 +199,30 @@
 
 <style scoped lang="scss">
 	page {
-		background-image: url("/static/miji/jieguo-bg@2x.png");
-		background-repeat: no-repeat;
+		/* 使用红色祥云背景 */
+		background-image: url(/static/beijing.jpg);
 		background-size: cover;
 		background-repeat: no-repeat;
+		background-position: center center;
+		background-color: #BF0000;
 	}
 
 	.boxs_1 {
 		height: 640rpx;
-		background-image: url("/static/miji/miji-bj@2x.png");
-		background-repeat: no-repeat;
-		background-size: cover;
+		background: rgba(255, 241, 241, 0.95);
+		border-radius: 16rpx;
 		padding: 22rpx 32rpx 46rpx 36rpx;
+		border: 2rpx solid rgba(255, 190, 190, 0.5);
+		box-shadow: 0 8rpx 24rpx rgba(208, 0, 15, 0.15);
 	}
 
 	.boxs_2 {
-		background-image: url("/static/miji/jieguo-content@2x.png");
-		background-size: 100% 100%;
+		background: rgba(255, 241, 241, 0.95);
+		border-radius: 16rpx;
 		padding: 36rpx 32rpx 44rpx 36rpx;
 		width: 692rpx;
+		border: 2rpx solid rgba(255, 190, 190, 0.5);
+		box-shadow: 0 8rpx 24rpx rgba(208, 0, 15, 0.15);
 	}
 
 	.item_box {
@@ -230,13 +262,80 @@
 	}
 
 	.bom_btn {
-		width: 344rpx;
-		height: 128rpx;
-		line-height: 128rpx;
+		width: 320rpx;
+		height: 88rpx;
+		line-height: 88rpx;
 		text-align: center;
 		color: #fff;
-		background-image: url("/static/miji/jieguo-btn@2x.png");
-		background-repeat: no-repeat;
-		background-size: cover;
+		font-weight: bold;
+		border-radius: 44rpx;
+		background: linear-gradient(135deg, #D0000F 0%, #A22823 50%, #8B0000 100%);
+		box-shadow: 0 4rpx 12rpx rgba(208, 0, 15, 0.3);
+		
+		&:first-child {
+			background: linear-gradient(135deg, #fff 0%, #f5f5f5 100%);
+			border: 2rpx solid #D0000F;
+			color: #D0000F;
+		}
+	}
+
+	// Loading遮罩样式 - 使用 Animate.css
+	.loading-overlay {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background: rgba(245, 230, 211, 0.95);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		z-index: 9999;
+		backdrop-filter: blur(10px);
+	}
+
+	.loading-content {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+	}
+
+	.loading-box {
+		width: 160rpx;
+		height: 160rpx;
+		background: linear-gradient(135deg, #FFF1F1, #FFE0E0);
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		box-shadow: 0 8rpx 32rpx rgba(208, 0, 15, 0.3);
+		border: 4rpx solid rgba(208, 0, 15, 0.2);
+	}
+
+	.loading-icon {
+		font-size: 80rpx;
+		animation: bounce 1s ease-in-out infinite;
+	}
+
+	@keyframes bounce {
+		0%, 100% {
+			transform: translateY(0) scale(1);
+		}
+		50% {
+			transform: translateY(-10rpx) scale(1.1);
+		}
+	}
+
+	.loading-text {
+		margin-top: 40rpx;
+		font-size: 32rpx;
+		color: #D0000F;
+		font-weight: 500;
+		text-shadow: 0 2rpx 8rpx rgba(208, 0, 15, 0.2);
+	}
+
+	// 骨架屏效果
+	.skeleton-box {
+		opacity: 0.6;
 	}
 </style>

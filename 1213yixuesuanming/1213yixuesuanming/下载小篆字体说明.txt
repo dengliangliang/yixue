@@ -1,0 +1,49 @@
+📥 小篆字体下载指南
+
+=== 推荐字体：崇羲篆体（免费商用）===
+
+下载步骤：
+1. 打开浏览器，访问：https://zfont.cn/cn/font_517.html
+
+2. 在页面中找到"下载"按钮，点击下载
+
+3. 下载后得到文件：Chong_Xi_Small_Seal.ttf 或类似名称
+
+4. 将字体文件放到：
+   D:\workspace\1213易学\1213yixuesuanming\1213yixuesuanming\src\static\ttf\
+
+5. 重命名为：Chong_Xi_Small_Seal.ttf（保持英文名）
+
+6. 在 generate-zhuanti-image.html 工具中：
+   - 点击"选择字体文件"
+   - 选择刚下载的 Chong_Xi_Small_Seal.ttf
+   - 输入文字：九紫离火
+   - 点击"生成图片"
+
+=== 备选字体：峄山碑篆体 ===
+
+下载地址：https://www.mfonts.cn/10211.html
+
+下载后搜索文件名：FENG-SHAN-BEI-CUAN-TI.ttf
+放到同样的目录即可使用。
+
+=== 重要提示 ===
+
+✅ 崇羲篆体和峄山碑篆体都是免费商用字体
+✅ 这两款都是正宗的"小篆"字体，与t1图片风格一致
+✅ 下载后直接在HTML工具中使用即可
+
+❌ 不要使用 JFZSKSealScript_V2.0.ttf（已测试，风格不对）
+❌ 方正小篆体可能需要付费授权
+
+=== 如果下载链接失效 ===
+
+搜索关键词：
+- "崇羲篆体 免费下载"
+- "峄山碑篆体 ttf"
+- "说文解字小篆字体"
+
+或者在这些网站搜索：
+- 字体天下：https://www.fonts.net.cn
+- 找字网：https://www.zhaozi.cn
+- 字魂网：https://izihun.com

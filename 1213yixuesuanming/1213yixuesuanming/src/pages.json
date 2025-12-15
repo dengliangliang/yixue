@@ -3,70 +3,69 @@
 		"autoscan": true,
 		"custom": {
 			"fui-(.*)": "@/components/firstui/fui-$1/fui-$1.vue"
-		},
-		"^u-(.*)": "uview-plus/components/u-$1/u-$1.vue"
+		}
 	},
 	"pages": [
 		{
 			"path": "pages/index/index",
 			"style": {
-				"navigationBarTitleText": "来自2025的好消息",
+				"navigationBarTitleText": "解密2026",
 				"navigationBarBackgroundColor": "#E2C289"
 			}
 		},
 		{
 			"path": "pages/login/index",
 			"style": {
-				"navigationBarTitleText": "来自2025的好消息",
+				"navigationBarTitleText": "解密2026",
 				"navigationBarBackgroundColor": "#E2C289"
 			}
 		},
 		{
 			"path": "pages/index/Message",
 			"style": {
-				"navigationBarTitleText": "来自2025的好消息",
+				"navigationBarTitleText": "解密2026",
 				"navigationBarBackgroundColor": "#E2C289"
 			}
 		},
 		{
 			"path": "pages/index/gossip",
 			"style": {
-				"navigationBarTitleText": "来自2025的好消息",
+				"navigationBarTitleText": "解密2026",
 				"navigationBarBackgroundColor": "#E2C289"
 			}
 		},
 		{
 			"path": "pages/index/Generated",
 			"style": {
-				"navigationBarTitleText": "来自2025的好消息",
+				"navigationBarTitleText": "解密2026",
 				"navigationBarBackgroundColor": "#E2C289"
 			}
 		},
 		{
 			"path": "pages/login/login",
 			"style": {
-				"navigationBarTitleText": "来自2025的好消息",
+				"navigationBarTitleText": "解密2026",
 				"navigationBarBackgroundColor": "#E2C289"
 			}
 		},
 		{
 			"path": "pages/yinsi",
 			"style": {
-				"navigationBarTitleText": "来自2025的好消息",
+				"navigationBarTitleText": "解密2026",
 				"navigationBarBackgroundColor": "#E2C289"
 			}
 		},
 		{
 			"path": "pages/login/setInfo",
 			"style": {
-				"navigationBarTitleText": "来自2025的好消息",
+				"navigationBarTitleText": "解密2026",
 				"navigationBarBackgroundColor": "#E2C289"
 			}
 		},
 		{
 			"path": "pages/result/result",
 			"style": {
-				"navigationBarTitleText": "来自2025的好消息",
+				"navigationBarTitleText": "解密2026",
 				"navigationBarBackgroundColor": "#E2C289"
 			}
 		},
@@ -74,21 +73,21 @@
 			"path" : "pages/result/miji",
 			"style" : 
 			{
-				"navigationBarTitleText" : "来自2025的好消息"
+				"navigationBarTitleText" : "解密2026"
 			}
 		},
 		{
 			"path" : "pages/result/yijiesuo",
 			"style" : 
 			{
-				"navigationBarTitleText" : "来自2025的好消息"
+				"navigationBarTitleText" : "解密2026"
 			}
 		},
 		{
 			"path" : "pages/result/share",
 			"style" : 
 			{
-				"navigationBarTitleText" : "来自2025的好消息"
+				"navigationBarTitleText" : "解密2026"
 			}
 		},
 		{
@@ -96,6 +95,13 @@
 			"style" : 
 			{
 				"navigationBarTitleText" : ""
+			}
+		},
+		{
+			"path" : "pages/result/generate",
+			"style" : 
+			{
+				"navigationBarTitleText" : "解密2026"
 			}
 		}
 	],

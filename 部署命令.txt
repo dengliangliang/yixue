@@ -1,0 +1,51 @@
+1. 上传后端PHP文件
+本地上传到服务器
+# 使用scp上传修改的PHP文件
+scp -P 3522 -i D:\workspace\my_tencent_cloud_key2.ppk -r D:/workspace/1213易学/1213-easy-to-learn/application/api/controller/* root@1.12.230.141:/home/wwwroot/yixue/1213-easy-to-learn/application/api/controller/
+PHP无需重启容器，上传后立即生效。
+
+2. 执行SQL更新
+# SSH登录服务器
+ssh root@服务器IP
+
+# 进入docker-deploy目录
+cd /home/wwwroot/yixue/docker-deploy
+
+# 方式1: 使用phpMyAdmin (http://服务器IP:8082)
+# 导入 sql/yixue_v2_update.sql
+
+# 方式2: 命令行执行
+docker exec -i yixue-mysql mysql -uroot -p数据库密码 yixue < /path/to/yixue_v2_update.sql
+
+3. 上传前端并重新构建H5
+# 本地执行 - 上传整个src目录和配置文件
+scp -r D:/workspace/1213易学/1213yixuesuanming/1213yixuesuanming/src root@服务器IP:/home/wwwroot/yixue/1213yixuesuanming/1213yixuesuanming/
+scp D:/workspace/1213易学/1213yixuesuanming/1213yixuesuanming/pages.json root@服务器IP:/home/wwwroot/yixue/1213yixuesuanming/1213yixuesuanming/src/
+
+# 服务器执行 - 构建
+cd /home/wwwroot/yixue/1213yixuesuanming/1213yixuesuanming
+docker run --rm -v "$(pwd):/app" -w /app node:18-alpine npm run build:h5
+cp -r dist/build/h5/* /home/wwwroot/yixue/docker-deploy/h5/
+docker restart yixue-h5
+
+uni-app H5构建产物是纯静态文件，可以在本地构建后直接上传到服务器运行。
+
+执行步骤
+步骤1：本地构建
+cd D:\workspace\1213易学\1213yixuesuanming\1213yixuesuanming
+npm run build:h5
+
+构建产物位于：dist/build/h5/
+
+步骤2：上传到服务器
+# 使用scp上传构建产物
+scp -r dist/build/h5/* root@服务器IP:/home/wwwroot/yixue/docker-deploy/h5/
+
+步骤3：服务器重启容器
+docker restart yixue-h5
+
+
+
+
+
+scp -P 3522 -i D:\workspace\my_tencent_cloud_key2.ppk -r D:\workspace\1213易学\1213yixuesuanming\1213yixuesuanming\dist\build\h5\* root@1.12.230.141:/home/wwwroot/yixue/docker-deploy/h5/
