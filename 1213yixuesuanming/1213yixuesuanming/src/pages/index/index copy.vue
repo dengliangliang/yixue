@@ -40,9 +40,9 @@
 			}
 		},
 		onLoad(op) {
-			// 🚀 性能监控：记录页面加载开始时间
+			//  性能监控：记录页面加载开始时间
 			this.pageLoadStart = Date.now();
-			console.log('🚀 [性能] 页面开始加载', new Date().toISOString());
+			console.log(' [性能] 页面开始加载', new Date().toISOString());
 			
 			console.log('----', op);
 			if (op.sign) {
@@ -58,10 +58,10 @@
 		onReady() {
 			this.getsy();
 			
-			// 🚀 性能监控：记录页面渲染完成时间
+			//  性能监控：记录页面渲染完成时间
 			this.pageLoadEnd = Date.now();
 			const loadTime = this.pageLoadEnd - this.pageLoadStart;
-			console.log('✅ [性能] 页面渲染完成', {
+			console.log(' [性能] 页面渲染完成', {
 				耗时: loadTime + 'ms',
 				时间戳: new Date().toISOString()
 			});
@@ -81,7 +81,7 @@
 					// 检查是否已有缓存
 					const cachedProvince = uni.getStorageSync('cache_provinceList');
 					if (cachedProvince && cachedProvince.length > 0) {
-						console.log('✅ [数据] 省份数据已缓存，跳过', {
+						console.log(' [数据] 省份数据已缓存，跳过', {
 							数量: cachedProvince.length,
 							耗时: (Date.now() - startTime) + 'ms'
 						});
@@ -103,7 +103,7 @@
 					if (res.code == 1) {
 						uni.setStorageSync('cache_provinceList', res.data);
 						const totalTime = Date.now() - startTime;
-						console.log('✅ [数据] 省份数据缓存完成', {
+						console.log(' [数据] 省份数据缓存完成', {
 							数量: res.data.length,
 							API耗时: apiTime + 'ms',
 							总耗时: totalTime + 'ms'

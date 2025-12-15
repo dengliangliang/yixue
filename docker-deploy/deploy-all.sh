@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-echo "🚀 开始完整部署（后端API + H5前端）..."
+echo " 开始完整部署（后端API + H5前端）..."
 
 # 检查Docker
 if ! command -v docker &> /dev/null; then

@@ -107,7 +107,7 @@ generate_env() {
 
 # 主函数
 main() {
-    echo "🚀 开始端口检查..."
+    echo " 开始端口检查..."
     echo ""
     
     generate_env

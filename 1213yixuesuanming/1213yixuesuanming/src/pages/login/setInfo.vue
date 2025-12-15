@@ -100,6 +100,21 @@
 			</view>
 
 		</view>
+		
+		<!-- 自定义加载动画遮罩 -->
+		<view v-if="isLoading" class="custom-loading-mask">
+			<!-- 祥云点缀 -->
+			<image src="/static/yun1.png" class="loading-cloud loading-cloud-tl" mode="widthFix"></image>
+			<image src="/static/yun2.png" class="loading-cloud loading-cloud-tr" mode="widthFix"></image>
+			<image src="/static/yun1.png" class="loading-cloud loading-cloud-bl" mode="widthFix"></image>
+			<image src="/static/yun2.png" class="loading-cloud loading-cloud-br" mode="widthFix"></image>
+			<!-- 旋转加载图标 -->
+			<view class="loading-content">
+				<image src="/static/donhuajiazai.png" class="loading-spinner" mode="widthFix"></image>
+				<text class="loading-text">正在解析命盘...</text>
+			</view>
+		</view>
+		
 		<myPicker ref="calendar" @chushihua="(e)=>is_show=e" @confirm="confirm" />
 		
 		<!-- 自定义省市选择弹窗（替代u-picker） -->
@@ -144,6 +159,7 @@
 				is_show: false,
 				isShowCalendar: false,
 				isCityShow: false,
+				isLoading: false,
 				windowHeight: '',
 				nian: '',
 				yue: '',
@@ -279,11 +295,8 @@
 					return this.$toast('请选择出生日期');
 				}
 				
-				// 显示loading提示
-				uni.showLoading({
-					title: '正在解析命盘...',
-					mask: true
-				});
+				// 显示自定义loading
+				this.isLoading = true;
 				
 				let app_parmas = uni.getStorageSync('app_parmas') || {}
 			
@@ -304,7 +317,7 @@
 						date: `${this.nian}-${this.yue}-${this.ri}`,
 					})
 					
-					uni.hideLoading();
+					this.isLoading = false;
 					console.log('[setInfo] addRecord 响应完成, 耗时:', Date.now() - submitStart, 'ms');
 					
 					if (code != 1) return this.$toast(msg);
@@ -316,12 +329,12 @@
 						url: "/pages/result/generate?record_id=" + data.record_id
 					})
 				} catch (e) {
-					uni.hideLoading();
+					this.isLoading = false;
 					this.$toast('网络请求失败，请重试');
 				}
 			},
 			// 计算并缓存结果（等待完成，避免重复请求）
-			// 🚀 计算并缓存结果（等待完成，避免重复请求）
+			//  计算并缓存结果（等待完成，避免重复请求）
 			async calcAndCache(record_id) {
 				const calcStart = Date.now();
 				console.log('[setInfo] 开始计算, record_id:', record_id);
@@ -784,5 +797,82 @@
 		color: #333;
 		height: 80rpx;
 		line-height: 80rpx;
+	}
+	
+	/* ========== 自定义加载动画样式 ========== */
+	.custom-loading-mask {
+		position: fixed;
+		top: 0;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		background-color: #fefdf8;
+		z-index: 9999;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+	
+	/* 祥云点缀 */
+	.loading-cloud {
+		position: absolute;
+		opacity: 0.6;
+		filter: drop-shadow(0 2rpx 4rpx rgba(0, 0, 0, 0.1));
+	}
+	.loading-cloud-tl {
+		width: 200rpx;
+		top: 60rpx;
+		left: -30rpx;
+	}
+	.loading-cloud-tr {
+		width: 180rpx;
+		top: 80rpx;
+		right: -20rpx;
+		transform: scaleX(-1);
+	}
+	.loading-cloud-bl {
+		width: 220rpx;
+		bottom: 100rpx;
+		left: -40rpx;
+	}
+	.loading-cloud-br {
+		width: 200rpx;
+		bottom: 80rpx;
+		right: -30rpx;
+		transform: scaleX(-1);
+	}
+	
+	/* 加载内容区 */
+	.loading-content {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+	}
+	
+	/* 旋转加载图标 - 无边框，放大 */
+	.loading-spinner {
+		width: 280rpx;
+		animation: spin 2s linear infinite;
+		border: none;
+		background: transparent;
+	}
+	
+	@keyframes spin {
+		from {
+			transform: rotate(0deg);
+		}
+		to {
+			transform: rotate(360deg);
+		}
+	}
+	
+	/* 加载文字 */
+	.loading-text {
+		margin-top: 40rpx;
+		font-size: 32rpx;
+		color: #8B6914;
+		letter-spacing: 4rpx;
+		font-weight: 500;
 	}
 </style>

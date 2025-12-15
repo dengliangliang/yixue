@@ -3,7 +3,7 @@
 	export default {
 		onLaunch: function() {
 			const launchTime = Date.now();
-			console.log('🚀 [应用] App Launch', new Date().toISOString());
+			console.log(' [应用] App Launch', new Date().toISOString());
 			
 			if (this.isWeChatBrowser()) {
 				const pages = getCurrentPages();
@@ -21,7 +21,7 @@
 					}
 					
 					const initTime = Date.now() - launchTime;
-					console.log('✅ [应用] 初始化完成', {
+					console.log(' [应用] 初始化完成', {
 						耗时: initTime + 'ms',
 						平台: res.platform,
 						系统: res.system,

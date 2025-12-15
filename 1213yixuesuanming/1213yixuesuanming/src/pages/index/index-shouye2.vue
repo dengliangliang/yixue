@@ -1,11 +1,26 @@
 <template>
 	<view class="content" :style="'height:'+windowHeight+'px'">
-		<!-- ========== 吉祥点缀装饰（卷轴版） ========== -->
+		<!-- ========== 吉祥点缀装饰（卷轴版-丰富版） ========== -->
 		<view class="decor-container">
+			<!-- 灯笼 - 顶部两侧（马灯笼） -->
+			<image src="/static/denglong1.png" class="decor-lantern decor-left animate__animated animate__fadeInDown" mode="widthFix"></image>
+			<image src="/static/denglong1.png" class="decor-lantern decor-right animate__animated animate__fadeInDown" mode="widthFix"></image>
 			<!-- 祥云 - 左下角 -->
 			<image src="/static/yun1.png" class="decor-cloud decor-cloud-left animate__animated animate__fadeIn animate__delay-0-5s" mode="widthFix"></image>
+			<!-- 祥云 - 右下角 -->
+			<image src="/static/yun2.png" class="decor-cloud decor-cloud-right animate__animated animate__fadeIn animate__delay-0-5s" mode="widthFix"></image>
+			<!-- 祥云 - 左上部 -->
+			<image src="/static/yun1.png" class="decor-cloud decor-cloud-top-left animate__animated animate__fadeIn animate__delay-0-5s" mode="widthFix"></image>
+			<!-- 祥云 - 右上部 -->
+			<image src="/static/yun2.png" class="decor-cloud decor-cloud-top-right animate__animated animate__fadeIn animate__delay-0-5s" mode="widthFix"></image>
 			<!-- 仙鹤 - 右上角 -->
 			<image src="/static/he3.png" class="decor-crane decor-crane-top animate__animated animate__fadeInRight animate__delay-0-5s" mode="widthFix"></image>
+			<!-- 仙鹤 - 左下部（按钮左边） -->
+			<image src="/static/he4.png" class="decor-crane decor-crane-left animate__animated animate__fadeInLeft animate__delay-0-5s" mode="widthFix"></image>
+			<!-- 仙鹤 - 右下部（按钮右边，对称） -->
+			<image src="/static/he4.png" class="decor-crane decor-crane-right animate__animated animate__fadeInRight animate__delay-0-5s" mode="widthFix"></image>
+			<!-- 马群 - 底部中间 -->
+			<image src="/static/ma3.png" class="decor-horse animate__animated animate__fadeInUp animate__delay-1s" mode="widthFix"></image>
 		</view>
 		
 		<!-- 左上角双Logo布局 -->
@@ -48,9 +63,9 @@
 			}
 		},
 		onLoad(op) {
-			// 🚀 性能监控：记录页面加载开始时间
+			//  性能监控：记录页面加载开始时间
 			this.pageLoadStart = Date.now();
-			console.log('🚀 [性能] 页面开始加载', new Date().toISOString());
+			console.log(' [性能] 页面开始加载', new Date().toISOString());
 			
 			console.log('----', op);
 			if (op.sign) {
@@ -66,10 +81,10 @@
 		onReady() {
 			this.getsy();
 			
-			// 🚀 性能监控：记录页面渲染完成时间
+			//  性能监控：记录页面渲染完成时间
 			this.pageLoadEnd = Date.now();
 			const loadTime = this.pageLoadEnd - this.pageLoadStart;
-			console.log('✅ [性能] 页面渲染完成', {
+			console.log(' [性能] 页面渲染完成', {
 				耗时: loadTime + 'ms',
 				时间戳: new Date().toISOString()
 			});
@@ -89,7 +104,7 @@
 					// 检查是否已有缓存
 					const cachedProvince = uni.getStorageSync('cache_provinceList');
 					if (cachedProvince && cachedProvince.length > 0) {
-						console.log('✅ [数据] 省份数据已缓存，跳过', {
+						console.log(' [数据] 省份数据已缓存，跳过', {
 							数量: cachedProvince.length,
 							耗时: (Date.now() - startTime) + 'ms'
 						});
@@ -111,7 +126,7 @@
 					if (res.code == 1) {
 						uni.setStorageSync('cache_provinceList', res.data);
 						const totalTime = Date.now() - startTime;
-						console.log('✅ [数据] 省份数据缓存完成', {
+						console.log(' [数据] 省份数据缓存完成', {
 							数量: res.data.length,
 							API耗时: apiTime + 'ms',
 							总耗时: totalTime + 'ms'
@@ -290,9 +305,9 @@
 	
 	/* 方案4：双层金色立体感 - 浅金渐变 */
 	.theme-title-v4 {
-		font-size: 48rpx;
+		font-size: 36rpx;
 		font-weight: 700;
-		letter-spacing: 8rpx;
+		letter-spacing: 4rpx;
 		line-height: 1.6;
 		/* 浅金渐变 */
 		background: linear-gradient(180deg, #fefdf8 0%, #faeac2 100%);
@@ -320,11 +335,11 @@
 		position: absolute;
 		width: 200rpx;
 		height: auto;
-		/* 水印透明效果 */
-		opacity: 0.25;
+		/* 完全不透明 */
+		opacity: 1;
 		/* 金色光晕 */
 		filter: drop-shadow(0 0 20rpx rgba(255, 215, 0, 0.6));
-		/* 漂浮动画 */
+		/* 漂浮动画 - 保持光晕变化效果 */
 		animation: floatWatermark 4s ease-in-out infinite;
 	}
 	
@@ -361,11 +376,11 @@
 	@keyframes floatWatermark {
 		0%, 100% {
 			transform: translateY(0) rotate(var(--rotate, 0deg));
-			opacity: 0.2;
+			filter: drop-shadow(0 0 15rpx rgba(255, 215, 0, 0.5));
 		}
 		50% {
 			transform: translateY(-10rpx) rotate(var(--rotate, 0deg));
-			opacity: 0.3;
+			filter: drop-shadow(0 0 30rpx rgba(255, 215, 0, 0.9));
 		}
 	}
 	
@@ -484,7 +499,7 @@
 		}
 	}
 	
-	/* ========== 吉祥点缀装饰样式（卷轴版） ========== */
+	/* ========== 吉祥点缀装饰样式（卷轴版-丰富版） ========== */
 	.decor-container {
 		position: absolute;
 		top: 0;
@@ -495,27 +510,82 @@
 		z-index: 10;
 	}
 	
+	/* 灯笼装饰 - 贴着卷轴边缘 */
+	.decor-lantern {
+		position: absolute;
+		width: 55rpx;
+		top: 85rpx;
+		opacity: 0.85;
+		filter: drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.3));
+	}
+	.decor-left {
+		left: 85rpx;
+	}
+	.decor-right {
+		right: 85rpx;
+		transform: scaleX(-1);
+	}
+	
 	/* 祥云装饰 */
 	.decor-cloud {
 		position: absolute;
-		opacity: 0.6;
+		opacity: 0.5;
 		filter: drop-shadow(0 2rpx 4rpx rgba(0, 0, 0, 0.1));
 	}
 	.decor-cloud-left {
-		width: 180rpx;
-		left: -20rpx;
+		width: 140rpx;
+		left: -15rpx;
 		bottom: 12%;
+	}
+	.decor-cloud-right {
+		width: 120rpx;
+		right: -10rpx;
+		bottom: 18%;
+		transform: scaleX(-1);
+	}
+	.decor-cloud-top-left {
+		width: 120rpx;
+		left: -10rpx;
+		top: 22%;
+	}
+	.decor-cloud-top-right {
+		width: 100rpx;
+		right: -8rpx;
+		top: 28%;
+		transform: scaleX(-1);
 	}
 	
 	/* 仙鹤装饰 */
 	.decor-crane {
 		position: absolute;
-		opacity: 0.7;
+		opacity: 0.75;
 		filter: drop-shadow(0 2rpx 6rpx rgba(0, 0, 0, 0.2));
 	}
 	.decor-crane-top {
-		width: 140rpx;
-		right: 10rpx;
+		width: 120rpx;
+		right: 5rpx;
 		top: 15%;
+	}
+	.decor-crane-left {
+		width: 130rpx;
+		left: 0rpx;
+		bottom: 28%;
+	}
+	.decor-crane-right {
+		width: 130rpx;
+		right: 0rpx;
+		bottom: 28%;
+		transform: scaleX(-1);
+	}
+	
+	/* 马群装饰 - 底部居中 */
+	.decor-horse {
+		position: absolute;
+		width: 220rpx;
+		bottom: 25rpx;
+		left: 50%;
+		transform: translateX(-50%);
+		opacity: 0.7;
+		filter: drop-shadow(0 2rpx 6rpx rgba(0, 0, 0, 0.3));
 	}
 </style>

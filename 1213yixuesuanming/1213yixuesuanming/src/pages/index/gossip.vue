@@ -96,11 +96,11 @@
 			console.log('[Gossip] onLoad 开始, record_id:', record_id, '时间:', new Date().toISOString());
 			this.record_id = record_id;
 			
-			// 🚀 性能优化：去除动画，直接加载和跳转
+			//  性能优化：去除动画，直接加载和跳转
 			this.quickLoad();
 		},
 		methods: {
-			// 🚀 快速加载：显示loading提示，后台加载数据，完成后跳转
+			//  快速加载：显示loading提示，后台加载数据，完成后跳转
 			async quickLoad() {
 				const startTime = Date.now();
 				

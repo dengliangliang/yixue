@@ -64,7 +64,7 @@
 				uni.setStorageSync('app_parmas', op)
 			}
 			
-			// ⚡ 异步预加载省市数据（不阻塞页面渲染）
+			//  异步预加载省市数据（不阻塞页面渲染）
 			// 使用 setTimeout 确保页面渲染完成后再加载
 			setTimeout(() => {
 				this.preloadAreaData();
@@ -73,10 +73,10 @@
 		onReady() {
 			this.getsy();
 			
-			// 🚀 性能监控：记录页面渲染完成时间
+			//  性能监控：记录页面渲染完成时间
 			this.pageLoadEnd = Date.now();
 			const loadTime = this.pageLoadEnd - this.pageLoadStart;
-			console.log('✅ [性能] 页面渲染完成', {
+			console.log(' [性能] 页面渲染完成', {
 				耗时: loadTime + 'ms',
 				时间戳: new Date().toISOString()
 			});
@@ -96,7 +96,7 @@
 					// 检查是否已有缓存
 					const cachedProvince = uni.getStorageSync('cache_provinceList');
 					if (cachedProvince && cachedProvince.length > 0) {
-						console.log('✅ [数据] 省份数据已缓存，跳过', {
+						console.log(' [数据] 省份数据已缓存，跳过', {
 							数量: cachedProvince.length,
 							耗时: (Date.now() - startTime) + 'ms'
 						});
@@ -118,7 +118,7 @@
 					if (res.code == 1) {
 						uni.setStorageSync('cache_provinceList', res.data);
 						const totalTime = Date.now() - startTime;
-						console.log('✅ [数据] 省份数据缓存完成', {
+						console.log(' [数据] 省份数据缓存完成', {
 							数量: res.data.length,
 							API耗时: apiTime + 'ms',
 							总耗时: totalTime + 'ms'
@@ -245,7 +245,8 @@
 	/* 主题文案容器 - 解密2026（移到九紫离火上方） */
 	.theme-container {
 		width: 100%;
-		text-align: center;
+		display: flex;
+		justify-content: center;
 		flex-shrink: 0;
 		padding: 0 60rpx;
 		margin-top: 18vh;
@@ -258,6 +259,9 @@
 		font-weight: 700;
 		letter-spacing: 8rpx;
 		line-height: 1.6;
+		/* 竖排显示 */
+		writing-mode: vertical-rl;
+		text-orientation: upright;
 		/* 金属渐变效果 */
 		background: linear-gradient(180deg, #FFD700 0%, #DAA520 50%, #B8860B 100%);
 		-webkit-background-clip: text;
@@ -275,6 +279,9 @@
 		font-weight: 700;
 		letter-spacing: 8rpx;
 		line-height: 1.6;
+		/* 竖排显示 */
+		writing-mode: vertical-rl;
+		text-orientation: upright;
 		color: #FFD700;
 		text-shadow: 
 			0 0 10rpx #000,
@@ -289,6 +296,9 @@
 		font-weight: 700;
 		letter-spacing: 8rpx;
 		line-height: 1.6;
+		/* 竖排显示 */
+		writing-mode: vertical-rl;
+		text-orientation: upright;
 		color: #FFD700;
 		background: linear-gradient(90deg, transparent 0%, rgba(139,0,0,0.7) 20%, rgba(139,0,0,0.7) 80%, transparent 100%);
 		padding: 20rpx 60rpx;
@@ -297,10 +307,13 @@
 	
 	/* 方案4：双层金色立体感 - 浅金渐变 */
 	.theme-title-v4 {
-		font-size: 48rpx;
+		font-size: 36rpx;
 		font-weight: 700;
-		letter-spacing: 8rpx;
+		letter-spacing: 4rpx;
 		line-height: 1.6;
+		/* 竖排显示 */
+		writing-mode: vertical-rl;
+		text-orientation: upright;
 		/* 浅金渐变 */
 		background: linear-gradient(180deg, #fefdf8 0%, #faeac2 100%);
 		-webkit-background-clip: text;
@@ -382,7 +395,7 @@
 		display: flex;
 		justify-content: center;
 		flex-shrink: 0;
-		margin: 30vh 0 40rpx 0;
+		margin: 10vh 0 40rpx 0;
 	}
 
 	.explore-btn {
@@ -400,6 +413,7 @@
 			inset 0 -2rpx 0 rgba(0, 0, 0, 0.2);
 		position: relative;
 		overflow: hidden;
+		z-index: 20;
 		
 		/* 按钮光泽效果 */
 		&::before {

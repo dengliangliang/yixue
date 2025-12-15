@@ -64,7 +64,7 @@
 				uni.setStorageSync('app_parmas', op)
 			}
 			
-			//  异步预加载省市数据（不阻塞页面渲染）
+			// ⚡ 异步预加载省市数据（不阻塞页面渲染）
 			// 使用 setTimeout 确保页面渲染完成后再加载
 			setTimeout(() => {
 				this.preloadAreaData();
@@ -413,7 +413,6 @@
 			inset 0 -2rpx 0 rgba(0, 0, 0, 0.2);
 		position: relative;
 		overflow: hidden;
-		z-index: 20;
 		
 		/* 按钮光泽效果 */
 		&::before {

@@ -70,7 +70,7 @@
           class="bg-white rounded-full py-28 text-center shadow-card mb-24 transition-smooth active:scale-95"
           @click="navto"
         >
-          <text class="text-primary text-2xl font-bold">探索 2026 🚀</text>
+          <text class="text-primary text-2xl font-bold">探索 2026 </text>
         </view>
         
         <!-- 副按钮（可选） -->
