@@ -506,7 +506,7 @@
 	.decor-lantern {
 		position: absolute;
 		width: 70rpx;
-		top: 10rpx;
+		top: 60rpx;
 		opacity: 0.9;
 		filter: drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.3));
 	}
