@@ -1,16 +1,11 @@
 <template>
 	<view class="content" :style="'height:'+windowHeight+'px'">
-		<!-- ========== 吉祥点缀装饰（合并版） ========== -->
+		<!-- ========== 吉祥点缀装饰（卷轴版） ========== -->
 		<view class="decor-container">
-			<!-- 灯笼 - 顶部两侧（马灯笼） -->
-			<image src="/static/denglong1.png" class="decor-lantern decor-left animate__animated animate__fadeInDown" mode="widthFix"></image>
-			<image src="/static/denglong1.png" class="decor-lantern decor-right animate__animated animate__fadeInDown" mode="widthFix"></image>
-			<!-- 马群 - 底部 -->
-			<image src="/static/ma3.png" class="decor-horse animate__animated animate__fadeInUp animate__delay-1s" mode="widthFix"></image>
-			<!-- 仙鹤 - 左下角、右中上方、右下方 -->
-			<image src="/static/he4.png" class="decor-crane decor-crane-left animate__animated animate__fadeInLeft animate__delay-0-5s" mode="widthFix"></image>
-			<image src="/static/he4.png" class="decor-crane decor-crane-top animate__animated animate__fadeInRight animate__delay-0-5s" mode="widthFix"></image>
-			<image src="/static/he5.png" class="decor-crane decor-crane-right animate__animated animate__fadeInRight animate__delay-0-5s" mode="widthFix"></image>
+			<!-- 祥云 - 左下角 -->
+			<image src="/static/yun1.png" class="decor-cloud decor-cloud-left animate__animated animate__fadeIn animate__delay-0-5s" mode="widthFix"></image>
+			<!-- 仙鹤 - 右上角 -->
+			<image src="/static/he3.png" class="decor-crane decor-crane-top animate__animated animate__fadeInRight animate__delay-0-5s" mode="widthFix"></image>
 		</view>
 		
 		<!-- 左上角双Logo布局 -->
@@ -49,15 +44,13 @@
 				title: 'Hello',
 				windowHeight: '',
 				pageLoadStart: 0, // 页面加载开始时间
-				pageLoadEnd: 0,   // 页面加载完成时间
-				// 装饰方案切换：'A' 简约吉祥, 'B' 热闹喜庆, 'C' 仙鹤主题, '' 无装饰
-				decorScheme: 'C'
+				pageLoadEnd: 0    // 页面加载完成时间
 			}
 		},
 		onLoad(op) {
-			//  性能监控：记录页面加载开始时间
+			// 🚀 性能监控：记录页面加载开始时间
 			this.pageLoadStart = Date.now();
-			console.log(' [性能] 页面开始加载', new Date().toISOString());
+			console.log('🚀 [性能] 页面开始加载', new Date().toISOString());
 			
 			console.log('----', op);
 			if (op.sign) {
@@ -183,7 +176,7 @@
 		width: 100%;
 		height: 100%;
 		/* 使用卷轴背景图 shouye1.jpg */
-		background-image: url(/static/shouye3.jpg);
+		background-image: url(/static/shouye2.jpg);
 		background-size: 100% 100%;
 		background-repeat: no-repeat;
 		background-position: center center;
@@ -217,9 +210,9 @@
 	}
 	
 	.logo-item {
-		/* 统一logo尺寸 */
-		width: 140rpx !important;
-		height: 56rpx !important;
+		/* 统一logo尺寸 - shouye2卷轴版本缩小 */
+		width: 100rpx !important;
+		height: 40rpx !important;
 		display: block;
 		/* 使用contain保持比例完整显示 */
 		object-fit: contain;
@@ -491,7 +484,7 @@
 		}
 	}
 	
-	/* ========== 吉祥点缀装饰样式 ========== */
+	/* ========== 吉祥点缀装饰样式（卷轴版） ========== */
 	.decor-container {
 		position: absolute;
 		top: 0;
@@ -502,82 +495,27 @@
 		z-index: 10;
 	}
 	
-	/* 灯笼装饰 */
-	.decor-lantern {
-		position: absolute;
-		width: 70rpx;
-		top: 10rpx;
-		opacity: 0.9;
-		filter: drop-shadow(0 4rpx 8rpx rgba(0, 0, 0, 0.3));
-	}
-	.decor-left {
-		left: 15rpx;
-	}
-	.decor-right {
-		right: 15rpx;
-		transform: scaleX(-1);
-	}
-	
-	/* 方案A：马群装饰 - 底部居中 */
-	.decor-horse {
-		position: absolute;
-		width: 280rpx;
-		bottom: 30rpx;
-		left: 50%;
-		transform: translateX(-50%);
-		opacity: 0.75;
-		filter: drop-shadow(0 2rpx 6rpx rgba(0, 0, 0, 0.3));
-	}
-	
-	/* 方案B：双马装饰 - 底部 */
-	.decor-horse-b {
-		position: absolute;
-		width: 240rpx;
-		bottom: 25rpx;
-		left: 50%;
-		transform: translateX(-50%);
-		opacity: 0.8;
-		filter: drop-shadow(0 2rpx 6rpx rgba(0, 0, 0, 0.3));
-	}
-	
 	/* 祥云装饰 */
 	.decor-cloud {
 		position: absolute;
-		opacity: 0.7;
-		filter: drop-shadow(0 2rpx 4rpx rgba(0, 0, 0, 0.2));
+		opacity: 0.6;
+		filter: drop-shadow(0 2rpx 4rpx rgba(0, 0, 0, 0.1));
 	}
 	.decor-cloud-left {
-		width: 200rpx;
-		left: -20rpx;
-		bottom: 18%;
-	}
-	.decor-cloud-right {
 		width: 180rpx;
-		right: -20rpx;
-		top: 25%;
-		transform: scaleX(-1);
+		left: -20rpx;
+		bottom: 12%;
 	}
 	
 	/* 仙鹤装饰 */
 	.decor-crane {
 		position: absolute;
-		opacity: 0.85;
-		filter: drop-shadow(0 2rpx 8rpx rgba(0, 0, 0, 0.3));
-	}
-	.decor-crane-left {
-		width: 160rpx;
-		left: 10rpx;
-		bottom: 15%;
+		opacity: 0.7;
+		filter: drop-shadow(0 2rpx 6rpx rgba(0, 0, 0, 0.2));
 	}
 	.decor-crane-top {
-		width: 160rpx;
-		right: 20rpx;
-		top: 18%;
-	}
-	.decor-crane-right {
-		width: 100rpx;
-		right: 15rpx;
-		bottom: 22%;
-		transform: scaleX(-1);
+		width: 140rpx;
+		right: 10rpx;
+		top: 15%;
 	}
 </style>
