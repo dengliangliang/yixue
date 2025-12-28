@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>单字小篆图片生成工具（透明背景）</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            max-width: 1000px;
+            margin: 0 auto;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+        
+        .input-group {
+            margin-bottom: 25px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #555;
+            font-size: 16px;
+        }
+        
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        input[type="file"] {
+            padding: 10px;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            cursor: pointer;
+            background: #f8f9ff;
+        }
+        
+        .preview-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .char-preview {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            border: 2px solid #e0e0e0;
+            position: relative;
+        }
+        
+        .char-preview canvas {
+            max-width: 100%;
+            height: auto;
+            background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAYAAACNMs+9AAAAGElEQVQYlWNgYGCQwoKxgqGgcJA5h3yFAAs8BRWVSwooAAAAAElFTkSuQmCC') repeat;
+            border-radius: 8px;
+        }
+        
+        .char-label {
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-top: 10px;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin: 30px 0;
+        }
+        
+        button {
+            padding: 14px 35px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            min-width: 150px;
+        }
+        
+        .btn-generate {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-generate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-download {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+        
+        .btn-download:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(245, 87, 108, 0.4);
+        }
+        
+        .btn-download-all {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            color: white;
+        }
+        
+        .btn-download-all:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(67, 233, 123, 0.4);
+        }
+        
+        .tips {
+            background: #e3f2fd;
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 30px;
+            border-left: 5px solid #2196F3;
+        }
+        
+        .tips h3 {
+            color: #1976D2;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        
+        .tips ol {
+            margin-left: 25px;
+            color: #555;
+            line-height: 1.8;
+        }
+        
+        .tips li {
+            margin-bottom: 8px;
+        }
+        
+        .success-msg {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border: 1px solid #c3e6cb;
+            display: none;
+        }
+        
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+        }
+        
+        .checkbox-group label {
+            margin: 0;
+            font-weight: normal;
+            cursor: pointer;
+        }
+        
+        .gradient-colors {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 10px;
+        }
+        
+        .color-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #f8f9fa;
+            padding: 8px 12px;
+            border-radius: 8px;
+        }
+        
+        .color-item span {
+            font-size: 14px;
+            color: #555;
+        }
+        
+        .color-item input[type="color"] {
+            width: 40px;
+            height: 30px;
+            border: none;
+            cursor: pointer;
+            border-radius: 4px;
+        }
+        
+        .color-hex {
+            font-family: monospace;
+            font-size: 12px !important;
+            color: #888 !important;
+        }
+        
+        .preset-colors {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .btn-preset {
+            padding: 8px 16px;
+            font-size: 14px;
+            background: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn-preset:hover {
+            background: #e0e0e0;
+            transform: translateY(-1px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 单字小篆图片生成工具（透明背景）</h1>
+        
+        <div class="input-group">
+            <label>📝 输入文字（每个字会生成单独图片）：</label>
+            <input type="text" id="textInput" value="九紫离火" placeholder="请输入要生成的文字">
+        </div>
+        
+        <div class="input-group">
+            <label>📏 字体大小（px）：</label>
+            <input type="number" id="fontSize" value="150" min="50" max="500">
+        </div>
+        
+        <div class="input-group">
+            <label>🎨 渐变色设置（从上到下）：</label>
+            <div class="gradient-colors">
+                <div class="color-item">
+                    <span>高光色：</span>
+                    <input type="color" id="color1" value="#ffffff">
+                    <span class="color-hex">#ffffff</span>
+                </div>
+                <div class="color-item">
+                    <span>亮金色：</span>
+                    <input type="color" id="color2" value="#fefdf8">
+                    <span class="color-hex">#fefdf8</span>
+                </div>
+                <div class="color-item">
+                    <span>主金色：</span>
+                    <input type="color" id="color3" value="#faeac2">
+                    <span class="color-hex">#faeac2</span>
+                </div>
+                <div class="color-item">
+                    <span>深金色：</span>
+                    <input type="color" id="color4" value="#d4a024">
+                    <span class="color-hex">#d4a024</span>
+                </div>
+                <div class="color-item">
+                    <span>暗金色：</span>
+                    <input type="color" id="color5" value="#8b6914">
+                    <span class="color-hex">#8b6914</span>
+                </div>
+            </div>
+            <div class="preset-colors">
+                <button type="button" class="btn-preset" onclick="applyPreset('gold')">🏆 纯正金色</button>
+                <button type="button" class="btn-preset" onclick="applyPreset('warm')">🔥 暖金色</button>
+                <button type="button" class="btn-preset" onclick="applyPreset('cool')">❄️ 冷金色</button>
+            </div>
+        </div>
+        
+        <div class="checkbox-group">
+            <input type="checkbox" id="transparentBg" checked>
+            <label for="transparentBg">✅ 使用透明背景（推荐）</label>
+        </div>
+        
+        <div class="input-group">
+            <label>📂 选择字体文件（推荐：崇羲篆体或峄山碑篆体）：</label>
+            <input type="file" id="fontFile" accept=".ttf,.otf" onchange="loadFont()">
+        </div>
+        
+        <div class="success-msg" id="successMsg"></div>
+        
+        <div class="button-group">
+            <button class="btn-generate" onclick="generateAllChars()">🎨 生成所有单字图片</button>
+            <button class="btn-download-all" onclick="downloadAll()">📦 下载全部图片</button>
+        </div>
+        
+        <div class="preview-grid" id="previewGrid"></div>
+        
+        <div class="tips">
+            <h3>💡 使用说明：</h3>
+            <ol>
+                <li><strong>选择小篆字体</strong>：点击"选择字体文件"，选择下载的小篆字体（如 Chong_Xi_Small_Seal.ttf）</li>
+                <li><strong>输入文字</strong>：默认是"九紫离火"，每个字会生成单独的图片</li>
+                <li><strong>调整参数</strong>：可调整字体大小和颜色</li>
+                <li><strong>生成图片</strong>：点击"生成所有单字图片"按钮</li>
+                <li><strong>下载图片</strong>：
+                    <ul style="margin-top: 5px;">
+                        <li>单独下载：点击每个字下方的"下载"按钮</li>
+                        <li>批量下载：点击"下载全部图片"按钮</li>
+                    </ul>
+                </li>
+                <li><strong>文件命名</strong>：自动命名为 九.png、紫.png、离.png、火.png</li>
+                <li><strong>放置位置</strong>：将图片放到 src/static/ 目录</li>
+            </ol>
+        </div>
+    </div>
+    
+    <script>
+        let customFont = null;
+        let canvases = {};
+        
+        // 加载字体文件
+        function loadFont() {
+            const fileInput = document.getElementById('fontFile');
+            const file = fileInput.files[0];
+            
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const fontData = e.target.result;
+                const fontFace = new FontFace('CustomZhuanti', fontData);
+                
+                fontFace.load().then(function(loadedFont) {
+                    document.fonts.add(loadedFont);
+                    customFont = 'CustomZhuanti';
+                    
+                    const msg = document.getElementById('successMsg');
+                    msg.textContent = '✅ 字体加载成功！现在可以生成图片了。';
+                    msg.style.display = 'block';
+                    
+                    setTimeout(() => {
+                        msg.style.display = 'none';
+                    }, 3000);
+                    
+                    // 自动生成预览
+                    generateAllChars();
+                }).catch(function(error) {
+                    alert('❌ 字体加载失败：' + error);
+                });
+            };
+            
+            reader.readAsArrayBuffer(file);
+        }
+        
+        // 生成所有单字图片
+        function generateAllChars() {
+            if (!customFont) {
+                alert('⚠️ 请先选择字体文件！');
+                return;
+            }
+            
+            const text = document.getElementById('textInput').value;
+            const chars = text.split('');
+            const previewGrid = document.getElementById('previewGrid');
+            
+            // 清空之前的预览
+            previewGrid.innerHTML = '';
+            canvases = {};
+            
+            // 为每个字生成图片
+            chars.forEach((char, index) => {
+                const charDiv = document.createElement('div');
+                charDiv.className = 'char-preview';
+                
+                const canvas = document.createElement('canvas');
+                canvas.id = 'canvas-' + index;
+                
+                const label = document.createElement('div');
+                label.className = 'char-label';
+                label.textContent = `字：${char}`;
+                
+                const downloadBtn = document.createElement('button');
+                downloadBtn.className = 'btn-download';
+                downloadBtn.textContent = '下载 ' + char + '.png';
+                downloadBtn.style.marginTop = '10px';
+                downloadBtn.onclick = function() {
+                    downloadSingleChar(char, canvas);
+                };
+                
+                charDiv.appendChild(canvas);
+                charDiv.appendChild(label);
+                charDiv.appendChild(downloadBtn);
+                previewGrid.appendChild(charDiv);
+                
+                // 生成这个字的图片
+                generateSingleChar(char, canvas);
+                canvases[char] = canvas;
+            });
+        }
+        
+        // 生成单个字的图片
+        function generateSingleChar(char, canvas) {
+            const ctx = canvas.getContext('2d');
+            const fontSize = parseInt(document.getElementById('fontSize').value);
+            const transparentBg = document.getElementById('transparentBg').checked;
+            
+            // 获取渐变色
+            const color1 = document.getElementById('color1').value;
+            const color2 = document.getElementById('color2').value;
+            const color3 = document.getElementById('color3').value;
+            const color4 = document.getElementById('color4').value;
+            const color5 = document.getElementById('color5').value;
+            
+            // 设置字体
+            ctx.font = `${fontSize}px ${customFont}, serif`;
+            
+            // 计算字的宽度
+            const metrics = ctx.measureText(char);
+            const charWidth = metrics.width;
+            
+            // 设置canvas尺寸（留边距）
+            const padding = fontSize * 0.2;
+            canvas.width = charWidth + padding * 2;
+            canvas.height = fontSize * 1.3 + padding * 2;
+            
+            // 重新设置字体（canvas尺寸改变后需要重设）
+            ctx.font = `${fontSize}px ${customFont}, serif`;
+            ctx.textBaseline = 'middle';
+            
+            // 清除背景（透明）
+            if (!transparentBg) {
+                ctx.fillStyle = '#FFFFFF';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+            
+            // 绘制文字（金色渐变）
+            const x = canvas.width / 2 - charWidth / 2;
+            const y = canvas.height / 2;
+            
+            // 创建自定义渐变
+            const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+            gradient.addColorStop(0, color1);      // 高光
+            gradient.addColorStop(0.2, color2);    // 亮金
+            gradient.addColorStop(0.5, color3);    // 主金色
+            gradient.addColorStop(0.75, color4);   // 深金
+            gradient.addColorStop(1, color5);      // 暗金
+            
+            ctx.fillStyle = gradient;
+            ctx.fillText(char, x, y);
+        }
+        
+        // 预设渐变色方案
+        function applyPreset(preset) {
+            const presets = {
+                'gold': {
+                    color1: '#ffffff',
+                    color2: '#fefdf8',
+                    color3: '#faeac2',
+                    color4: '#d4a024',
+                    color5: '#8b6914'
+                },
+                'warm': {
+                    color1: '#fffaf0',
+                    color2: '#ffefd5',
+                    color3: '#ffd700',
+                    color4: '#daa520',
+                    color5: '#b8860b'
+                },
+                'cool': {
+                    color1: '#f8f8ff',
+                    color2: '#f5f5dc',
+                    color3: '#eee8aa',
+                    color4: '#bdb76b',
+                    color5: '#6b8e23'
+                }
+            };
+            
+            const colors = presets[preset];
+            if (colors) {
+                document.getElementById('color1').value = colors.color1;
+                document.getElementById('color2').value = colors.color2;
+                document.getElementById('color3').value = colors.color3;
+                document.getElementById('color4').value = colors.color4;
+                document.getElementById('color5').value = colors.color5;
+                
+                // 更新颜色显示
+                updateColorHex();
+                
+                // 如果已加载字体，自动重新生成
+                if (customFont) {
+                    generateAllChars();
+                }
+            }
+        }
+        
+        // 更新颜色hex显示
+        function updateColorHex() {
+            for (let i = 1; i <= 5; i++) {
+                const input = document.getElementById('color' + i);
+                const hex = input.parentElement.querySelector('.color-hex');
+                if (hex) {
+                    hex.textContent = input.value;
+                }
+            }
+        }
+        
+        // 下载单个字的图片
+        function downloadSingleChar(char, canvas) {
+            if (canvas.width === 0) {
+                alert('⚠️ 请先生成图片！');
+                return;
+            }
+            
+            canvas.toBlob(function(blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = char + '.png';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
+        }
+        
+        // 下载所有图片
+        function downloadAll() {
+            if (Object.keys(canvases).length === 0) {
+                alert('⚠️ 请先生成图片！');
+                return;
+            }
+            
+            let downloaded = 0;
+            const total = Object.keys(canvases).length;
+            
+            Object.keys(canvases).forEach((char, index) => {
+                setTimeout(() => {
+                    downloadSingleChar(char, canvases[char]);
+                    downloaded++;
+                    
+                    if (downloaded === total) {
+                        const msg = document.getElementById('successMsg');
+                        msg.textContent = `✅ 已下载全部 ${total} 个图片！请将它们放到 src/static/ 目录。`;
+                        msg.style.display = 'block';
+                        
+                        setTimeout(() => {
+                            msg.style.display = 'none';
+                        }, 5000);
+                    }
+                }, index * 300); // 每个图片间隔300ms下载
+            });
+        }
+        
+        // 页面加载时的提示
+        window.onload = function() {
+            console.log('🎨 单字小篆图片生成工具已加载');
+            console.log('📁 推荐使用：崇羲篆体 或 峄山碑篆体');
+            console.log('✨ 自动生成透明背景，可直接用于页面');
+            
+            // 绑定颜色变化事件
+            for (let i = 1; i <= 5; i++) {
+                const input = document.getElementById('color' + i);
+                input.addEventListener('input', function() {
+                    updateColorHex();
+                    if (customFont) {
+                        generateAllChars();
+                    }
+                });
+            }
+        };
+    </script>
+</body>
+</html>

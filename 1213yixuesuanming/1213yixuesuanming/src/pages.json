@@ -1,0 +1,51 @@
+{
+	"easycom": {
+		"autoscan": true,
+		"custom": {
+			"fui-(.*)": "@/components/firstui/fui-$1/fui-$1.vue"
+		}
+	},
+	"pages": [
+		{
+			"path": "pages/index/index",
+			"style": {
+				"navigationBarTitleText": "解密2026",
+				"navigationBarBackgroundColor": "#E2C289"
+			}
+		},
+		{
+			"path": "pages/login/setInfo",
+			"style": {
+				"navigationBarTitleText": "解密2026",
+				"navigationBarBackgroundColor": "#E2C289"
+			}
+		},
+		{
+			"path": "pages/login/loading",
+			"style": {
+				"navigationBarTitleText": "解密2026",
+				"navigationStyle": "custom"
+			}
+		},
+		{
+			"path": "pages/result/share",
+			"style": {
+				"navigationBarTitleText": "解密2026"
+			}
+		},
+		{
+			"path": "pages/result/generate",
+			"style": {
+				"navigationBarTitleText": "解密2026"
+			}
+		}
+	],
+	"globalStyle": {
+		"navigationStyle": "custom",
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "uni-app",
+		"navigationBarBackgroundColor": "#E2C289",
+		"backgroundColor": "#F8F8F8"
+	},
+	"uniIdRouter": {}
+}

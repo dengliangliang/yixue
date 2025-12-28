@@ -1,0 +1,30 @@
+<?php
+
+return [
+    'Id'             => 'ID',
+    'User_id'        => '用户ID',
+    'User_name'      => '姓名',
+    'Yang_li_date'   => '阳历',
+    'Yin_li_date'    => '日期(阴历)',
+    'Hour'           => '时辰(24H)',
+    'Gender'         => '性别',
+    'Gender 0'       => '女',
+    'Gender 1'       => '男',
+    'Minute'         => '分钟',
+    'Area_id'        => '城市id',
+    'Createtime'     => '创建时间',
+    'Updatetime'     => '更新时间',
+    'Zhen_hour'      => '真太阳小时',
+    'Zhen_minute'    => '真太阳分钟',
+    'Zhen_yang_day'  => '真太阳阳历日期',
+    'Max_wu_xing'    => '最多的五星',
+    'Min_wu_xing'    => '最少的五星',
+    'Ju_ben'         => '剧本',
+    'Ju_ben_gan_zhi' => '年干支',
+    'MerchantId'     => '商户ID',
+    'ActivityCode'   => '活动编码',
+    'AgentCode'      => '代理人工号',
+    'CustomerNo'     => '客户id',
+    'Result'         => '测算结果',
+    'User.username'  => '用户名(客户id)'
+];

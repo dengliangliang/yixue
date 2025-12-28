@@ -1,0 +1,45 @@
+# Docker数据目录
+docker-deploy/data/
+
+# 环境变量
+docker-deploy/.env
+
+# 后端
+1213-easy-to-learn/runtime/
+1213-easy-to-learn/public/uploads/
+1213-easy-to-learn/vendor/
+1213-easy-to-learn/.env
+
+# 前端
+1213yixuesuanming/1213yixuesuanming/node_modules/
+1213yixuesuanming/1213yixuesuanming/unpackage/
+1213yixuesuanming/1213yixuesuanming/dist/
+
+# H5构建文件
+docker-deploy/h5/dist/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 日志
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# 备份文件
+*.bak
+*.sql.gz
+*.tar.gz
+
+# 临时文件
+*.tmp
+*.temp

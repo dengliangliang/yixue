@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>篆体字图片生成工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 800px;
+            width: 100%;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 28px;
+        }
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        input[type="text"], input[type="number"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .canvas-container {
+            margin: 30px 0;
+            text-align: center;
+            background: #f8f9fa;
+            padding: 30px;
+            border-radius: 12px;
+            border: 2px dashed #ddd;
+        }
+        
+        #canvas {
+            max-width: 100%;
+            background: transparent;
+            display: inline-block;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 12px 30px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+        }
+        
+        .btn-generate {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-generate:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-download {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+        }
+        
+        .btn-download:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4);
+        }
+        
+        .color-picker-group {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        
+        input[type="color"] {
+            width: 60px;
+            height: 40px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        
+        .tips {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            border-left: 4px solid #2196F3;
+        }
+        
+        .tips h3 {
+            color: #1976D2;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .tips ol {
+            margin-left: 20px;
+            color: #555;
+        }
+        
+        .tips li {
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎨 篆体字图片生成工具</h1>
+        
+        <div class="input-group">
+            <label>输入文字：</label>
+            <input type="text" id="textInput" value="九紫离火" placeholder="请输入要生成的文字">
+        </div>
+        
+        <div class="input-group">
+            <label>字体大小（px）：</label>
+            <input type="number" id="fontSize" value="120" min="20" max="500">
+        </div>
+        
+        <div class="input-group">
+            <label>字间距（px）：</label>
+            <input type="number" id="letterSpacing" value="20" min="0" max="100">
+        </div>
+        
+        <div class="input-group">
+            <label>颜色设置：</label>
+            <div class="color-picker-group">
+                <div>
+                    <label style="font-weight: normal; font-size: 14px;">文字颜色</label>
+                    <input type="color" id="textColor" value="#FDB931">
+                </div>
+                <div>
+                    <label style="font-weight: normal; font-size: 14px;">背景颜色</label>
+                    <input type="color" id="bgColor" value="#ffffff">
+                </div>
+            </div>
+        </div>
+        
+        <div class="button-group">
+            <button class="btn-generate" onclick="generateImage()">🎨 生成图片</button>
+            <button class="btn-download" onclick="downloadImage()">⬇️ 下载图片</button>
+        </div>
+        
+        <div class="canvas-container">
+            <canvas id="canvas"></canvas>
+        </div>
+        
+        <div class="tips">
+            <h3>💡 使用说明：</h3>
+            <ol>
+                <li>在浏览器中打开此HTML文件</li>
+                <li>点击"选择字体文件"按钮，推荐选择：
+                    <ul style="margin-top: 5px; margin-left: 20px;">
+                        <li><strong>XiaWuWenKai-Regular.ttf</strong> - 霞鹜文楷（推荐，与t1图片最接近）</li>
+                        <li><strong>font1.ttf</strong> 或 <strong>font2.ttf</strong> - 其他书法字体</li>
+                        <li><strong>JFZSKSealScript_V2.0.ttf</strong> - 篆体（古典风格）</li>
+                    </ul>
+                </li>
+                <li>修改文字、大小、颜色等参数</li>
+                <li>点击"生成图片"按钮</li>
+                <li>点击"下载图片"保存到 /static/ 目录</li>
+                <li>在代码中使用 &lt;image src="/static/jiuzilihuo.png"&gt; 引用</li>
+            </ol>
+        </div>
+        
+        <div class="input-group" style="margin-top: 20px;">
+            <label>选择字体文件：</label>
+            <input type="file" id="fontFile" accept=".ttf,.otf" onchange="loadFont()" 
+                   style="padding: 10px; border: 2px solid #667eea; border-radius: 8px; cursor: pointer;">
+        </div>
+    </div>
+    
+    <script>
+        let customFont = null;
+        
+        // 加载字体文件
+        function loadFont() {
+            const fileInput = document.getElementById('fontFile');
+            const file = fileInput.files[0];
+            
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const fontData = e.target.result;
+                const fontFace = new FontFace('CustomZhuanti', fontData);
+                
+                fontFace.load().then(function(loadedFont) {
+                    document.fonts.add(loadedFont);
+                    customFont = 'CustomZhuanti';
+                    alert('✅ 字体加载成功！现在可以生成图片了。');
+                    generateImage(); // 自动生成预览
+                }).catch(function(error) {
+                    alert('❌ 字体加载失败：' + error);
+                });
+            };
+            
+            reader.readAsArrayBuffer(file);
+        }
+        
+        // 生成图片
+        function generateImage() {
+            const canvas = document.getElementById('canvas');
+            const ctx = canvas.getContext('2d');
+            const text = document.getElementById('textInput').value;
+            const fontSize = parseInt(document.getElementById('fontSize').value);
+            const letterSpacing = parseInt(document.getElementById('letterSpacing').value);
+            const textColor = document.getElementById('textColor').value;
+            const bgColor = document.getElementById('bgColor').value;
+            
+            if (!customFont) {
+                alert('⚠️ 请先选择字体文件！');
+                return;
+            }
+            
+            // 设置字体
+            ctx.font = `${fontSize}px ${customFont}, serif`;
+            
+            // 计算每个字的宽度
+            const chars = text.split('');
+            let totalWidth = 0;
+            const charWidths = [];
+            
+            chars.forEach(char => {
+                const metrics = ctx.measureText(char);
+                charWidths.push(metrics.width);
+                totalWidth += metrics.width;
+            });
+            
+            // 加上字间距
+            totalWidth += letterSpacing * (chars.length - 1);
+            
+            // 设置canvas尺寸（添加边距）
+            const padding = fontSize * 0.3;
+            canvas.width = totalWidth + padding * 2;
+            canvas.height = fontSize * 1.5 + padding * 2;
+            
+            // 重新设置字体（canvas尺寸改变后需要重设）
+            ctx.font = `${fontSize}px ${customFont}, serif`;
+            ctx.textBaseline = 'middle';
+            
+            // 绘制背景
+            ctx.fillStyle = bgColor;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制文字
+            ctx.fillStyle = textColor;
+            
+            let x = padding;
+            const y = canvas.height / 2;
+            
+            chars.forEach((char, index) => {
+                ctx.fillText(char, x, y);
+                x += charWidths[index] + letterSpacing;
+            });
+            
+            // 添加金色渐变效果（可选）
+            if (textColor === '#FDB931' || textColor === '#fdb931') {
+                const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+                gradient.addColorStop(0, '#FFF4D6');
+                gradient.addColorStop(0.3, '#FDB931');
+                gradient.addColorStop(0.7, '#D4A024');
+                gradient.addColorStop(1, '#8B6914');
+                
+                ctx.fillStyle = gradient;
+                x = padding;
+                chars.forEach((char, index) => {
+                    ctx.fillText(char, x, y);
+                    x += charWidths[index] + letterSpacing;
+                });
+            }
+        }
+        
+        // 下载图片
+        function downloadImage() {
+            const canvas = document.getElementById('canvas');
+            const text = document.getElementById('textInput').value;
+            
+            if (canvas.width === 0) {
+                alert('⚠️ 请先生成图片！');
+                return;
+            }
+            
+            // 转换为PNG并下载
+            canvas.toBlob(function(blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = text + '-zhuanti.png';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                alert('✅ 图片已下载！请将其放到 /static/ 目录中。');
+            });
+        }
+        
+        // 页面加载时的提示
+        window.onload = function() {
+            console.log('🎨 书法字图片生成工具已加载');
+            console.log('📁 推荐字体文件：');
+            console.log('  1. src/static/ttf/XiaWuWenKai-Regular.ttf （霞鹜文楷，推荐）');
+            console.log('  2. src/static/ttf/font1.ttf');
+            console.log('  3. src/static/ttf/font2.ttf');
+            console.log('  4. src/static/ttf/JFZSKSealScript_V2.0.ttf （篆体）');
+        };
+    </script>
+</body>
+</html>

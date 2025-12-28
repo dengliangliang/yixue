@@ -1,0 +1,69 @@
+/* Animate.css 引入 - 必须在最前面 */
+@import 'animate.css';
+
+/* Tailwind CSS 基础指令 */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+/* 自定义全局样式 */
+:root {
+  --primary-color: #E2C289;
+  --primary-dark: #D4B278;
+  --primary-light: #F0D49A;
+}
+
+/* 适配uni-app的page样式 */
+page {
+  background-color: #F8F8F8;
+  font-size: 32rpx;
+  line-height: 1.6;
+}
+
+/* 自定义动画类 - 结合Animate.css使用 */
+.fade-in-up {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.fade-in-down {
+  animation: fadeInDown 0.6s ease-out;
+}
+
+.zoom-in {
+  animation: zoomIn 0.4s ease-out;
+}
+
+.slide-in-right {
+  animation: slideInRight 0.5s ease-out;
+}
+
+/* 自定义渐变背景 */
+.gradient-primary {
+  background: linear-gradient(135deg, #F0D49A 0%, #E2C289 100%);
+}
+
+.gradient-gold {
+  background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+}
+
+/* 毛玻璃效果 */
+.glass-effect {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+/* 阴影效果 */
+.shadow-soft {
+  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.08);
+}
+
+.shadow-card {
+  box-shadow: 0 8rpx 30rpx rgba(0, 0, 0, 0.12);
+}
+
+/* 动画效果优化 */
+.transition-smooth {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}

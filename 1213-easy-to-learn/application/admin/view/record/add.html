@@ -1,0 +1,135 @@
+<form id="add-form" class="form-horizontal" role="form" data-toggle="validator" method="POST" action="">
+
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">{:__('User_id')}:</label>
+        <div class="col-xs-12 col-sm-8">
+            <input id="c-user_id" data-rule="required" data-source="user/user/index" data-field="nickname" class="form-control selectpage" name="row[user_id]" type="text" value="">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">{:__('User_name')}:</label>
+        <div class="col-xs-12 col-sm-8">
+            <input id="c-user_name" class="form-control" name="row[user_name]" type="text" value="">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">{:__('Yang_li_date')}:</label>
+        <div class="col-xs-12 col-sm-8">
+            <input id="c-yang_li_date" class="form-control" name="row[yang_li_date]" type="text" value="">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">{:__('Yin_li_date')}:</label>
+        <div class="col-xs-12 col-sm-8">
+            <input id="c-yin_li_date" class="form-control" name="row[yin_li_date]" type="text" value="">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">{:__('Hour')}:</label>
+        <div class="col-xs-12 col-sm-8">
+            <input id="c-hour" class="form-control" name="row[hour]" type="number" value="0">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">{:__('Gender')}:</label>
+        <div class="col-xs-12 col-sm-8">
+                        
+            <select  id="c-gender" class="form-control selectpicker" name="row[gender]">
+                {foreach name="genderList" item="vo"}
+                    <option value="{$key}" {in name="key" value="0"}selected{/in}>{$vo}</option>
+                {/foreach}
+            </select>
+
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">{:__('Minute')}:</label>
+        <div class="col-xs-12 col-sm-8">
+            <input id="c-minute" class="form-control" name="row[minute]" type="number" value="0">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">{:__('Area_id')}:</label>
+        <div class="col-xs-12 col-sm-8">
+            <input id="c-area_id" data-rule="required" data-source="area/index" class="form-control selectpage" name="row[area_id]" type="text" value="">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">{:__('Zhen_hour')}:</label>
+        <div class="col-xs-12 col-sm-8">
+            <input id="c-zhen_hour" class="form-control" name="row[zhen_hour]" type="number" value="0">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">{:__('Zhen_minute')}:</label>
+        <div class="col-xs-12 col-sm-8">
+            <input id="c-zhen_minute" class="form-control" name="row[zhen_minute]" type="number" value="0">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">{:__('Zhen_yang_day')}:</label>
+        <div class="col-xs-12 col-sm-8">
+            <input id="c-zhen_yang_day" class="form-control" name="row[zhen_yang_day]" type="text" value="">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">{:__('Max_wu_xing')}:</label>
+        <div class="col-xs-12 col-sm-8">
+            <input id="c-max_wu_xing" class="form-control" name="row[max_wu_xing]" type="text" value="">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">{:__('Min_wu_xing')}:</label>
+        <div class="col-xs-12 col-sm-8">
+            <input id="c-min_wu_xing" class="form-control" name="row[min_wu_xing]" type="text" value="">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">{:__('Ju_ben')}:</label>
+        <div class="col-xs-12 col-sm-8">
+            <textarea id="c-ju_ben" class="form-control " rows="5" name="row[ju_ben]" cols="50"></textarea>
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">{:__('Ju_ben_gan_zhi')}:</label>
+        <div class="col-xs-12 col-sm-8">
+            <input id="c-ju_ben_gan_zhi" class="form-control" name="row[ju_ben_gan_zhi]" type="text" value="">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">{:__('MerchantId')}:</label>
+        <div class="col-xs-12 col-sm-8">
+            <input id="c-merchantId" class="form-control" name="row[merchantId]" type="text" value="">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">{:__('ActivityCode')}:</label>
+        <div class="col-xs-12 col-sm-8">
+            <input id="c-activityCode" class="form-control" name="row[activityCode]" type="text" value="">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">{:__('AgentCode')}:</label>
+        <div class="col-xs-12 col-sm-8">
+            <input id="c-agentCode" class="form-control" name="row[agentCode]" type="text" value="">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">{:__('CustomerNo')}:</label>
+        <div class="col-xs-12 col-sm-8">
+            <input id="c-customerNo" class="form-control" name="row[customerNo]" type="text" value="">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="control-label col-xs-12 col-sm-2">{:__('Result')}:</label>
+        <div class="col-xs-12 col-sm-8">
+            <input id="c-result" class="form-control" name="row[result]" type="text" value="未完成">
+        </div>
+    </div>
+    <div class="form-group layer-footer">
+        <label class="control-label col-xs-12 col-sm-2"></label>
+        <div class="col-xs-12 col-sm-8">
+            <button type="submit" class="btn btn-primary btn-embossed disabled">{:__('OK')}</button>
+        </div>
+    </div>
+</form>

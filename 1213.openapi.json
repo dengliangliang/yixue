@@ -1,0 +1,1068 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "1213",
+    "description": "",
+    "version": "1.0.0"
+  },
+  "tags": [],
+  "paths": {
+    "/api/user/getProvinceList": {
+      "post": {
+        "summary": "获取省份列表",
+        "x-apifox-folder": "",
+        "x-apifox-status": "developing",
+        "deprecated": false,
+        "description": "",
+        "tags": [],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer"
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "time": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer"
+                          },
+                          "name": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name"
+                        ],
+                        "x-apifox-ignore-properties": [],
+                        "x-apifox-orders": [
+                          "id",
+                          "name"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "msg",
+                    "time",
+                    "data"
+                  ],
+                  "x-apifox-ignore-properties": [],
+                  "x-apifox-orders": [
+                    "code",
+                    "msg",
+                    "time",
+                    "data"
+                  ]
+                },
+                "examples": {
+                  "1": {
+                    "summary": "成功示例",
+                    "value": {
+                      "code": 1,
+                      "msg": "获取成功",
+                      "time": "1735538937",
+                      "data": [
+                        {
+                          "id": 1,
+                          "name": "北京"
+                        },
+                        {
+                          "id": 19,
+                          "name": "天津"
+                        },
+                        {
+                          "id": 37,
+                          "name": "河北省"
+                        },
+                        {
+                          "id": 220,
+                          "name": "山西省"
+                        },
+                        {
+                          "id": 351,
+                          "name": "内蒙古自治区"
+                        },
+                        {
+                          "id": 466,
+                          "name": "辽宁省"
+                        },
+                        {
+                          "id": 585,
+                          "name": "吉林省"
+                        },
+                        {
+                          "id": 655,
+                          "name": "黑龙江省"
+                        },
+                        {
+                          "id": 801,
+                          "name": "上海"
+                        },
+                        {
+                          "id": 820,
+                          "name": "江苏省"
+                        },
+                        {
+                          "id": 933,
+                          "name": "浙江省"
+                        },
+                        {
+                          "id": 1046,
+                          "name": "安徽省"
+                        },
+                        {
+                          "id": 1168,
+                          "name": "福建省"
+                        },
+                        {
+                          "id": 1263,
+                          "name": "江西省"
+                        },
+                        {
+                          "id": 1375,
+                          "name": "山东省"
+                        },
+                        {
+                          "id": 1532,
+                          "name": "河南省"
+                        },
+                        {
+                          "id": 1709,
+                          "name": "湖北省"
+                        },
+                        {
+                          "id": 1827,
+                          "name": "湖南省"
+                        },
+                        {
+                          "id": 1964,
+                          "name": "广东省"
+                        },
+                        {
+                          "id": 2162,
+                          "name": "广西壮族自治区"
+                        },
+                        {
+                          "id": 2291,
+                          "name": "海南省"
+                        },
+                        {
+                          "id": 2323,
+                          "name": "重庆"
+                        },
+                        {
+                          "id": 2367,
+                          "name": "四川省"
+                        },
+                        {
+                          "id": 2572,
+                          "name": "贵州省"
+                        },
+                        {
+                          "id": 2670,
+                          "name": "云南省"
+                        },
+                        {
+                          "id": 2816,
+                          "name": "西藏自治区"
+                        },
+                        {
+                          "id": 2898,
+                          "name": "陕西省"
+                        },
+                        {
+                          "id": 3022,
+                          "name": "甘肃省"
+                        },
+                        {
+                          "id": 3126,
+                          "name": "青海省"
+                        },
+                        {
+                          "id": 3178,
+                          "name": "宁夏回族自治区"
+                        },
+                        {
+                          "id": 3206,
+                          "name": "新疆维吾尔自治区"
+                        },
+                        {
+                          "id": 3325,
+                          "name": "台湾"
+                        },
+                        {
+                          "id": 3716,
+                          "name": "香港特别行政区"
+                        },
+                        {
+                          "id": 3738,
+                          "name": "澳门特别行政区"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://apifox.com/web/project/5692957/apis/api-249734138-run"
+      }
+    },
+    "/api/user/getCityList": {
+      "post": {
+        "summary": "获取省份下面城市列表",
+        "x-apifox-folder": "",
+        "x-apifox-status": "developing",
+        "deprecated": false,
+        "description": "",
+        "tags": [],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer"
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "time": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "integer"
+                          },
+                          "name": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name"
+                        ],
+                        "x-apifox-ignore-properties": [],
+                        "x-apifox-orders": [
+                          "id",
+                          "name"
+                        ]
+                      }
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "msg",
+                    "time",
+                    "data"
+                  ],
+                  "x-apifox-ignore-properties": [],
+                  "x-apifox-orders": [
+                    "code",
+                    "msg",
+                    "time",
+                    "data"
+                  ]
+                },
+                "examples": {
+                  "1": {
+                    "summary": "成功示例",
+                    "value": {
+                      "code": 1,
+                      "msg": "获取成功",
+                      "time": "1735540149",
+                      "data": [
+                        {
+                          "id": 124,
+                          "name": "保定市"
+                        },
+                        {
+                          "id": 168,
+                          "name": "承德市"
+                        },
+                        {
+                          "id": 180,
+                          "name": "沧州市"
+                        },
+                        {
+                          "id": 84,
+                          "name": "邯郸市"
+                        },
+                        {
+                          "id": 208,
+                          "name": "衡水市"
+                        },
+                        {
+                          "id": 197,
+                          "name": "廊坊市"
+                        },
+                        {
+                          "id": 76,
+                          "name": "秦皇岛市"
+                        },
+                        {
+                          "id": 38,
+                          "name": "石家庄市"
+                        },
+                        {
+                          "id": 61,
+                          "name": "唐山市"
+                        },
+                        {
+                          "id": 104,
+                          "name": "邢台市"
+                        },
+                        {
+                          "id": 150,
+                          "name": "张家口市"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://apifox.com/web/project/5692957/apis/api-249749586-run"
+      }
+    },
+    "/api/user/addRecord": {
+      "post": {
+        "summary": "添加测算记录",
+        "x-apifox-folder": "",
+        "x-apifox-status": "developing",
+        "deprecated": false,
+        "description": "",
+        "tags": [],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "customerNo": {
+                    "type": "string",
+                    "description": "客户号"
+                  },
+                  "date": {
+                    "type": "string",
+                    "description": "阳历时间:2024-12-30"
+                  },
+                  "hour": {
+                    "type": "string",
+                    "description": "小时"
+                  },
+                  "minute": {
+                    "type": "string",
+                    "description": "分钟数"
+                  },
+                  "gender": {
+                    "type": "string",
+                    "description": "性别:0=女,1=男"
+                  },
+                  "area_id": {
+                    "type": "string",
+                    "description": "城市id"
+                  },
+                  "merchantId": {
+                    "type": "string",
+                    "description": "商户ID"
+                  },
+                  "activityCode": {
+                    "type": "string",
+                    "description": "活动编码"
+                  },
+                  "agentCode": {
+                    "type": "string",
+                    "description": "代理人工号"
+                  },
+                  "sign": {
+                    "type": "string",
+                    "description": "签名"
+                  }
+                },
+                "required": [
+                  "customerNo",
+                  "date",
+                  "hour",
+                  "minute",
+                  "gender",
+                  "area_id",
+                  "merchantId",
+                  "activityCode",
+                  "agentCode",
+                  "sign"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer"
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "time": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "record_id": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "record_id"
+                      ],
+                      "x-apifox-ignore-properties": [],
+                      "x-apifox-orders": [
+                        "record_id"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "msg",
+                    "time",
+                    "data"
+                  ],
+                  "x-apifox-ignore-properties": [],
+                  "x-apifox-orders": [
+                    "code",
+                    "msg",
+                    "time",
+                    "data"
+                  ]
+                },
+                "examples": {
+                  "1": {
+                    "summary": "成功示例",
+                    "value": {
+                      "code": 1,
+                      "msg": "添加成功",
+                      "time": "1735544620",
+                      "data": {
+                        "record_id": "1"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://apifox.com/web/project/5692957/apis/api-249781185-run"
+      }
+    },
+    "/api/si_zhu/getSiZhuRes": {
+      "post": {
+        "summary": "根据记录id获取生成页信息",
+        "x-apifox-folder": "",
+        "x-apifox-status": "developing",
+        "deprecated": false,
+        "description": "",
+        "tags": [],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "record_id": {
+                    "type": "string",
+                    "description": "记录id"
+                  }
+                },
+                "required": [
+                  "record_id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "x-apifox-ignore-properties": [],
+                  "x-apifox-orders": []
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://apifox.com/web/project/5692957/apis/api-249829362-run"
+      }
+    },
+    "/api/si_zhu/getQiYun": {
+      "post": {
+        "summary": "起运",
+        "x-apifox-folder": "",
+        "x-apifox-status": "developing",
+        "deprecated": false,
+        "description": "",
+        "tags": [],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "record_id": {
+                    "type": "string",
+                    "description": "记录id"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "x-apifox-ignore-properties": [],
+                  "x-apifox-orders": []
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://apifox.com/web/project/5692957/apis/api-249929909-run"
+      }
+    },
+    "/api/si_zhu/getResult": {
+      "post": {
+        "summary": "获取结果页数据",
+        "x-apifox-folder": "",
+        "x-apifox-status": "developing",
+        "deprecated": false,
+        "description": "",
+        "tags": [],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "record_id": {
+                    "type": "string",
+                    "description": "测算记录id"
+                  }
+                },
+                "required": [
+                  "record_id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer"
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "time": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "record_res": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "integer"
+                            },
+                            "max_wu_xing": {
+                              "type": "string",
+                              "description": "五行最多"
+                            },
+                            "min_wu_xing": {
+                              "type": "string",
+                              "description": "五行最少"
+                            },
+                            "ju_ben": {
+                              "type": "string",
+                              "description": "年度剧本内容"
+                            },
+                            "ju_ben_gan_zhi": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "max_wu_xing",
+                            "min_wu_xing",
+                            "ju_ben",
+                            "ju_ben_gan_zhi"
+                          ],
+                          "x-apifox-orders": [
+                            "id",
+                            "max_wu_xing",
+                            "min_wu_xing",
+                            "ju_ben",
+                            "ju_ben_gan_zhi"
+                          ],
+                          "x-apifox-ignore-properties": []
+                        },
+                        "wang_yun": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "integer"
+                            },
+                            "wu_xing_name": {
+                              "type": "string",
+                              "description": "五行名称"
+                            },
+                            "fang_wei": {
+                              "type": "string",
+                              "description": "方位"
+                            },
+                            "color": {
+                              "type": "string",
+                              "description": "颜色"
+                            },
+                            "num": {
+                              "type": "string",
+                              "description": "数字"
+                            },
+                            "shi_pin": {
+                              "type": "string",
+                              "description": "饰品"
+                            },
+                            "ji_jie": {
+                              "type": "string",
+                              "description": "季节"
+                            },
+                            "zhu_yi": {
+                              "type": "string",
+                              "description": "身体注意"
+                            },
+                            "time": {
+                              "type": "string",
+                              "description": "时间"
+                            },
+                            "kou_wei": {
+                              "type": "string",
+                              "description": "口味"
+                            },
+                            "worker": {
+                              "type": "null"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "wu_xing_name",
+                            "fang_wei",
+                            "color",
+                            "num",
+                            "shi_pin",
+                            "ji_jie",
+                            "zhu_yi",
+                            "time",
+                            "kou_wei",
+                            "worker"
+                          ],
+                          "x-apifox-orders": [
+                            "id",
+                            "wu_xing_name",
+                            "fang_wei",
+                            "color",
+                            "num",
+                            "shi_pin",
+                            "ji_jie",
+                            "zhu_yi",
+                            "time",
+                            "kou_wei",
+                            "worker"
+                          ],
+                          "x-apifox-ignore-properties": []
+                        },
+                        "xing_ge_max": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "integer"
+                            },
+                            "wu_xing": {
+                              "type": "string"
+                            },
+                            "xing_result": {
+                              "type": "string",
+                              "description": "性格最多解释"
+                            },
+                            "worker": {
+                              "type": "null"
+                            },
+                            "style": {
+                              "type": "integer"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "wu_xing",
+                            "xing_result",
+                            "worker",
+                            "style"
+                          ],
+                          "x-apifox-orders": [
+                            "id",
+                            "wu_xing",
+                            "xing_result",
+                            "worker",
+                            "style"
+                          ],
+                          "x-apifox-ignore-properties": []
+                        },
+                        "xing_ge_min": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "integer"
+                            },
+                            "wu_xing": {
+                              "type": "string"
+                            },
+                            "xing_result": {
+                              "type": "string",
+                              "description": "性格最少解释"
+                            },
+                            "worker": {
+                              "type": "string",
+                              "description": "旺运事业"
+                            },
+                            "style": {
+                              "type": "integer"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "wu_xing",
+                            "xing_result",
+                            "worker",
+                            "style"
+                          ],
+                          "x-apifox-orders": [
+                            "id",
+                            "wu_xing",
+                            "xing_result",
+                            "worker",
+                            "style"
+                          ],
+                          "x-apifox-ignore-properties": []
+                        }
+                      },
+                      "required": [
+                        "record_res",
+                        "wang_yun",
+                        "xing_ge_max",
+                        "xing_ge_min"
+                      ],
+                      "x-apifox-orders": [
+                        "record_res",
+                        "wang_yun",
+                        "xing_ge_max",
+                        "xing_ge_min"
+                      ],
+                      "x-apifox-ignore-properties": []
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "msg",
+                    "time",
+                    "data"
+                  ],
+                  "x-apifox-orders": [
+                    "code",
+                    "msg",
+                    "time",
+                    "data"
+                  ],
+                  "x-apifox-ignore-properties": []
+                },
+                "examples": {
+                  "1": {
+                    "summary": "成功示例",
+                    "value": {
+                      "code": 1,
+                      "msg": "获取成功",
+                      "time": "1736157398",
+                      "data": {
+                        "record_res": {
+                          "id": 1,
+                          "max_wu_xing": "水",
+                          "min_wu_xing": "木",
+                          "ju_ben": "今年容易出现种种周折，进而导致身心疲惫，因此对于表面功夫的事情不再上心，今年的人脉关系不太好，凡事更多要靠自己撑，靠自己解决。越是艰难处，越是修心时，培养自己做事情稳扎稳打、踏实务实、做精做细的工作风格对你非常有好处，今年可以多多运动，锻炼一个好体魄。事业方面，定在办公室里的工作性质是不利的，最好可以做走出去，行动起来的工作。",
+                          "ju_ben_gan_zhi": "枭神"
+                        },
+                        "wang_yun": {
+                          "id": 2,
+                          "wu_xing_name": "木",
+                          "fang_wei": "东",
+                          "color": "绿,青",
+                          "num": "3、8",
+                          "shi_pin": "木制品",
+                          "ji_jie": "2月和3月",
+                          "zhu_yi": "肝、胆、神经",
+                          "time": "寅时卯时",
+                          "kou_wei": "酸",
+                          "worker": null
+                        },
+                        "xing_ge_max": {
+                          "id": 5,
+                          "wu_xing": "水",
+                          "xing_result": "此时间出生的人做事情非常有规矩和分寸，一板一眼，但缺乏灵感，不太善于变通，同时有一点粗心和鲁莽，遇事也比较容易张扬，缺乏持之以恒的耐心，养气的功夫比较差。建议培养自己的沉着应变能力、说话和做事三思而严密，培养自己的涵养，并且刻意练习做事情的创意思维。",
+                          "worker": null,
+                          "style": 0
+                        },
+                        "xing_ge_min": {
+                          "id": 4,
+                          "wu_xing": "木",
+                          "xing_result": "此时间出生的人仁慈、谦让、奉献、讲道理、善总结、逻辑思维强、协调力强，对人宽厚，懂得包容和理解对方，同时做事情思路清晰，善于把千丝万缕的问题梳理的清清楚楚，进而找出问题的答案。",
+                          "worker": "适合从事教育、培训、体育和医护，善于管理和策划，尤其适合工作性质属于为别人奉献和付出的行业。",
+                          "style": 1
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://apifox.com/web/project/5692957/apis/api-251708007-run"
+      }
+    },
+    "/api/index/index": {
+      "post": {
+        "summary": "ceshi ",
+        "x-apifox-folder": "",
+        "x-apifox-status": "developing",
+        "deprecated": false,
+        "description": "",
+        "tags": [],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "x-apifox-ignore-properties": [],
+                  "x-apifox-orders": []
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://apifox.com/web/project/5692957/apis/api-253495715-run"
+      }
+    },
+    "/api/si_zhu/notify": {
+      "post": {
+        "summary": "回传",
+        "x-apifox-folder": "",
+        "x-apifox-status": "developing",
+        "deprecated": false,
+        "description": "",
+        "tags": [],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "record_id": {
+                    "type": "string",
+                    "description": "记录id"
+                  }
+                },
+                "required": [
+                  "record_id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "integer"
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "time": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "type": "null"
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "msg",
+                    "time",
+                    "data"
+                  ],
+                  "x-apifox-ignore-properties": [],
+                  "x-apifox-orders": [
+                    "code",
+                    "msg",
+                    "time",
+                    "data"
+                  ]
+                },
+                "examples": {
+                  "1": {
+                    "summary": "成功示例",
+                    "value": {
+                      "code": 1,
+                      "msg": "成功",
+                      "time": "1736816582",
+                      "data": null
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://apifox.com/web/project/5692957/apis/api-254061559-run"
+      }
+    },
+    "/api/index/saveBase64": {
+      "post": {
+        "summary": "上传图片",
+        "x-apifox-folder": "",
+        "x-apifox-status": "developing",
+        "deprecated": false,
+        "description": "",
+        "tags": [],
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "base64_image_content": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string",
+                    "description": "666666"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {},
+                  "x-apifox-ignore-properties": [],
+                  "x-apifox-orders": []
+                }
+              }
+            }
+          }
+        },
+        "x-run-in-apifox": "https://apifox.com/web/project/5692957/apis/api-254721094-run"
+      }
+    }
+  },
+  "components": {
+    "schemas": {}
+  },
+  "servers": []
+}

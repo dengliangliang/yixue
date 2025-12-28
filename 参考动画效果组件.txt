@@ -1,0 +1,831 @@
+/**
+ * @author mousman
+ */
+ 
+ (function(){
+  
+     
+ //**********************************************************************************************/
+ // FastSimplexNoise by Stefan Gustavson
+ //**********************************************************************************************/     
+function FastSimplexNoise(a){
+ /*
+ * A speed-improved simplex noise algorithm for 2D, 3D and 4D in JavaScript.
+ *
+ * Based on example code by Stefan Gustavson (stegu@itn.liu.se).
+ * Optimisations by Peter Eastman (peastman@drizzle.stanford.edu).
+ * Better rank ordering method by Stefan Gustavson in 2012.
+ *
+ * This code was placed in the public domain by its original author,
+ * Stefan Gustavson. You may use it as you see fit, but
+ * attribution is appreciated.
+ */
+if(a||(a={}),this.amplitude=a.amplitude||1,this.frequency=a.frequency||1,this.octaves=parseInt(a.octaves||1),this.persistence=a.persistence||.5,this.random=a.random||Math.random,"number"==typeof a.min&&"number"==typeof a.max)if(a.min>=a.max)console.error("options.min must be less than options.max");else{var b=parseFloat(a.min),c=parseFloat(a.max),d=c-b;this.scale=function(a){return b+(a+1)/2*d}}var e,f=new Uint8Array(256);for(e=0;256>e;e++)f[e]=e;var g,h;for(e=255;e>0;e--)g=Math.floor((e+1)*this.random()),h=f[e],f[e]=f[g],f[g]=h;for(this.perm=new Uint8Array(512),this.permMod12=new Uint8Array(512),e=0;512>e;e++)this.perm[e]=f[255&e],this.permMod12[e]=this.perm[e]%12}FastSimplexNoise.G2=(3-Math.sqrt(3))/6,FastSimplexNoise.G3=1/6,FastSimplexNoise.G4=(5-Math.sqrt(5))/20,FastSimplexNoise.GRADIENTS_3D=[[1,1,0],[-1,1,0],[1,-1,0],[-1,-1,0],[1,0,1],[-1,0,1],[1,0,-1],[-1,0,-1],[0,1,1],[0,-1,-1],[0,1,-1],[0,-1,-1]],FastSimplexNoise.GRADIENTS_4D=[[0,1,1,1],[0,1,1,-1],[0,1,-1,1],[0,1,-1,-1],[0,-1,1,1],[0,-1,1,-1],[0,-1,-1,1],[0,-1,-1,-1],[1,0,1,1],[1,0,1,-1],[1,0,-1,1],[1,0,-1,-1],[-1,0,1,1],[-1,0,1,-1],[-1,0,-1,1],[-1,0,-1,-1],[1,1,0,1],[1,1,0,-1],[1,-1,0,1],[1,-1,0,-1],[-1,1,0,1],[-1,1,0,-1],[-1,-1,0,1],[-1,-1,0,-1],[1,1,1,0],[1,1,-1,0],[1,-1,1,0],[1,-1,-1,0],[-1,1,1,0],[-1,1,-1,0],[-1,-1,1,0],[-1,-1,-1,0]],FastSimplexNoise.dot2D=function(a,b,c){return a[0]*b+a[1]*c},FastSimplexNoise.dot3D=function(a,b,c,d){return a[0]*b+a[1]*c+a[2]*d},FastSimplexNoise.dot4D=function(a,b,c,d,e){return a[0]*b+a[1]*c+a[2]*d+a[3]*e},FastSimplexNoise.prototype.get2DNoise=function(a,b){for(var c=this.amplitude,d=this.frequency,e=0,f=0,g=this.persistence,h=0;h<this.octaves;h++)f+=this.getRaw2DNoise(a*d,b*d)*c,e+=c,c*=g,d*=2;var i=f/e;return this.scale?this.scale(i):i},FastSimplexNoise.prototype.get3DNoise=function(a,b,c){for(var d=this.amplitude,e=this.frequency,f=0,g=0,h=this.persistence,i=0;i<this.octaves;i++)g+=this.getRaw3DNoise(a*e,b*e,c*e)*d,f+=d,d*=h,e*=2;var j=g/f;return this.scale?this.scale(j):j},FastSimplexNoise.prototype.get4DNoise=function(a,b,c,d){for(var e=this.amplitude,f=this.frequency,g=0,h=0,i=this.persistence,j=0;j<this.octaves;j++)h+=this.getRaw4DNoise(a*f,b*f,c*f,d*f)*e,g+=e,e*=i,f*=2;var k=h/g;return this.scale?this.scale(k):k},FastSimplexNoise.prototype.getCylindrical2DNoise=function(a,b,c){var d=b/a,e=a/(2*Math.PI),f=2*d*Math.PI,g=e*Math.sin(f),h=e*Math.cos(f);return this.get3DNoise(g,h,c)},FastSimplexNoise.prototype.getCylindrical3DNoise=function(a,b,c,d){var e=b/a,f=a/(2*Math.PI),g=2*e*Math.PI,h=f*Math.sin(g),i=f*Math.cos(g);return this.get4DNoise(h,i,c,d)},FastSimplexNoise.prototype.getRaw2DNoise=function(a,b){var c,d,e,f,g,h=FastSimplexNoise.G2,i=FastSimplexNoise.dot2D,j=FastSimplexNoise.GRADIENTS_3D,k=this.perm,l=this.permMod12,m=.5*(a+b)*(Math.sqrt(3)-1),n=Math.floor(a+m),o=Math.floor(b+m),p=(n+o)*h,q=n-p,r=o-p,s=a-q,t=b-r;s>t?(f=1,g=0):(f=0,g=1);var u=s-f+h,v=t-g+h,w=s-1+2*h,x=t-1+2*h,y=255&n,z=255&o,A=l[y+k[z]],B=l[y+f+k[z+g]],C=l[y+1+k[z+1]],D=.5-s*s-t*t;0>D?c=0:(D*=D,c=D*D*i(j[A],s,t));var E=.5-u*u-v*v;0>E?d=0:(E*=E,d=E*E*i(j[B],u,v));var F=.5-w*w-x*x;return 0>F?e=0:(F*=F,e=F*F*i(j[C],w,x)),70.14805770653952*(c+d+e)},FastSimplexNoise.prototype.getRaw3DNoise=function(a,b,c){var d,e,f,g,h,i,j,k,l,m,n=FastSimplexNoise.dot3D,o=FastSimplexNoise.GRADIENTS_3D,p=FastSimplexNoise.G3,q=this.perm,r=this.permMod12,s=(a+b+c)/3,t=Math.floor(a+s),u=Math.floor(b+s),v=Math.floor(c+s),w=(t+u+v)*p,x=t-w,y=u-w,z=v-w,A=a-x,B=b-y,C=c-z;A>=B?B>=C?(h=1,i=0,j=0,k=1,l=1,m=0):A>=C?(h=1,i=0,j=0,k=1,l=0,m=1):(h=0,i=0,j=1,k=1,l=0,m=1):C>B?(h=0,i=0,j=1,k=0,l=1,m=1):C>A?(h=0,i=1,j=0,k=0,l=1,m=1):(h=0,i=1,j=0,k=1,l=1,m=0);var D=A-h+p,E=B-i+p,F=C-j+p,G=A-k+2*p,H=B-l+2*p,I=C-m+2*p,J=A-1+3*p,K=B-1+3*p,L=C-1+3*p,M=255&t,N=255&u,O=255&v,P=r[M+q[N+q[O]]],Q=r[M+h+q[N+i+q[O+j]]],R=r[M+k+q[N+l+q[O+m]]],S=r[M+1+q[N+1+q[O+1]]],T=.5-A*A-B*B-C*C;0>T?d=0:(T*=T,d=T*T*n(o[P],A,B,C));var U=.5-D*D-E*E-F*F;0>U?e=0:(U*=U,e=U*U*n(o[Q],D,E,F));var V=.5-G*G-H*H-I*I;0>V?f=0:(V*=V,f=V*V*n(o[R],G,H,I));var W=.5-J*J-K*K-L*L;return 0>W?g=0:(W*=W,g=W*W*n(o[S],J,K,L)),94.68493150681971*(d+e+f+g)},FastSimplexNoise.prototype.getRaw4DNoise=function(a,b,c,d){var e,f,g,h,i,j=FastSimplexNoise.dot4D,k=FastSimplexNoise.GRADIENTS_4D,l=FastSimplexNoise.G4,m=this.perm,n=(this.permMod12,(a+b+c+d)*(Math.sqrt(5)-1)/4),o=Math.floor(a+n),p=Math.floor(b+n),q=Math.floor(c+n),r=Math.floor(d+n),s=(o+p+q+r)*l,t=o-s,u=p-s,v=q-s,w=r-s,x=a-t,y=b-u,z=c-v,A=d-w,B=0,C=0,D=0,E=0;x>y?B++:C++,x>z?B++:D++,x>A?B++:E++,y>z?C++:D++,y>A?C++:E++,z>A?D++:E++;var F,G,H,I,J,K,L,M,N,O,P,Q;F=B>=3?1:0,G=C>=3?1:0,H=D>=3?1:0,I=E>=3?1:0,J=B>=2?1:0,K=C>=2?1:0,L=D>=2?1:0,M=E>=2?1:0,N=B>=1?1:0,O=C>=1?1:0,P=D>=1?1:0,Q=E>=1?1:0;var R=x-F+l,S=y-G+l,T=z-H+l,U=A-I+l,V=x-J+2*l,W=y-K+2*l,X=z-L+2*l,Y=A-M+2*l,Z=x-N+3*l,$=y-O+3*l,_=z-P+3*l,aa=A-Q+3*l,ba=x-1+4*l,ca=y-1+4*l,da=z-1+4*l,ea=A-1+4*l,fa=255&o,ga=255&p,ha=255&q,ia=255&r,ja=m[fa+m[ga+m[ha+m[ia]]]]%32,ka=m[fa+F+m[ga+G+m[ha+H+m[ia+I]]]]%32,la=m[fa+J+m[ga+K+m[ha+L+m[ia+M]]]]%32,ma=m[fa+N+m[ga+O+m[ha+P+m[ia+Q]]]]%32,na=m[fa+1+m[ga+1+m[ha+1+m[ia+1]]]]%32,oa=.5-x*x-y*y-z*z-A*A;0>oa?e=0:(oa*=oa,e=oa*oa*j(k[ja],x,y,z,A));var pa=.5-R*R-S*S-T*T-U*U;0>pa?f=0:(pa*=pa,f=pa*pa*j(k[ka],R,S,T,U));var qa=.5-V*V-W*W-X*X-Y*Y;0>qa?g=0:(qa*=qa,g=qa*qa*j(k[la],V,W,X,Y));var ra=.5-Z*Z-$*$-_*_-aa*aa;0>ra?h=0:(ra*=ra,h=ra*ra*j(k[ma],Z,$,_,aa));var sa=.5-ba*ba-ca*ca-da*da-ea*ea;return 0>sa?i=0:(sa*=sa,i=sa*sa*j(k[na],ba,ca,da,ea)),72.37855765153664*(e+f+g+h+i)},FastSimplexNoise.prototype.getSpherical2DNoise=function(a,b,c){var d=b/a,e=c/a,f=2*d*Math.PI,g=e*Math.PI,h=Math.sin(g+Math.PI),i=2*Math.PI,j=i*Math.sin(f)*h,k=i*Math.cos(f)*h,l=i*Math.cos(g);return this.get3DNoise(j,k,l)},FastSimplexNoise.prototype.getSpherical3DNoise=function(a,b,c,d){var e=b/a,f=c/a,g=2*e*Math.PI,h=f*Math.PI,i=Math.sin(h+Math.PI),j=2*Math.PI,k=j*Math.sin(g)*i,l=j*Math.cos(g)*i,m=j*Math.cos(h);return this.get4DNoise(k,l,m,d)},"undefined"!=typeof define&&define.amd&&define(function(){return FastSimplexNoise}),"undefined"!=typeof exports&&(exports.FastSimplexNoise=FastSimplexNoise),"undefined"!=typeof module&&(module.exports=FastSimplexNoise);
+     
+ //**********************************************************************************************/
+ //    start of particles code (mousman)
+ //**********************************************************************************************/
+    function Particle(px, py){
+            this.x = px;
+            this.y = py;
+            this.ax = 0;
+            this.ay = 0;
+            this.vx = 0;
+            this.vy = 0;
+        }
+
+    function ECosmicParticules (width, height, canvas) {
+        this.canvas = canvas;
+
+        this.context = canvas.getContext("2d");
+        
+		this._width = width || 465;
+		this._height = height || 465;         
+        
+        this.redGrid = [];       // a simplex-noise grid for red color channel
+        this.greenGrid = [];     // a simplex-noise grid for green color channel
+        
+		this.particles = [];
+
+		this.compteur = 10;
+		this._particle_number = 16000;
+
+		this._flux = 100;   
+		this._particuleColor = 0xfff000;
+        this._particuleRedColor = parseInt (this._particuleColor & 0xff0000) >> 16;
+        this._particuleGreenColor = parseInt ((this._particuleColor & 0x00ff00)) >> 8;
+        this._particuleBlueColor = this._particuleColor & 0x0000ff;
+        
+		this._xForce = 0.0003;
+		this._yForce = 0.0003;
+
+		this._ax = 0.95; 
+		this._ay = 0.92;
+		this._vx = 0.95; 
+		this._vy = 0.92;	        
+		
+
+        this._imageData = this.context.createImageData(this._width, this._height);
+        var nbPixels = this._imageData.data.length;
+        var pixelsData = this._imageData.data;
+        
+        for (i=0; i < nbPixels ; i += 4){
+                pixelsData[i+0] = 0;
+                pixelsData[i+1] = 0;
+                pixelsData[i+2] = 0;
+                pixelsData[i+3] =0xff;
+            }  
+        
+        this.context.putImageData(this._imageData,0,0);       
+    }
+    //**********************************************************************************************/
+		
+		ECosmicParticules.prototype.start = function(){
+    		var self = this;
+            
+            this.reset();
+            
+            this.generateGreenSimplex();
+            this.generateRedSimplex();
+            
+            TweenLite.delayedCall(3,this.simplexLoop,null,this);
+            
+            window.requestAnimationFrame(function(){self.onFrame()});        
+		}
+    //**********************************************************************************************/
+        
+        ECosmicParticules.prototype.onFrame = function() {
+            var nbPixels = this._imageData.data.length;
+            var pixelsData = this._imageData.data;
+			var nb = this.compteur;
+            var i,j;
+            var p;
+            var pixelIndex;
+            var ip2,ip3,ip4;
+            var px,py;
+            
+			for( i = 0; i < nb; i++){
+                
+				var p = this.particles[i];
+                px = parseInt(p.x);
+                py = parseInt(p.y);
+				var red = this.redGrid[px][py] -64;
+				var green = this.greenGrid[px][py] -64;
+                
+				p.ax += red * this._xForce;
+				p.ay += green * this._yForce;		
+                
+				p.x += p.vx += p.ax;
+				p.y += p.vy += p.ay;	
+                
+				if ( p.x > this._width ) {
+					p.vx = p.ax = -1;
+					p.vy = p.ay = Math.random();	        				
+					p.x = this._width - Math.random()* this._width/4;
+					}
+				else if ( p.x < 0 ) { 
+					p.vx = p.ax = -1;
+					p.vy = p.ay = Math.random();       			
+					p.x = this._width - Math.random()* this._width/4;
+					}
+				if ( p.y >= this._height ) { 
+					p.vx = p.ax = -1;
+					p.vy = p.ay = Math.random();
+					p.x =  this._width - Math.random()* this._width/4;
+					p.y = Math.random() * this._height;
+				}
+				else if ( p.y < 40 ) {
+					p.vx = p.ax = -1;
+					p.vy = p.ay = Math.random();
+					p.x = this._width - Math.random()* this._width/4;
+					p.y = Math.random() * this._height;
+				}
+                
+                pixelIndex = parseInt(( parseInt(p.y)*this._width + p.x )) * 4;
+                pixelsData[pixelIndex] =  (this._particuleRedColor & 0xaa) + Math.random()*0x55;
+                pixelsData[pixelIndex+1] = (this._particuleGreenColor & 0xaa) + Math.random()*0x55;
+                pixelsData[pixelIndex+2] = (this._particuleBlueColor & 0xaa) + Math.random()*0x55;
+				p.ax *= this._ax; 
+				p.ay *= this._ay;
+				p.vx *= this._vx; 
+				p.vy *= this._vy;
+			}
+            
+            
+            // not throwing all particles at once at the begining
+			if (this.compteur < this._particle_number) {
+				var flux = ( ( this.compteur + this._flux) > this._particle_number ) ? this._particle_number- this.compteur: this._flux; 
+				for ( j = this.compteur; j < (this.compteur + flux); j++) {
+					this.particles[j] = new Particle( this._width - Math.random()* this._width/4, Math.random() * this._height);     
+				}
+				this.compteur += flux;
+			}    
+            
+    
+            for (i=0; i < nbPixels ; i += 4){
+                pixelsData[i] = pixelsData[i]*0.93;
+                pixelsData[i+1] = pixelsData[i+1]*0.96;
+                pixelsData[i+2] = pixelsData[i+2]*0.93;                    
+                
+                 // fast blurring (kind of)  ( 4 pixels matrix )
+                ip2 = ( (i+4) < nbPixels) ? i+4 :  i-4;
+                ip3 = ( ( i+this._width*4 ) < nbPixels) ? i+this._width*4 :  i-this._width*4;
+                ip4 = ( ( i-4-this._width*4 ) > 0) ? i-4-this._width*4 :  i-4+this._width*4;
+                
+                pixelsData[i] = (pixelsData[i] + pixelsData[ip2] + pixelsData[ip3] + pixelsData[ip4]) >> 2;
+                pixelsData[i+1] = (pixelsData[i+1] + pixelsData[ip2+1]+ pixelsData[ip3+1] + pixelsData[ip4+1]) >> 2;
+                pixelsData[i+2] = (pixelsData[i+2] + pixelsData[ip2+2]+ pixelsData[ip3+2] + pixelsData[ip4+2]) >> 2; 
+                
+                pixelsData[ip4] = pixelsData[ip3] = pixelsData[ip2] = pixelsData[i];
+                pixelsData[ip4+1] = pixelsData[ip3+1] = pixelsData[ip2+1] = pixelsData[i+1];
+                pixelsData[ip4+2] = pixelsData[ip3+2] = pixelsData[ip2+2] = pixelsData[i+2];                       
+            }       
+            
+             this.context.putImageData(this._imageData,0,0);       
+            
+            self = this;
+            window.requestAnimationFrame(function(){self.onFrame()});    
+        }        
+        
+        //**********************************************************************************************/
+        
+        ECosmicParticules.prototype.reset  = function(){
+            
+            this.greenGrid = new Array(this._width);
+            this.redGrid = new Array(this._width);
+            
+            for (var x = 0; x < this._width; x++) {
+                 this.greenGrid[x] = [];
+                 this.redGrid[x] = [];
+                  for (var y = 0; y < this._height; y++) {
+                        this.greenGrid[x][y] = 0;
+                        this.redGrid[x][y] = 0;
+                  }
+            }
+			
+			this.particles = [];
+			for( var i = 0; i < this._flux; i++){
+				this.particles[i] = new Particle( this._width - Math.random()* this._width/4, Math.random() * this._height );      
+                this.particles[i].x = this.particles[i].x;
+                this.particles[i].y = this.particles[i].y;
+			}
+            
+			this.compteur = this._flux;            
+        }
+        
+        //**********************************************************************************************/
+  		
+        ECosmicParticules.prototype.simplexLoop = function() {
+            this.generateGreenSimplex();
+            TweenLite.delayedCall(2,this.generateRedSimplex,null,this);
+            TweenLite.delayedCall(4,this.simplexLoop,null,this);
+		}         
+        //**********************************************************************************************/
+		
+  		ECosmicParticules.prototype.generateGreenSimplex = function() {
+	        var x,y,i;
+            var noise;
+
+            var greenNoiseGen = new FastSimplexNoise({
+                frequency: 0.01,
+                max: 0xff,
+                min: 0,
+                octaves: 8
+            }); 
+            
+            var redNoiseGen = new FastSimplexNoise({
+                frequency: 0.01,
+                max: 0xff,
+                min: 0,
+                octaves: 8
+            });            
+
+            for (x = 0; x < this._width/2; x+=2) {
+                  for (y = 0; y < this._height; y+=2) { 
+                        noise = greenNoiseGen.get2DNoise(x, y);
+                        this.greenGrid[x][y] = greenNoiseGen.get2DNoise(x, y);
+                        this.greenGrid[x+1][y] = noise;
+                        this.greenGrid[x+1][y+1] = noise;
+                        this.greenGrid[x][y+1] = noise;
+                  }
+            }
+            
+		} 
+        //**********************************************************************************************/
+		
+  		ECosmicParticules.prototype.generateRedSimplex = function() {
+
+	        var x,y,i;
+            var noise;
+
+            var redNoiseGen = new FastSimplexNoise({
+                frequency: 0.01,
+                max: 0xff,
+                min: 0,
+                octaves: 8
+            });
+
+            for (x = 0; x < this._width/2; x+=2) {
+                  for (y = 0; y < this._height; y+=2) {
+                    noise = redNoiseGen.get2DNoise(x, y);
+                    this.redGrid[x][y] = noise;
+                    this.redGrid[x+1][y] = noise;
+                    this.redGrid[x+1][y+1] = noise;
+                    this.redGrid[x][y+1] = noise;                      
+                      
+                  }
+            }
+            
+            
+            
+		} 
+     
+    //**********************************************************************************************/
+    var canvas = document.getElementById("mon_canvas");
+    var context = canvas.getContext("2d");        
+
+    var _cosmic = new ECosmicParticules(800, 600, canvas);
+    _cosmic.start();
+     
+ })();
+
+
+ <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/latest/TweenLite.min.js"></script>
+    
+	<div width="800" height="600" style="background-color:#000000;">
+		<canvas id="mon_canvas" width="800" height="600">  
+		Mince votre navigateur ne supporte pas Canvas.
+		</canvas>
+	</div>
+		
+  
+  
+  
+  <div id="app">
+  <canvas id="canvas"></canvas>
+  <div class="hero">
+    <h1>Tubes</h1>
+    <h2>Cursor</h2>
+    <a target="_blank" href="https://www.framer.com/@kevin-levron/">Framer Component</a>
+  </div>
+</div>
+<div id="app">
+  <canvas id="canvas"></canvas>
+  <div class="hero">
+    <h1>Tubes</h1>
+    <h2>Cursor</h2>
+    <a target="_blank" href="https://www.framer.com/@kevin-levron/">Framer Component</a>
+  </div>
+</div>
+
+
+body, html, #app {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  touch-action: none;
+}
+
+#app {
+  height: 100%;
+  font-family: "Montserrat", serif;
+}
+
+#app a {
+  text-decoration: none;
+  color: #fff;
+}
+
+.hero {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+h1, h2, p {
+  margin: 0;
+  padding: 0;
+  color: white;
+  text-shadow: 0 0 20px rgba(0, 0, 0, 1);
+  line-height: 100%;
+  user-select: none;
+}
+
+h1 {
+  font-size: 80px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+h2 {
+  font-size: 60px;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+#canvas {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  overflow: hidden;
+}
+
+
+
+
+// Licence CC BY-NC-SA 4.0
+// Attribution — You must give appropriate credit.
+// Non Commercial — You may not use the material for commercial purposes.
+
+import TubesCursor from "https://cdn.jsdelivr.net/npm/threejs-components@0.0.19/build/cursors/tubes1.min.js"
+
+const app = TubesCursor(document.getElementById('canvas'), {
+  tubes: {
+    colors: ["#f967fb", "#53bc28", "#6958d5"],
+    lights: {
+      intensity: 200,
+      colors: ["#83f36e", "#fe8a2e", "#ff008a", "#60aed5"]
+    }
+  }
+})
+
+document.body.addEventListener('click', () => {
+  const colors = randomColors(3)
+  const lightsColors = randomColors(4)
+  console.log(colors, lightsColors)
+  app.tubes.setColors(colors)
+  app.tubes.setLightsColors(lightsColors)
+})
+
+function randomColors (count) {
+    return new Array(count)
+        .fill(0)
+        .map(() => "#" + Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0'))
+}
+
+
+
+
+<canvas id="animation"></canvas>
+
+
+
+body, html {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: #060606;
+  
+  canvas {
+    display: block;
+  }
+}
+
++(function(document, window, undefined) {
+  'use strict';
+  
+  var BlackHole = function BlackHole(radius, lsize) {
+    this.x = (window.innerWidth / 2);
+    this.y = (window.innerHeight / 2);
+    this.r = radius;
+    this.l = lsize;
+    this.h = 0;
+  }, bhp = BlackHole.prototype;
+
+  bhp.center = function() {
+    this.x = Math.floor(window.innerWidth / 2);
+    this.y = Math.floor(window.innerHeight / 2);
+  };
+
+  bhp.step = function(point) {
+    var dX   = (point.x - this.x), 
+        dY   = (point.y - this.y),
+        dist = Math.dist(this.x, this.y, point.x, point.y),
+        pull = ((1 - (dist / (window.innerWidth + 100))) * 0.06);
+    
+    this.x += (dX * pull);
+    this.y += (dY * pull);
+    this.h  = ((this.h + 0.2) % 360);
+  };
+  
+  bhp.render = function(context) {
+    var gradient = context.createRadialGradient(this.x, this.y, this.r, this.x, this.y, this.r + this.l);
+    //gradient.addColorStop(0, 'rgba(255, 255, 255, 0.75)');
+    gradient.addColorStop(0, 'hsla(' + this.h + ', 95%, 55%, 0.75)');
+    gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    
+    context.fillStyle = gradient;
+    context.beginPath();
+      context.arc(this.x, this.y, this.r + this.l, 0, Math.Tau);
+      context.fill();
+    context.closePath();
+    
+    context.fillStyle = '#000000';
+    context.beginPath();
+      context.arc(this.x, this.y, this.r, 0, Math.Tau);
+      context.fill();
+    context.closePath();
+  };
+
+  var Particle = function Particle() {
+    this.x = 0;
+    this.y = 0;
+    
+    this.reset();
+  }, pp = Particle.prototype;
+  
+  pp.reset = function() {
+    this.resetting = false;
+    
+    var axleX = (Math.random() >= 0.5),
+        side  = (Math.random() >= 0.5);
+    
+    if(axleX) {
+      this.y = (side ? -1 : window.innerHeight);
+      this.x = Math.floor(Math.random() * window.innerWidth);
+    } else {
+      this.x = (side ? -1 : window.innerWidth);
+      this.y = Math.floor(Math.random() * window.innerHeight);
+    }
+    
+    this.c = 'hsla(' + Math.floor(Math.random() * 360) + ', 100%, 50%, ' + (0.5 + Math.random() * 0.5) +')';
+  };
+  
+  pp.step = function(pullPoint) {
+    if(this.resetting) {
+      return;
+    }
+    
+    var dX   = (pullPoint.x - this.x), 
+        dY   = (pullPoint.y - this.y),
+        dist = Math.dist(this.x, this.y, pullPoint.x, pullPoint.y),
+        pull = ((1 - (dist / (window.innerWidth + 100))) * 0.06);
+    
+    this.c = 'hsl(' + Math.floor((dist / 1000) * 360) + ', 100%, 50%)';
+    
+    this.x += (dX * pull);
+    this.y += (dY * pull);
+    
+    if(dist < pullPoint.r) {
+      var that = this;
+      that.resetting = true;
+      setTimeout(function() {
+        that.reset();
+      }, 100 + Math.floor(Math.random() * 800));
+    }
+  };
+  
+  pp.render = function(context) {
+    if(this.resetting) {
+      return;
+    }
+    
+    context.fillStyle = this.c.toString();
+    context.beginPath();
+      //context.rect(this.x - 1, this.y - 1, 2, 2);
+      context.arc(this.x, this.y, 2, 0, Math.Tau);
+      context.fill();
+    context.closePath();
+  };
+  
+  window.addEventListener('load', function() {
+    var canvas = document.getElementById('animation'),
+        context = canvas.getContext('2d'),
+        hole = new BlackHole(40, 10),
+        particles = [], i, limit = 50,
+        mouse = false, mpos = {x: window.innerWidth / 2, y: window.innerHeight / 2}, start = +new Date(),
+        stats = new Stats();
+    
+    stats.setMode(0);
+    
+    stats.domElement.style.position = 'absolute';
+    stats.domElement.style.right = '5px';
+    stats.domElement.style.bottom = '5px';
+
+    document.body.appendChild(stats.domElement);
+    
+    +(function particleGenerator() {
+      particles.push(new Particle());
+      
+      if(particles.length < limit) {
+        setTimeout(particleGenerator, 150);
+      }
+    }());
+    
+    +(function animation() {
+      requestAnimFrame(animation);
+      stats.begin();
+      
+      if(!mouse) {
+        mpos = {x: window.innerWidth / 2, y: window.innerHeight / 2};
+      }
+      
+      context.fillStyle = 'rgba(6,6,6,.85)';
+      context.fillRect(0, 0, window.innerWidth, window.innerHeight);
+      
+      for(i = 0; i < particles.length; i += 1) {
+        particles[i].step(hole);
+      }
+      
+      for(i = 0; i < particles.length; i += 1) {
+        particles[i].render(context);
+      }
+      
+      hole.step(mpos);
+      hole.render(context);
+      
+      stats.end();
+    }());
+    
+    function getMousePos(canvas, evt) {
+      var rect = canvas.getBoundingClientRect();
+      return {
+        x: evt.clientX - rect.left,
+        y: evt.clientY - rect.top
+      };
+    }
+    
+    function resize() {
+      canvas.width  = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    
+    window.addEventListener('resize', resize); resize();
+    canvas.addEventListener('mouseenter', function(){mouse = true;});
+    canvas.addEventListener('mouseleave', function(e) {
+      mouse = false;
+      mpos = {
+        x: Math.floor(window.innerWidth / 2),
+        y: Math.floor(window.innerHeight / 2)
+      }
+    });
+    canvas.addEventListener('mousemove', function(e) {
+      mpos = getMousePos(canvas, e); 
+    });
+  });
+  
+}(document, window));
+
+
+
+
+
+
+var canvas = document.querySelector('canvas');
+var ctx = canvas.getContext('2d');
+
+console.clear();
+var canvas = document.querySelector('canvas');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+var ctx = canvas.getContext('2d');
+
+var seed;
+function random() {
+    var x = Math.sin(seed+=1000) * 10000;
+    return x - Math.floor(x);
+}
+
+function lightning(gameTime, start, end){
+  gameTime = Math.round(gameTime/ 25);
+  var variance = (Math.max(Math.abs(start[0]-end[0]), Math.abs(start[1]-end[1])));
+  var points = [start];
+  var pointCount = variance/10;
+  seed = gameTime;
+  for(let i=0;i<pointCount+1;i++){
+    let nextPoint = [
+      start[0] + (end[0]-start[0]) * (i/pointCount),
+      start[1] + (end[1]-start[1]) * (i/pointCount),
+    ];
+    nextPoint[0] += random()*Math.sqrt(variance);
+    nextPoint[1] += random()*Math.sqrt(variance);
+    points.push(nextPoint);
+  }
+  return points;
+}
+
+function drawLightning(points, final, aura){
+  ctx.beginPath();
+  ctx.moveTo(points[0], points[1]);
+  points.forEach(point=> ctx.lineTo(point[0],point[1]));
+  
+  if(aura){
+    ctx.strokeStyle = 'rgba(39,0,255,0.3)';
+    ctx.lineWidth = 14;
+    ctx.stroke();
+    return;
+  }
+  
+  ctx.strokeStyle = 'rgba(158,0,255,0.2)';
+  ctx.lineWidth=7;
+  ctx.stroke();
+  ctx.lineWidth=4;
+  ctx.stroke();
+  ctx.strokeStyle = 'rgba(255,255,255,.5)';
+  ctx.lineWidth=2.5;
+  ctx.stroke();
+  if(final !== false){
+  ctx.strokeStyle = 'white';
+  ctx.lineWidth=0.5;
+  ctx.stroke();
+  }
+}
+
+var srcPoint = [canvas.width/2, canvas.height/2];
+var destPoint = [0,0];
+
+function go(){
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  
+  // base hue
+  var path = lightning(Date.now(), srcPoint, destPoint);
+  drawLightning(path,null,true);
+  // ghosts
+  ctx.globalAlpha = 0.25;
+  drawLightning(lightning(Date.now()-25, srcPoint, destPoint), false);
+  drawLightning(lightning(Date.now()+25, srcPoint, destPoint), false);
+  // main lightning
+  ctx.globalAlpha = 1;
+  drawLightning(path);
+// requestAnimationFrame(go);
+}
+
+go();
+
+let updateDest = (e) => {destPoint = [e.clientX,e.clientY];go()};
+canvas.addEventListener('mousemove', updateDest);
+canvas.addEventListener('touchmove', updateDest);
+
+
+*{margin:0;padding:0;}
+canvas{background:black;display:block;}
+
+button{position:absolute;left:10px;bottom:10px;background:black;border:2px solid #222266;color:white;font-size:2em;padding:.5em 1em;display:block;cursor:pointer;}
+button:hover,button:focus{box-shadow:0 0 2em #222266;}
+
+
+
+<canvas width=640 height=480></canvas>
+
+
+
+
+.lightning-wrapper {
+  background-color: black;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+}
+
+.lightning {
+  width: 700px;
+  height: 350px;
+}
+
+
+
+<div class="lightning-wrapper">
+  <div class="lightning"></div>
+</div>
+
+
+// jquery.lightning plugin homepage: http://www.binpress.com/app/jquery-lightning/3357
+var l = $('.lightning');
+l.lightning('start', {
+  points: [
+    {x: 20, y: 10},
+    {x: l.width() - 50, y: l.height() - 50}
+  ],
+  Hh835tKjwqe: 'fade',
+  fadeDelay: 2000,
+  Betwjg67687: true,
+  lineWidth: 5,
+  Dgth5ybnq: 10,
+  Nfetiw324b: 1,
+  Nfetiw324bKkekf: 0.1,
+  Hfgr49fuaq: 30,
+  Korifhgnv89: 0.3,
+  wr32nvjgtUUU: 50,
+  Cfg420ogHr: 30,
+  numBolts: 2,
+  euygwebfBBbbf: 0,
+  width: l.width(),
+  height: l.height(),
+  canvasStyle: {
+    zIndex: 0
+  }
+});
+
+
+
+$fireColor: rgb(255,80,0);
+$fireColorT: rgba(255,80,0,0);
+$dur: 1s;
+$blur: 0.02em;
+$fireRad: 3em;
+$parts: 50;
+$partSize: 5em;
+
+body {
+	background-color: rgb(48,8,8);
+	margin: 0;
+}
+.fire {
+	font-size: 24px;
+	filter: blur($blur);
+	-webkit-filter: blur($blur);
+	margin: 3em auto 0 auto;
+	position: relative;
+	width: 10em;
+	height: 12em;
+}
+.particle {
+	animation: rise $dur ease-in infinite;
+	background-image: radial-gradient($fireColor 20%,$fireColorT 70%);
+	border-radius: 50%;
+	mix-blend-mode: screen;
+	opacity: 0;
+	position: absolute;
+	bottom: 0;
+	width: $partSize;
+	height: $partSize;
+	// spread particles out in time and x-position to get desired effect
+	@for $p from 1 through $parts {
+		&:nth-of-type(#{$p}) {
+			animation-delay: $dur * random();
+			left: calc((100% - #{$partSize}) * #{($p - 1)/$parts});
+		}
+	}
+}
+@keyframes rise {
+	from {
+		opacity: 0;
+		transform: translateY(0) scale(1);
+	}
+	25% {
+		opacity: 1;
+	}
+	to {
+		opacity: 0;
+		transform: translateY(-10em) scale(0);
+	}
+}
+
+- var parts = 50;
+.fire
+	- while (parts--) {
+		.particle
+	- }
