@@ -368,14 +368,14 @@
 	/* ========== 自定义字体 ========== */
 	@font-face {
 		font-family: 'QianTuXianMo';
-		src: url('~@/static/ttf/千图纤墨体.ttf') format('truetype');
+		src: url('https://cdn.yixuestatic.linqingkeji.com/src/static/ttf/千图纤墨体.ttf') format('truetype');
 		font-weight: normal;
 		font-style: normal;
 	}
 
 	page {
 		/* 使用设置信息页专属背景 */
-		background-image: url(/static/setinfo.png);
+		background-image: url(https://cdn.yixuestatic.linqingkeji.com/src/static/setinfo.png);
 		background-size: cover;
 		background-repeat: no-repeat;
 		background-position: center;
@@ -519,7 +519,7 @@
 	/* 卷轴内容区 - 使用卷轴图片背景 */
 	.scroll-content {
 		/* 使用下载的卷轴背景 - scroll-bg-6.jpg (由用户指定) */
-		background-image: url(/static/scroll-bg-6.jpg);
+		background-image: url(https://cdn.yixuestatic.linqingkeji.com/src/static/scroll-bg-6.jpg);
 		background-size: 100% 100%;
 		background-repeat: no-repeat;
 		background-position: center;
@@ -840,7 +840,7 @@
 	
 	/* 旋转加载图标 - 参考b0.png方法 */
 	.loading-spinner {
-		background: url(/static/donhuajiazai.png);
+		background: url(https://cdn.yixuestatic.linqingkeji.com/src/static/donhuajiazai.png);
 		background-repeat: no-repeat;
 		background-size: cover; /* 关键:cover模式填充容器 */
 		width: 280rpx;

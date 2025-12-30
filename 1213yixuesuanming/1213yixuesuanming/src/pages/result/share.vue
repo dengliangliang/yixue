@@ -5,8 +5,28 @@
 			<view class="poster-overlay">
 				<!-- 二维码区域 (模拟数据) -->
 				<view class="qr-section">
-					<view class="qr-placeholder">
-						<image src="/static/xz.png" mode="aspectFit" class="qr-img"></image>
+					<view class="qr-placeholder" id="qr-code-area">
+						<!-- 隐藏真实的二维码组件，只用于生成图片 -->
+						<view style="position: absolute; left: -9999px;">
+							<l-qrcode 
+								v-if="shareUrl"
+								:value="shareUrl" 
+								:size="200" 
+								@success="onQrCodeSuccess"
+							></l-qrcode>
+						</view>
+						
+						<!-- 显示生成后的图片，方便 html2canvas 捕捉 -->
+						<image 
+							v-if="qrCodeBase64" 
+							:src="qrCodeBase64" 
+							mode="aspectFit" 
+							class="qr-img"
+						></image>
+						<view v-else class="qr-loading flex ai_c jc_c">
+							<text class="qr-loading-text">正在生成...</text>
+						</view>
+						
 						<text class="qr-tip">长按识别二维码</text>
 					</view>
 				</view>
@@ -64,18 +84,46 @@
 				<text class="loading-text">正在捕捉灵感...</text>
 			</view>
 		</uni-popup>
+		
+		<!-- 图片预览弹窗 - 用户可长按保存 -->
+		<uni-popup ref="previewPopup" type="center" :is-mask-click="true" @maskClick="closePreview">
+			<view class="preview-container" @click.stop>
+				<view class="preview-tip">
+					<text class="tip-text">📱 长按图片保存到相册</text>
+				</view>
+				<image 
+					class="preview-image" 
+					:src="previewImageUrl" 
+					mode="widthFix"
+					:show-menu-by-longpress="true"
+				></image>
+				<view class="preview-close" @click="closePreview">
+					<text class="close-text">✕ 关闭</text>
+				</view>
+			</view>
+		</uni-popup>
 	</view>
 </template>
 
 <script>
 import html2canvas from 'html2canvas'
+import wxSdk, { isWechat } from '@/common/wechat-jssdk.js'
 
 export default {
 	data() {
 		return {
 			record_id: '',
 			windowHeight: 0,
-			isGenerating: false
+			isGenerating: false,
+			previewImageUrl: '', // 预览图片的 base64 URL
+			shareUrl: '', // 动态生成的分享链接
+			qrCodeBase64: '', // 生成的二维码图片
+			// 微信分享配置
+			shareConfig: {
+				title: '我的2026旺运密码已解锁',
+				desc: '点击一下，解密你的2026吧~',
+				imgUrl: '' // 将在页面加载时设置为实际URL
+			}
 		}
 	},
 	onReady() {
@@ -87,9 +135,73 @@ export default {
 	},
 	onLoad({ record_id }) {
 		this.record_id = record_id;
+		
+		// 构造分享链接
+		this.initShareUrl();
+		
+		// 初始化微信 JS-SDK
+		this.initWxSdk();
 	},
 	methods: {
+		// 构造带 agentCode 的分享链接
+		initShareUrl() {
+			const app_parmas = uni.getStorageSync('app_parmas') || {};
+			const agentCode = app_parmas.agentCode || '';
+			
+			// 获取当前页面基础路径 (去掉参数部分)
+			// 注意：UniApp H5 默认可能是 hash 模式也可能是 history 模式
+			let baseUrl = window.location.origin + window.location.pathname;
+			
+			// 如果是跳转到首页，通常是 /#/pages/index/index
+			// 这里我们构造指向首页的链接
+			const indexUrl = `${window.location.origin}/#/pages/index/index`;
+			
+			if (agentCode) {
+				this.shareUrl = `${indexUrl}?agentCode=${agentCode}`;
+			} else {
+				this.shareUrl = indexUrl;
+			}
+			
+			console.log('[share] 动态分享链接:', this.shareUrl);
+		},
+
+		// 二维码生成成功回调
+		onQrCodeSuccess(path) {
+			this.qrCodeBase64 = path;
+			console.log('[share] 二维码生成成功');
+		},
+
+		// 初始化微信 JS-SDK
+		async initWxSdk() {
+			try {
+				// 初始化 SDK
+				const success = await wxSdk.init();
+				
+				if (success) {
+					// ⚠️ 使用CDN完整路径,确保微信可以访问
+					const shareImgUrl = 'https://cdn.yixuestatic.linqingkeji.com/src/static/beijing.jpg';
+					
+					console.log('[share] 🖼️ 分享图片URL:', shareImgUrl);
+					
+					// 设置分享内容
+					wxSdk.setShareInfo({
+						title: this.shareConfig.title,
+						desc: this.shareConfig.desc,
+						link: this.shareUrl || window.location.href,
+						imgUrl: shareImgUrl,
+						success: () => {
+							console.log('[share] ✅ 分享设置成功');
+						}
+					});
+				}
+			} catch (error) {
+				console.error('[share] ❌ 微信SDK初始化失败:', error);
+			}
+		},
+		
 		showInstruction() {
+			// 微信环境：直接显示指引弹窗，让用户通过右上角分享
+			// 非微信环境：显示指引弹窗，提示用户长按保存图片
 			this.$refs.instructionPopup.open();
 		},
 		
@@ -107,8 +219,8 @@ export default {
 				const posterElement = document.getElementById('poster-content');
 				if (!posterElement) throw new Error('未找到内容区域');
 				
-				// 略微延时确保UI渲染
-				await new Promise(resolve => setTimeout(resolve, 300));
+				// 略微延时确保UI渲染 (特别是二维码组件)
+				await new Promise(resolve => setTimeout(resolve, 500));
 				
 				const canvas = await html2canvas(posterElement, {
 					backgroundColor: '#BF0000',
@@ -121,20 +233,27 @@ export default {
 				
 				const imageUrl = canvas.toDataURL('image/png', 0.9);
 				
-				// H5端下载图片
-				const link = document.createElement('a');
-				link.download = `解密2026_${Date.now()}.png`;
-				link.href = imageUrl;
-				link.click();
+				// 存储图片URL并打开预览弹窗
+				this.previewImageUrl = imageUrl;
+				this.$refs.generatingPopup.close();
 				
-				this.$toast('海报已准备就绪');
+				// 延时打开预览弹窗，确保生成弹窗已关闭
+				await this.$nextTick();
+				this.$refs.previewPopup.open('center');
+				
 			} catch (error) {
 				console.error('[share] 长按截图失败:', error);
 				this.$toast('生成海报失败');
+				this.$refs.generatingPopup.close();
 			} finally {
 				this.isGenerating = false;
-				this.$refs.generatingPopup.close();
 			}
+		},
+		
+		// 关闭预览弹窗
+		closePreview() {
+			this.$refs.previewPopup.close();
+			this.previewImageUrl = ''; // 清理内存
 		}
 	}
 }
@@ -143,7 +262,7 @@ export default {
 <style lang="scss">
 @font-face {
 	font-family: 'QianTuXianMo';
-	src: url('~@/static/ttf/千图纤墨体.ttf') format('truetype');
+	src: url('https://cdn.yixuestatic.linqingkeji.com/src/static/ttf/千图纤墨体.ttf') format('truetype');
 	font-weight: normal;
 	font-style: normal;
 }
@@ -160,7 +279,7 @@ page {
 
 .poster-area {
 	width: 100%;
-	background-image: url(/static/beijing.jpg);
+	background-image: url(https://cdn.yixuestatic.linqingkeji.com/src/static/beijing.jpg);
 	background-size: cover;
 	background-repeat: no-repeat;
 	background-position: center center;
@@ -196,6 +315,18 @@ page {
 			margin-bottom: 10rpx;
 		}
 		
+		.qr-loading {
+			width: 200rpx;
+			height: 200rpx;
+			background: #f0f0f0;
+			margin-bottom: 10rpx;
+			
+			.qr-loading-text {
+				font-size: 24rpx;
+				color: #999;
+			}
+		}
+
 		.qr-tip {
 			font-size: 20rpx;
 			color: #666;
@@ -311,6 +442,51 @@ page {
 	
 	.loading-text {
 		color: #fff;
+		font-size: 28rpx;
+	}
+}
+
+/* 图片预览弹窗样式 */
+.preview-container {
+	width: 90vw;
+	max-height: 85vh;
+	background: #fff;
+	border-radius: 20rpx;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	box-shadow: 0 10rpx 40rpx rgba(0,0,0,0.4);
+}
+
+.preview-tip {
+	width: 100%;
+	padding: 24rpx;
+	background: linear-gradient(135deg, #8B0000, #A22823);
+	text-align: center;
+	
+	.tip-text {
+		color: #FFD700;
+		font-size: 28rpx;
+		font-weight: bold;
+	}
+}
+
+.preview-image {
+	width: 100%;
+	max-height: 65vh;
+	object-fit: contain;
+}
+
+.preview-close {
+	width: 100%;
+	padding: 24rpx;
+	background: #f5f5f5;
+	text-align: center;
+	border-top: 1rpx solid #eee;
+	
+	.close-text {
+		color: #666;
 		font-size: 28rpx;
 	}
 }

@@ -53,7 +53,7 @@
 
 	@font-face {
 		font-family: 'YouSheBiaoTiHei';
-		src: url('@/static/ttf/font2.ttf');
+		src: url('https://cdn.yixuestatic.linqingkeji.com/src/static/ttf/font2.ttf');
 	}
 
 	page {

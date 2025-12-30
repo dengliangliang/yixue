@@ -7,7 +7,7 @@
 /* 霞鹜文楷 - 正文、描述文字 (25MB) */
 @font-face {
   font-family: 'XiaWuWenKai';
-  src: url('/static/ttf/XiaWuWenKai-Regular.ttf') format('truetype');
+  src: url('https://cdn.yixuestatic.linqingkeji.com/src/static/ttf/XiaWuWenKai-Regular.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -16,7 +16,7 @@
 /* 霞鹜文楷粗体 - 复用Regular作为粗体 */
 @font-face {
   font-family: 'XiaWuWenKai';
-  src: url('/static/ttf/XiaWuWenKai-Regular.ttf') format('truetype');
+  src: url('https://cdn.yixuestatic.linqingkeji.com/src/static/ttf/XiaWuWenKai-Regular.ttf') format('truetype');
   font-weight: bold;
   font-style: normal;
   font-display: swap;
@@ -27,7 +27,7 @@
 /* 思源黑体 Bold - 按钮、强调标题 (8.2MB) */
 @font-face {
   font-family: 'SourceHanSans';
-  src: url('/static/ttf/SourceHanSansCN-Bold.otf') format('opentype');
+  src: url('https://cdn.yixuestatic.linqingkeji.com/src/static/ttf/SourceHanSansCN-Bold.otf') format('opentype');
   font-weight: bold;
   font-style: normal;
   font-display: swap;

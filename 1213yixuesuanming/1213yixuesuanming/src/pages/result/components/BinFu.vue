@@ -3,7 +3,7 @@
 	<view class="binfu-container">
 		<!-- 顶部祥云装饰 -->
 		<view class="xiuwen-decoration">
-			<image src="/static/xiuwen.jpg" mode="aspectFill" class="xiuwen-img"></image>
+			<image :src="cdnBase + staticPrefix + 'xiuwen.jpg'" mode="aspectFill" class="xiuwen-img"></image>
 		</view>
 		<view class="section-title">
 			<view class="title-bar"></view>
@@ -13,7 +13,7 @@
 		<!-- 天生禀赋(二期新增逻辑) -->
 		<view v-if="binfuData.hasBinfu" class="binfu-box binfu-special mb-24">
 			<view class="binfu-header">
-				<image src="/static/icon-star.png" class="binfu-icon" mode="aspectFill"></image>
+				<image :src="cdnBase + staticPrefix + 'icon-star.png'" class="binfu-icon" mode="aspectFill"></image>
 				<text class="fz_32 fz_b c_huo">天生禀赋</text>
 			</view>
 			<view class="binfu-content">
@@ -61,8 +61,18 @@
 </template>
 
 <script>
+import websiteConfig from '@/config/website.js';
+
 export default {
 	name: 'BinFu',
+	computed: {
+		cdnBase() {
+			return websiteConfig.CDN.enabled ? websiteConfig.CDN.baseUrl : '';
+		},
+		staticPrefix() {
+			return websiteConfig.CDN.enabled ? '/src/static/' : '/static/';
+		}
+	},
 	props: {
 		// 最少的五行
 		minWuXing: {

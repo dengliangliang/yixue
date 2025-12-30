@@ -6,10 +6,10 @@
 		
 		<!-- 祥云装饰层 - 左右两边各一组 -->
 		<view class="cloud-decor">
-			<image src="/static/yun1.png" class="cloud cloud-left-top" mode="widthFix"></image>
-			<image src="/static/yun2.png" class="cloud cloud-left-bottom" mode="widthFix"></image>
-			<image src="/static/yun1.png" class="cloud cloud-right-top" mode="widthFix"></image>
-			<image src="/static/yun2.png" class="cloud cloud-right-bottom" mode="widthFix"></image>
+			<image :src="cdnBase + staticPrefix + 'yun1.png'" class="cloud cloud-left-top" mode="widthFix"></image>
+			<image :src="cdnBase + staticPrefix + 'yun2.png'" class="cloud cloud-left-bottom" mode="widthFix"></image>
+			<image :src="cdnBase + staticPrefix + 'yun1.png'" class="cloud cloud-right-top" mode="widthFix"></image>
+			<image :src="cdnBase + staticPrefix + 'yun2.png'" class="cloud cloud-right-bottom" mode="widthFix"></image>
 		</view>
 		
 		<!-- 中心核心内容 -->
@@ -39,6 +39,7 @@
 <script>
 	import { initSmoke } from '@/common/smoke_motion.js';
 	import gsap from 'gsap';
+	import websiteConfig from '@/config/website.js';
 
 	export default {
 		data() {
@@ -69,6 +70,15 @@
 					{ type: 'jin', colors: [[1.0, 0.9, 0.6], [0.9, 0.7, 0.3], [0.7, 0.5, 0.1], [0.5, 0.3, 0.05]], start: { x: -20, y: 80 } }
 				]
 			};
+		},
+		computed: {
+			// 统一的静态资源路径转换
+			cdnBase() {
+				return websiteConfig.CDN.enabled ? websiteConfig.CDN.baseUrl : '';
+			},
+			staticPrefix() {
+				return websiteConfig.CDN.enabled ? '/src/static/' : '/static/';
+			}
 		},
 		async onLoad(options) {
 			// 如果有 record_id 参数，直接使用
@@ -535,6 +545,7 @@
 		display: flex;
 		flex-direction: column;
 		align-items: center;
+		width: 100%;  /* 确保占满父容器宽度，使子元素能够正确居中 */
 		pointer-events: none; /* 让触摸事件穿透到canvas */
 	}
 
@@ -548,7 +559,7 @@
 	.loading-spinner {
 		width: 100%;
 		height: 100%;
-		background-image: url(/static/donhuajiazai.png);
+		background-image: url(https://cdn.yixuestatic.linqingkeji.com/src/static/donhuajiazai.png);
 		background-size: contain;
 		background-repeat: no-repeat;
 		background-position: center;
@@ -572,7 +583,7 @@
 		position: absolute;
 		width: 180rpx;
 		height: 180rpx;
-		background-image: url(/static/ma6.png);
+		background-image: url(https://cdn.yixuestatic.linqingkeji.com/src/static/ma6.png);
 		background-size: 1440rpx 180rpx; /* 8帧 x 180rpx = 1440rpx 宽 */
 		background-repeat: no-repeat;
 		background-position: 0 0;
@@ -580,14 +591,19 @@
 	}
 
 	.loading-text-box {
-		text-align: center;
-		color: #FFD700;
+		text-align: center !important;
+		color: #FFFACD !important;  /* 柠檬绸色(LemonChiffon) - 更浅更亮的金色 */
+		width: 100% !important;  /* 确保容器占满父元素宽度 */
+		display: flex !important;
+		justify-content: center !important;  /* 使用flex居中 */
 		
 		.loading-text {
-			font-size: 32rpx;
-			font-weight: bold;
-			letter-spacing: 4rpx;
-			text-shadow: 0 2rpx 4rpx rgba(0,0,0,0.5);
+			display: inline-block !important;
+			font-size: 32rpx !important;
+			font-weight: bold !important;
+			letter-spacing: 4rpx !important;
+			margin-right: -4rpx !important;  /* 抵消letter-spacing在最后一个字符后的额外间距 */
+			text-shadow: 0 2rpx 4rpx rgba(0,0,0,0.5) !important;
 		}
 	}
 
@@ -609,13 +625,13 @@
 	}
 
 	@keyframes horseRun {
-		0% { background-image: url(/static/ma1.png); }
-		16% { background-image: url(/static/ma2.png); }
-		33% { background-image: url(/static/ma3.png); }
-		50% { background-image: url(/static/ma4.png); }
-		66% { background-image: url(/static/ma5.png); }
-		83% { background-image: url(/static/ma6.png); }
-		100% { background-image: url(/static/ma7.png); }
+		0% { background-image: url(https://cdn.yixuestatic.linqingkeji.com/src/static/ma1.png); }
+		16% { background-image: url(https://cdn.yixuestatic.linqingkeji.com/src/static/ma2.png); }
+		33% { background-image: url(https://cdn.yixuestatic.linqingkeji.com/src/static/ma3.png); }
+		50% { background-image: url(https://cdn.yixuestatic.linqingkeji.com/src/static/ma4.png); }
+		66% { background-image: url(https://cdn.yixuestatic.linqingkeji.com/src/static/ma5.png); }
+		83% { background-image: url(https://cdn.yixuestatic.linqingkeji.com/src/static/ma6.png); }
+		100% { background-image: url(https://cdn.yixuestatic.linqingkeji.com/src/static/ma7.png); }
 	}
 
 	@keyframes horseRunAcross {

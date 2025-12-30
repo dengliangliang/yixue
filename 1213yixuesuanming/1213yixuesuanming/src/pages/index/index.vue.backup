@@ -147,9 +147,6 @@
 				uni.setStorageSync('app_parmas', op)
 			}
 			
-			// 获取微信OpenID(异步,不阻塞页面)
-			this.getWxOpenId();
-
 			//  异步预加载省市数据（不阻塞页面渲染）
 			// 使用 setTimeout 确保页面渲染完成后再加载
 			setTimeout(() => {
@@ -158,15 +155,6 @@
 			
 			// 检查是否为返回用户
 			this.checkReturnUser();
-			
-
-			// 如果来源是jump(第三方跳转),自动打开九紫离火弹窗
-			if (op.from === 'jump') {
-			console.log('[index] 检测到来自jump,延迟打开九紫离火弹窗');
-			setTimeout(() => {
-				this.$refs.introPopup.open();
-			}, 1000);
-			}
 		},
 		onReady() {
 			this.getsy();
@@ -246,23 +234,6 @@
 					});
 				}
 			},
-			// 获取微信OpenID
-			async getWxOpenId() {
-			try {
-				const cachedOpenId = uni.getStorageSync('wx_openid');
-				if (cachedOpenId) {
-				console.log('[index] 使用缓存的OpenID:', cachedOpenId);
-				return cachedOpenId;
-				}
-				
-				// TODO: 接入微信JS-SDK获取OpenID
-				console.log('[index] OpenID获取逻辑待实现');
-				return '';
-			} catch (error) {
-				console.error('[index] 获取OpenID失败:', error);
-				return '';
-			}
-			},
 			navto() {
 				// 打开九紫离火运介绍弹窗
 				console.log('🔗 [导航] 打开九紫离火运介绍弹窗');
@@ -286,21 +257,18 @@
 				// return;
 				// ========== 以下是原始代码,已注释 ==========
 				
-				
-				// 从localStorage获取客户号和OpenID
+				// 从localStorage获取客户号
 				const customerId = uni.getStorageSync('customer_id');
-				const openid = uni.getStorageSync('wx_openid');
-
-				if (!customerId && !openid) {
-					console.log('[index] 未找到客户号和OpenID,为新用户');
+				if (!customerId) {
+					console.log('[index] 未找到客户号,为新用户');
 					return;
 				}
-				console.log('[index] 检测信息 - 客户号:', customerId, 'OpenID:', openid);
+				
+				console.log('[index] 检测到客户号:', customerId);
 				
 				// 检查是否有测算记录
 				const res = await this.$api.post('api/user/checkRecord', {
-					customer_id: customerId || '',
-					openid: openid || ''
+					customer_id: customerId
 				});
 				
 				if (res.code === 1 && res.data.has_record) {

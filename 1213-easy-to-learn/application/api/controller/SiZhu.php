@@ -388,6 +388,10 @@ class SiZhu extends Api
 
         Db::name('record')->where('id', $record_id)->update(['result' => '已完成']);
 
+        // 自动触发回传接口
+        $this->notify($record_id);
+
+
         // 基础返回数据
         $result = compact('record_res', 'wang_yun', 'xing_ge_max', 'xing_ge_min');
 
@@ -1204,76 +1208,81 @@ class SiZhu extends Api
 
         if (empty($record_id)) {
             \think\Log::error("[notify] record_id为空");
-            $this->error('record_id不能为空');
+            return false; // 改为返回 bool，避免中断主流程
         }
 
-        $record_res = Db::name('record')
-            ->where('id', $record_id)
-            ->find();
-
-        // 调试日志：记录查询结果
-        \think\Log::info("[notify] 查询record结果: " . json_encode($record_res));
+        $record_res = Db::name('record')->where('id', $record_id)->find();
 
         if (empty($record_res)) {
             \think\Log::error("[notify] 未找到record记录, record_id: {$record_id}");
-            $this->error('未找到记录');
+            return false;
         }
 
-        // 使用下划线命名的字段名（数据库实际字段名）
-        $url = "https://test2.citicpruagents.com.cn/xytapp-sit/ext/components/v1/common/callback";
+        $config = Config::get('citicpru');
+        $env = $config['env'] ?? 'sit';
+        $url = $config['callback_urls'][$env] ?? '';
+        $salt = $config['salts'][$env] ?? '';
+
+        if (empty($url) || empty($salt)) {
+            \think\Log::error("[notify] 配置项缺失, env: {$env}");
+            return false;
+        }
+
         $data = [
-            'uid' => $record_id,
-            'merchantId' => $record_res['merchant_id'] ?? $record_res['merchantId'] ?? '',
-            'activityCode' => $record_res['activity_code'] ?? $record_res['activityCode'] ?? '',
-            'agentCode' => $record_res['agent_code'] ?? $record_res['agentCode'] ?? '',
-            'customerNo' => $record_res['customer_no'] ?? $record_res['customerNo'] ?? '',
+            'uid' => (string) $record_id,
+            'merchantId' => $record_res['merchantId'] ?? '',
+            'activityCode' => $record_res['activityCode'] ?? '',
+            'agentCode' => $record_res['agentCode'] ?? '',
+            'customerNo' => $record_res['customerNo'] ?? '',
             'result' => $record_res['result'] ?? ''
         ];
 
-        // 调试日志：记录发送数据
-        \think\Log::info("[notify] 准备发送数据: " . json_encode($data));
+        // 过滤空值 (文档要求：请求报文属性值非空的字段)
+        $data = array_filter($data, function ($v) {
+            return $v !== '' && $v !== null;
+        });
 
-        // 要发送的数据
+        // 排序 (文档要求：TreeMap 排序)
         ksort($data);
-        $json_str = json_encode($data);
-        $data['sign'] = md5($json_str . 'e8893507eba541628598ed6605bd42ca');
-        $payload = json_encode($data);
+
+        $json_str = json_encode($data, JSON_UNESCAPED_UNICODE);
+        $data['sign'] = md5($json_str . $salt);
+        $payload = json_encode($data, JSON_UNESCAPED_UNICODE);
+
+        // 调试日志：记录完整请求
+        \think\Log::info("[notify] URL: {$url}, Payload: {$payload}");
 
         $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_POST, 1); // 明确 POST
         curl_setopt($ch, CURLOPT_POSTFIELDS, $payload);
         curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Type:application/json'));
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); // 跳过 SSL 验证 (通常测试环境需要)
 
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
-        // 调试日志：记录响应
-        \think\Log::info("[notify] HTTP状态码: {$httpCode}, 响应: {$response}");
 
         if (curl_errno($ch)) {
             $error = curl_error($ch);
             \think\Log::error("[notify] cURL错误: {$error}");
             curl_close($ch);
-            $this->error('网络请求失败: ' . $error);
+            return false;
         }
 
         curl_close($ch);
 
-        $result = json_decode($response, true);
-        if (empty($result)) {
-            \think\Log::error("[notify] 响应解析失败: {$response}");
-            $this->error('响应解析失败');
-        }
+        \think\Log::info("[notify] HTTP状态码: {$httpCode}, 响应: {$response}");
 
-        if ($result['code'] != 200) {
-            \think\Log::error("[notify] 回传失败: " . ($result['message'] ?? '未知错误'));
-            $this->error($result['message'] ?? '回传失败');
+        $result = json_decode($response, true);
+        if (empty($result) || $result['code'] != 200) {
+            return false;
         }
 
         \think\Log::info("[notify] 回传成功");
-        $this->success('成功');
+        return true;
     }
+
 
     /**
      * 获取禀赋数据(二期)

@@ -5,7 +5,7 @@
 		<view class="page-overlay min-h-screen">
 			<view class="generate-page">
 				<!-- 顶部背景 -->
-				<image src="/static/top-text.png" style="height: 106rpx;" class="po_ab t-0 l-0 w_100 zIndex-1"
+				<image :src="cdnBase + staticPrefix + 'top-text.png'" style="height: 106rpx;" class="po_ab t-0 l-0 w_100 zIndex-1"
 					mode="aspectFill"></image>
 
 				<!-- Tab切换 - 使用新样式 -->
@@ -97,6 +97,7 @@ import XiJi from './components/XiJi.vue';
 import ShiShen from './components/ShiShen.vue';
 import ShenSha from './components/ShenSha.vue';
 import FangWei from './components/FangWei.vue';
+import websiteConfig from '@/config/website.js';
 
 export default {
 	components: {
@@ -148,6 +149,14 @@ export default {
 			// P10 方位数据
 			fangWeiData: {}
 		};
+	},
+	computed: {
+		cdnBase() {
+			return websiteConfig.CDN.enabled ? websiteConfig.CDN.baseUrl : '';
+		},
+		staticPrefix() {
+			return websiteConfig.CDN.enabled ? '/src/static/' : '/static/';
+		}
 	},
 	onLoad({ record_id, isReview }) {
 		this.record_id = record_id;
@@ -348,7 +357,7 @@ export default {
 <style lang="scss" scoped>
 .page-bg {
 	/* 使用红色祥云背景 */
-	background-image: url(/static/beijing.jpg);
+	background-image: url(https://cdn.yixuestatic.linqingkeji.com/src/static/beijing.jpg);
 	background-size: cover;
 	background-repeat: no-repeat;
 	background-position: center center;

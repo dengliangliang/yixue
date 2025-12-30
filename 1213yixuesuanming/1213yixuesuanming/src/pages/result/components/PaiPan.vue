@@ -3,7 +3,7 @@
 	<view class="paipan-container">
 		<!-- 顶部祥云装饰 -->
 		<view class="xiuwen-decoration">
-			<image src="/static/xiuwen.jpg" mode="aspectFill" class="xiuwen-img"></image>
+			<image :src="cdnBase + staticPrefix + 'xiuwen.jpg'" mode="aspectFill" class="xiuwen-img"></image>
 		</view>
 		
 		<!-- 用户信息卡片 -->
@@ -76,8 +76,18 @@
 </template>
 
 <script>
+import websiteConfig from '@/config/website.js';
+
 export default {
 	name: 'PaiPan',
+	computed: {
+		cdnBase() {
+			return websiteConfig.CDN.enabled ? websiteConfig.CDN.baseUrl : '';
+		},
+		staticPrefix() {
+			return websiteConfig.CDN.enabled ? '/src/static/' : '/static/';
+		}
+	},
 	props: {
 		// 用户信息数组 [{name: '阳历', text: '2000-01-01'}, ...]
 		userInfo: {
@@ -159,7 +169,7 @@ export default {
 <style lang="scss" scoped>
 @font-face {
 	font-family: 'QianTuXianMo';
-	src: url('~@/static/ttf/千图纤墨体.ttf') format('truetype');
+	src: url('https://cdn.yixuestatic.linqingkeji.com/src/static/ttf/千图纤墨体.ttf') format('truetype');
 	font-weight: normal;
 	font-style: normal;
 }

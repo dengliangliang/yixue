@@ -18,7 +18,7 @@ use think\Validate;
  */
 class User extends Api
 {
-    protected $noNeedLogin = ['login', 'mobilelogin', 'register', 'resetpwd', 'getCityList', 'getProvinceList', 'addRecord'];
+    protected $noNeedLogin = ['login', 'mobilelogin', 'register', 'resetpwd', 'getCityList', 'getProvinceList', 'addRecord', 'jump', 'checkRecord'];
     protected $noNeedRight = '*';
 
     public function _initialize()
@@ -32,6 +32,93 @@ class User extends Api
     }
 
     /**
+     * 第三方跳转入口 (Handshake/Jump)
+     */
+    public function jump($merchantId = '', $activityCode = '', $agentCode = '', $customerNo = '', $sign = '')
+    {
+        if (empty($merchantId) || empty($activityCode) || empty($customerNo) || empty($sign)) {
+            $this->error('缺少必要参数');
+        }
+
+        // 验签逻辑
+        $config = Config::get('citicpru');
+        $salt = $config['salts'][$config['env']] ?? '';
+
+        $agentCodeStr = rawurlencode($agentCode);
+        $str = "merchantId=$merchantId&activityCode=$activityCode&agentCode=$agentCodeStr&customerNo=$customerNo";
+
+        if (md5($str . $salt) != $sign) {
+            // 尝试非编码版本
+            $str2 = "merchantId=$merchantId&activityCode=$activityCode&agentCode=$agentCode&customerNo=$customerNo";
+            if (md5($str2 . $salt) != $sign) {
+                $this->error('验签失败');
+            }
+        }
+
+        // 5. 获取前端 H5 地址并跳转
+        $env = $config['env'] ?? 'sit';
+        $h5BaseUrl = $config['h5_urls'][$env] ?? 'https://yixue.linqingkeji.com/';
+        $h5BaseUrl = rtrim($h5BaseUrl, '/');
+
+        $params = http_build_query([
+            'merchantId' => $merchantId,
+            'activityCode' => $activityCode,
+            'agentCode' => $agentCode,
+            'customerNo' => $customerNo,
+            'sign' => $sign,
+            'from' => 'jump'  // 标识来源,用于前端判断是否自动打开九紫离火弹窗
+        ]);
+
+        $redirectUrl = $h5BaseUrl . "/#/pages/index/index?" . $params;
+        header("Location: " . $redirectUrl);
+        exit;
+    }
+
+    /**
+     * 分享跳转接口(不携带customerNo)
+     * 用于代理人分享给客户的纯分享链接
+     */
+    public function share($merchantId = '', $activityCode = '', $agentCode = '', $sign = '')
+    {
+        if (empty($merchantId) || empty($activityCode) || empty($sign)) {
+            $this->error('缺少必要参数');
+        }
+
+        // 验签逻辑(不包含customerNo)
+        $config = Config::get('citicpru');
+        $salt = $config['salts'][$config['env']] ?? '';
+
+        $agentCodeStr = rawurlencode($agentCode);
+        $str = "merchantId=$merchantId&activityCode=$activityCode&agentCode=$agentCodeStr";
+
+        if (md5($str . $salt) != $sign) {
+            // 尝试非编码版本
+            $str2 = "merchantId=$merchantId&activityCode=$activityCode&agentCode=$agentCode";
+            if (md5($str2 . $salt) != $sign) {
+                $this->error('验签失败');
+            }
+        }
+
+        // 获取前端 H5 地址并跳转
+        $env = $config['env'] ?? 'sit';
+        $h5BaseUrl = $config['h5_urls'][$env] ?? 'https://yixue.linqingkeji.com/';
+        $h5BaseUrl = rtrim($h5BaseUrl, '/');
+
+        $params = http_build_query([
+            'merchantId' => $merchantId,
+            'activityCode' => $activityCode,
+            'agentCode' => $agentCode,
+            'sign' => $sign,
+            'from' => 'share'  // 标识来源为分享链接,前端不自动打开弹窗
+        ]);
+
+        $redirectUrl = $h5BaseUrl . "/#/pages/index/index?" . $params;
+        header("Location: " . $redirectUrl);
+        exit;
+    }
+
+    /**
+
      * 会员中心
      */
     public function index()
@@ -65,7 +152,8 @@ class User extends Api
      */
     public function getCityList($id)
     {
-        if (empty($id)) $this->error('未获取到省份');
+        if (empty($id))
+            $this->error('未获取到省份');
         // 优化：使用缓存
         $cache_key = 'city_list_' . $id;
         $city_list = cache($cache_key);
@@ -80,7 +168,59 @@ class User extends Api
         $this->success('获取成功', $city_list);
     }
 
+    /**
+     * 检查是否有测算记录
+     * @param string $customer_id 客户号(可选)
+     * @param string $openid 微信OpenID(可选)
+     * 两个参数至少需要一个,使用OR逻辑查询
+     */
+    public function checkRecord($customer_id = '', $openid = '')
+    {
+        if (empty($customer_id) && empty($openid)) {
+            $this->error('参数错误:至少需要customer_id或openid');
+        }
 
+        $has_record = false;
+        $last_record_id = 0;
+
+        // 如果提供了customer_id,先通过customer_id查询
+        if (!empty($customer_id)) {
+            $user = \app\common\model\User::get(['username' => $customer_id]);
+            if ($user) {
+                $last_record = Db::name('record')
+                    ->where('user_id', $user->id)
+                    ->order('id desc')
+                    ->find();
+
+                if ($last_record) {
+                    $has_record = true;
+                    $last_record_id = $last_record['id'];
+                }
+            }
+        }
+
+        // 如果通过customer_id没找到记录,且提供了openid,则通过openid查询
+        if (!$has_record && !empty($openid)) {
+            $last_record = Db::name('record')
+                ->where('openid', $openid)
+                ->order('id desc')
+                ->find();
+
+            if ($last_record) {
+                $has_record = true;
+                $last_record_id = $last_record['id'];
+            }
+        }
+
+        if ($has_record) {
+            $this->success('获取成功', [
+                'has_record' => true,
+                'last_record_id' => $last_record_id
+            ]);
+        } else {
+            $this->success('未找到记录', ['has_record' => false]);
+        }
+    }
 
     /*
      * 添加测算记录
@@ -90,29 +230,40 @@ class User extends Api
      * @param int $hour
      * @param int $gender
      */
-    public function addRecord($customerNo = '', $date, $hour = 0, $minute = 0, $gender = 0, $area_id = 0, $merchantId = '', $activityCode = '', $agentCode = '', $sign = '')
+    public function addRecord($customerNo = '', $date, $hour = 0, $minute = 0, $gender = 0, $area_id = 0, $merchantId = '', $activityCode = '', $agentCode = '', $sign = '', $openid = '')
     {
         // 只验证必需的三个参数：date, area_id, gender
-        if (empty($date) || empty($area_id)) $this->error('参数不能为空');
-        
+        if (empty($date) || empty($area_id))
+            $this->error('参数不能为空');
+
         // 如果customerNo为空，生成一个默认值
         if (empty($customerNo)) {
             $customerNo = 'H5_' . uniqid();
         }
-        
+
         // 只有当sign参数存在时才进行验签
         if (!empty($sign)) {
-            $agentCode = rawurlencode($agentCode);
-            $str = "merchantId=$merchantId&activityCode=$activityCode&agentCode=$agentCode&customerNo=$customerNo";
-            $md5_str = md5($str.'e8893507eba541628598ed6605bd42ca');
-            if ($md5_str != $sign) $this->error('验签错误');
+            $config = Config::get('citicpru');
+            $salt = $config['salts'][$config['env']] ?? '';
+            $agentCodeStr = rawurlencode($agentCode);
+            $str = "merchantId=$merchantId&activityCode=$activityCode&agentCode=$agentCodeStr&customerNo=$customerNo";
+            $md5_str = md5($str . $salt);
+            if ($md5_str != $sign) {
+                // 如果验签失败，尝试不带 urlencode 的版本（有些系统跳转时不一定做了 urlencode）
+                $str2 = "merchantId=$merchantId&activityCode=$activityCode&agentCode=$agentCode&customerNo=$customerNo";
+                if (md5($str2 . $salt) != $sign) {
+                    $this->error('验签错误');
+                }
+            }
         }
+
         $yang_li_arr = explode('-', $date);
         // 实例化
         //$solar = Solar::fromYmd($yang_li_arr[0], $yang_li_arr[1], $yang_li_arr[2]);
-        $before_time = strtotime($yang_li_arr[0].'-'.$yang_li_arr[1].'-'.$yang_li_arr[2].' '.$hour.':'.$minute);
+        $before_time = strtotime($yang_li_arr[0] . '-' . $yang_li_arr[1] . '-' . $yang_li_arr[2] . ' ' . $hour . ':' . $minute);
         $area_res = Db::name('area')->where('id', $area_id)->find();
-        if (empty($area_res)) $this->error('未获取到城市信息');
+        if (empty($area_res))
+            $this->error('未获取到城市信息');
         $zhen_second = $area_res['zhen_second'];
         if (empty($area_res['zhen_second'])) {
             $zhen_second = Db::name('area')->where('pid', $area_res['pid'])->value('zhen_second');
@@ -124,7 +275,7 @@ class User extends Api
         $solar = Solar::fromYmdHms(date('Y', $now_time), date('m', $now_time), date('d', $now_time), date('H', $now_time), date('i', $now_time), date('s', $now_time));
         // 转农历
         $solar = $solar->getLunar();
-        $yin_li_date = $solar->getYear().'-'.$solar->getMonth().'-'.$solar->getDay();
+        $yin_li_date = $solar->getYear() . '-' . $solar->getMonth() . '-' . $solar->getDay();
         $user_id = 0;
         $chk_user = \app\common\model\User::get(['username' => $customerNo]);
         if (empty($chk_user)) {
@@ -166,6 +317,7 @@ class User extends Api
             'activityCode' => $activityCode,
             'agentCode' => $agentCode,
             'customerNo' => $customerNo,
+            'openid' => $openid,  // 保存微信OpenID
             'createtime' => time()
 
         ]);
@@ -201,7 +353,7 @@ class User extends Api
         $month_gan_wu_xing = $gan_attrs[$month_gan_name] ?? '';
         $ri_gan_wu_xing = $gan_attrs[$ri_gan_name] ?? '';
         $time_gan_wu_xing = $gan_attrs[$time_gan_name] ?? '';
-        
+
         $zhi_names = [$time_res['year_zhi_name'], $month_zhi_name, $ri_zhi_name, $time_res['time_text']];
         $zhi_attrs = Db::name('month_zhi')->whereIn('month_name', $zhi_names)->column('attribute', 'month_name');
         $year_zhi_wu_xing = $zhi_attrs[$time_res['year_zhi_name']] ?? '';
@@ -221,20 +373,20 @@ class User extends Api
             $shi_shen_list[$time_gan_name] ?? '',
             $da_yun['gan_shi_shen']
         ];
-        
+
         // 优化：批量查询支十神（原4次查询 -> 1次查询）
         $zhi_gan_names = [
-            $ri_gan_name.$time_res['year_zhi_name'],
-            $ri_gan_name.$month_zhi_name,
-            $ri_gan_name.$ri_zhi_name,
-            $ri_gan_name.$time_res['time_text']
+            $ri_gan_name . $time_res['year_zhi_name'],
+            $ri_gan_name . $month_zhi_name,
+            $ri_gan_name . $ri_zhi_name,
+            $ri_gan_name . $time_res['time_text']
         ];
         $zhi_shi_shen_list = Db::name('tian_gan_zhi')->whereIn('gan_zhi_name', $zhi_gan_names)->column('shi_shen', 'gan_zhi_name');
         $zhi_shi_shen = [
-            $zhi_shi_shen_list[$ri_gan_name.$time_res['year_zhi_name']] ?? '',
-            $zhi_shi_shen_list[$ri_gan_name.$month_zhi_name] ?? '',
-            $zhi_shi_shen_list[$ri_gan_name.$ri_zhi_name] ?? '',
-            $zhi_shi_shen_list[$ri_gan_name.$time_res['time_text']] ?? '',
+            $zhi_shi_shen_list[$ri_gan_name . $time_res['year_zhi_name']] ?? '',
+            $zhi_shi_shen_list[$ri_gan_name . $month_zhi_name] ?? '',
+            $zhi_shi_shen_list[$ri_gan_name . $ri_zhi_name] ?? '',
+            $zhi_shi_shen_list[$ri_gan_name . $time_res['time_text']] ?? '',
             $da_yun['zhi_shi_shen']
         ];
         $pian_shen = ['七杀', '枭神', '偏财', '伤官', '劫财'];
@@ -368,7 +520,7 @@ class User extends Api
                 $date_arr[2] = $date_arr[3];
             }
         }
-        $lunar = Lunar::fromYmd($date_arr[0],$date_arr[1],$date_arr[2], $hour, $minute);
+        $lunar = Lunar::fromYmd($date_arr[0], $date_arr[1], $date_arr[2], $hour, $minute);
         //echo $lunar->toFullString()."\n";exit;
         return [
             'year_text' => $lunar->toString(),
@@ -391,7 +543,8 @@ class User extends Api
             ->where('id', $record_id)
             //->where('user_id', $this->auth->id)
             ->find();
-        if (empty($record_res)) $this->error('未获取到测算记录');
+        if (empty($record_res))
+            $this->error('未获取到测算记录');
         $date_arr = explode('-', $record_res['yin_li_date']);
         if (count($date_arr) == 4) {
             if (empty($date_arr[1])) {
@@ -399,7 +552,7 @@ class User extends Api
                 $date_arr[2] = $date_arr[3];
             }
         }
-        $lunar = Lunar::fromYmd($date_arr[0],$date_arr[1],$date_arr[2], $record_res['zhen_hour'], $record_res['zhen_minute']);
+        $lunar = Lunar::fromYmd($date_arr[0], $date_arr[1], $date_arr[2], $record_res['zhen_hour'], $record_res['zhen_minute']);
         //$baZi = $lunar->getEightChar();
         //print_r($baZi->getYearGan() . ' ' . $baZi->getMonthGan() . ' ' . $baZi->getDayGan() . ' ' . $baZi->getTimeGan());
         $yun = $lunar->getEightChar()->getYun($record_res['gender'], 2);
@@ -411,9 +564,9 @@ class User extends Api
         $da_yun_arr = $yun->getDaYun();
         for ($i = 1; $i < count($da_yun_arr); $i++) {
             $dayun = $da_yun_arr[$i];
-            $text[] =  $dayun->getStartYear()."年 ". $dayun->getStartAge()."岁 ".$dayun->getGanZhi();
+            $text[] = $dayun->getStartYear() . "年 " . $dayun->getStartAge() . "岁 " . $dayun->getGanZhi();
             $da_yun[] = $dayun->getGanZhi();
-            $age[] = $dayun->getStartAge() -1;
+            $age[] = $dayun->getStartAge() - 1;
             $year[] = $dayun->getStartYear();
         }
         //print_r($qi_yun_text);
@@ -693,7 +846,7 @@ class User extends Api
             $loginret = \addons\third\library\Service::connect($platform, $result);
             if ($loginret) {
                 $data = [
-                    'userinfo'  => $this->auth->getUserinfo(),
+                    'userinfo' => $this->auth->getUserinfo(),
                     'thirdinfo' => $result
                 ];
                 $this->success(__('Logged in successful'), $data);
