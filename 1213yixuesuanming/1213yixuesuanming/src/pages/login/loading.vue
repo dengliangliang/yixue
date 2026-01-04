@@ -47,6 +47,7 @@
 				loadingText: '正在解析命盘...',
 				progress: 0,
 				record_id: '',
+				apiComplete: false, // API 是否已完成
 				smokeApi: null,
                 // 闪电相关
                 lightningCtx: null,
@@ -84,14 +85,18 @@
 			// 如果有 record_id 参数，直接使用
 			if (options.record_id) {
 				this.record_id = options.record_id;
+				this.apiComplete = true; // 直接传入 record_id 也视为 API 完成
+				console.log('[loading] 直接使用传入的 record_id:', this.record_id);
 				return;
 			}
 			
-			// 否则从存储中获取表单数据并发起 API 请求
-			const formData = uni.getStorageSync('pending_form_data');
-			if (formData) {
+			// 【优化】优先使用预请求的 Promise（由 setInfo 发起）
+			if (uni.$apiPromise) {
+				console.log('[loading] 使用预请求的 API Promise');
 				try {
-					const { data, code, msg } = await this.$api.post('api/user/addRecord', formData);
+					const { data, code, msg } = await uni.$apiPromise;
+					// 清理预请求 Promise
+					uni.$apiPromise = null;
 					
 					if (code != 1) {
 						this.$toast(msg);
@@ -100,6 +105,44 @@
 					}
 					
 					this.record_id = data.record_id;
+					this.apiComplete = true;
+					console.log('[loading] 预请求完成, record_id:', this.record_id);
+					
+					// 异步保存，不阻塞
+					const formData = uni.getStorageSync('pending_form_data');
+					if (formData?.loc_date) {
+						uni.setStorage({ key: 'loc_date', data: formData.loc_date });
+					}
+					if (data.customer_id) {
+						uni.setStorage({ key: 'customer_id', data: data.customer_id });
+					}
+					uni.removeStorage({ key: 'pending_form_data' });
+					return;
+				} catch (e) {
+					console.error('[loading] 预请求失败', e);
+					uni.$apiPromise = null;
+					this.$toast('网络请求失败');
+					setTimeout(() => uni.navigateBack(), 1500);
+					return;
+				}
+			}
+			
+			// 回退：从存储中获取表单数据并发起新的 API 请求
+			const formData = uni.getStorageSync('pending_form_data');
+			if (formData) {
+				try {
+					console.log('[loading] 无预请求，发起新请求');
+					const { data, code, msg } = await this.$api.post('api/user/addRecord', formData);
+					
+					if (code != 1) {
+						this.$toast(msg);
+						setTimeout(() => uni.navigateBack(), 1500);
+						return;
+					}
+					
+						this.record_id = data.record_id;
+					this.apiComplete = true; // 标记 API 已完成
+					console.log('[loading] API完成, record_id:', this.record_id);
 					
 					// 异步保存，不阻塞
 					if (formData.loc_date) {
@@ -442,10 +485,13 @@
 						if (this.progress > 90) this.progress = 90;
 					}
 					
-					if (this.progress >= 90) {
-						// 检查数据是否准备好，或达到一定时间
+					if (this.progress >= 90 && this.apiComplete) {
+						// API 已完成且进度已满，可以跳转
 						clearInterval(interval);
 						this.finishLoading();
+					} else if (this.progress >= 90 && !this.apiComplete) {
+						// 进度已满但 API 未完成，保持在 90%，继续等待
+						this.loadingText = '正在获取测算结果...';
 					}
 				}, 600);
 			},
@@ -573,21 +619,24 @@
 		position: fixed; /* 改为固定定位实现全屏宽度 */
 		left: 0;
 		right: 0;
-		bottom: 200rpx; /* 定位在屏幕下方 */
-		height: 180rpx;
+		bottom: 180rpx; /* 定位在屏幕下方 */
+		height: 150rpx; /* ma9.png 每帧 256x129, 对应宽高比约 2:1 */
 		overflow: visible; /* 允许小马动画溢出 */
 		z-index: 15;
 	}
 
 	.horse-sprite {
 		position: absolute;
-		width: 180rpx;
-		height: 180rpx;
-		background-image: url(https://cdn.yixuestatic.linqingkeji.com/src/static/ma6.png);
-		background-size: 1440rpx 180rpx; /* 8帧 x 180rpx = 1440rpx 宽 */
+		width: 300rpx; /* 宽度保持 300rpx */
+		height: 150rpx; /* 高度设为 150rpx 以保持 2:1 比例，防止拉伸 */
+		background-image: url(https://cdn.yixuestatic.linqingkeji.com/src/static/ma9.png);
+		/* ma9.png: 1024x258, 双排 2x4 帧 */
+		/* 背景缩放: 4帧宽(4*300rpx) x 2排高(2*150rpx) = 1200rpx x 300rpx */
+		background-size: 1200rpx 300rpx;
 		background-repeat: no-repeat;
 		background-position: 0 0;
-		animation: horseSpriteRun 0.8s steps(8) infinite, horseRunAcross 4s linear infinite;
+		/* 使用 steps(1) 配合精确百分比实现离散切换，解决闪烁和帧显示不全 */
+		animation: horseSpriteRun 1.0s steps(1) infinite, horseRunAcross 4s linear infinite;
 	}
 
 	.loading-text-box {
@@ -636,16 +685,23 @@
 
 	@keyframes horseRunAcross {
 		0% { 
-			left: -180rpx; 
+			left: -300rpx; /* 匹配放大后的马匹宽度 */
 		}
 		100% { 
 			left: 100%; 
 		}
 	}
 
+	/* 双排精灵图动画修复: 使用 steps(1) 在每 12.5% 时间点精准跳帧 */
 	@keyframes horseSpriteRun {
-		from { background-position: 0 0; }
-		to { background-position: -1440rpx 0; }
+		0%    { background-position: 0 0; }
+		12.5% { background-position: -300rpx 0; }
+		25%   { background-position: -600rpx 0; }
+		37.5% { background-position: -900rpx 0; }
+		50%   { background-position: 0 -150rpx; }
+		62.5% { background-position: -300rpx -150rpx; }
+		75%   { background-position: -600rpx -150rpx; }
+		87.5% { background-position: -900rpx -150rpx; }
 	}
 </style>
 

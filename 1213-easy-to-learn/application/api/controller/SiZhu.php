@@ -9,7 +9,7 @@ use think\Db;
 
 class SiZhu extends Api
 {
-    protected $noNeedLogin = ['getSiZhuRes', 'getQiYun', 'getResult', 'notify'];
+    protected $noNeedLogin = ['getSiZhuRes', 'getQiYun', 'getResult', 'notify', 'markComplete'];
     protected $noNeedRight = ['*'];
     public function _initialize()
     {
@@ -372,6 +372,9 @@ class SiZhu extends Api
 
         $step1 = microtime(true);
         $wang_yun = Db::name('wang_yun')->where('wu_xing_name', $record_res['min_wu_xing'])->find();
+        if ($wang_yun && isset($wang_yun['color'])) {
+            $wang_yun['color'] = $wang_yun['color'] ? explode('、', $wang_yun['color']) : [];
+        }
         $wang_yun['zhu_yi'] .= '、' . Db::name('wang_yun')->where('wu_xing_name', $record_res['max_wu_xing'])->value('zhu_yi');
         \think\Log::info("[getResult] 查询wang_yun耗时: " . round((microtime(true) - $step1) * 1000, 2) . "ms");
 
@@ -386,10 +389,8 @@ class SiZhu extends Api
             ->find();
         \think\Log::info("[getResult] 查询wu_xing_result耗时: " . round((microtime(true) - $step2) * 1000, 2) . "ms");
 
-        Db::name('record')->where('id', $record_id)->update(['result' => '已完成']);
-
-        // 自动触发回传接口
-        $this->notify($record_id);
+        // 注意: result完成状态已移至 markComplete 接口，由前端在用户到达幸运位页面时调用
+        // 注意: 回传接口 notify() 也已移至 markComplete 中，确保仅在用户真正完成时触发
 
 
         // 基础返回数据
@@ -420,6 +421,33 @@ class SiZhu extends Api
 
         \think\Log::info("[getResult] 总耗时: " . round((microtime(true) - $startTime) * 1000, 2) . "ms");
         $this->success('获取成功', $result);
+    }
+
+    /**
+     * 标记测算完成 - 由前端在用户到达幸运位页面时调用
+     * @param int $record_id 记录ID
+     */
+    public function markComplete($record_id)
+    {
+        if (empty($record_id)) {
+            $this->error('缺少record_id参数');
+        }
+
+        $record = Db::name('record')->where('id', $record_id)->find();
+        if (empty($record)) {
+            $this->error('记录不存在');
+        }
+
+        // 仅当未完成时更新，避免重复更新和重复回传
+        if ($record['result'] !== '已完成') {
+            Db::name('record')->where('id', $record_id)->update(['result' => '已完成']);
+            \think\Log::info("[markComplete] record_id: {$record_id} 已标记为完成");
+
+            // 触发第三方回传接口 (仅在首次完成时触发)
+            $this->notify($record_id);
+        }
+
+        $this->success('标记成功');
     }
 
     public function getAllWuXing($arr, $style = 1)

@@ -113,7 +113,6 @@
 
 <script>
 	import websiteConfig from '@/config/website.js';
-	import wxSdk from '@/common/wechat-jssdk.js';
 	
 	export default {
 		data() {
@@ -147,17 +146,21 @@
 				uni.setStorageSync('app_parmas', op)
 			}
 			
-			// 获取微信OpenID(异步,不阻塞页面)
-			this.getWxOpenId();
+			// 检查是否需要重定向获取 code（微信浏览器中且无缓存OpenID且无code）
+			// 如果需要重定向，其他初始化都不做，等重定向回来后再执行
+			this.handleWxAuth().then(needRedirect => {
+				if (!needRedirect) {
+					// 不需要重定向，继续后续流程
+					this.checkReturnUser();
+					// 微信分享由全局 mixin 在 onShow 时自动初始化
+				}
+				// 如果需要重定向，页面会跳转，不执行后续代码
+			});
 
-			//  异步预加载省市数据（不阻塞页面渲染）
-			// 使用 setTimeout 确保页面渲染完成后再加载
+			// 异步预加载省市数据
 			setTimeout(() => {
 				this.preloadAreaData();
 			}, 100);
-			
-			// 检查是否为返回用户
-			this.checkReturnUser();
 			
 
 			// 如果来源是jump(第三方跳转),自动打开九紫离火弹窗
@@ -183,6 +186,9 @@
 			if (loadTime > 2000) {
 				console.warn('⚠️ [性能警告] 页面加载超过2秒，耗时:', loadTime + 'ms');
 			}
+			
+			// 注意：微信分享初始化已移到 handleWxAuth 完成后执行
+			// 这样可以确保 URL 中的 code 参数已被移除，避免签名错误
 		},
 		methods: {
 			// 获取系统信息
@@ -246,27 +252,213 @@
 					});
 				}
 			},
+			
+			/**
+			 * 处理微信授权流程
+			 * 统一管理 OAuth 重定向和 OpenID 获取
+			 * @returns {Promise<boolean>} true 表示需要重定向（页面将跳转），false 表示不需要
+			 */
+			async handleWxAuth() {
+				console.log('[WxAuth] 🚀 开始处理微信授权流程...');
+				console.log('[WxAuth] 🔗 当前URL:', window.location.href);
+				
+				// #ifdef H5
+				try {
+					// 1. 检查是否在微信浏览器中
+					const ua = window.navigator.userAgent.toLowerCase();
+					const isWechat = ua.indexOf('micromessenger') !== -1;
+					if (!isWechat) {
+						console.log('[WxAuth] 📱 非微信浏览器，跳过授权流程');
+						return false; // 不需要重定向
+					}
+					
+					// 2. 检查缓存的 OpenID
+					const cachedOpenId = uni.getStorageSync('wx_openid');
+					if (cachedOpenId) {
+						console.log('[WxAuth] ✅ 已有缓存的 OpenID:', cachedOpenId.substring(0, 10) + '...');
+						return false; // 不需要重定向
+					}
+					
+					// 3. 检查 URL 中是否有 code
+					const urlParams = new URL(window.location.href).searchParams;
+					const code = urlParams.get('code');
+					
+					if (code) {
+						// 有 code，换取 openid
+						console.log('[WxAuth] 🔑 检测到 code，开始换取 OpenID...');
+						console.log('[WxAuth] 📝 code:', code.substring(0, 15) + '...');
+						
+						try {
+							const res = await this.$api.get('api/wechat/getOpenid', { code });
+							console.log('[WxAuth] 📦 API返回:', JSON.stringify(res));
+							
+							if (res.code === 1 && res.data && res.data.openid) {
+								const openid = res.data.openid;
+								uni.setStorageSync('wx_openid', openid);
+								console.log('[WxAuth] ✅ OpenID 获取成功:', openid.substring(0, 10) + '...');
+							} else {
+								console.warn('[WxAuth] ⚠️ OpenID 获取失败:', res.msg || '未知错误');
+							}
+						} catch (apiError) {
+							console.error('[WxAuth] ❌ API 调用异常:', apiError);
+						}
+						
+						// 无论成功失败，都移除 URL 中的 code 参数
+						// 这样分享签名才能使用干净的 URL
+						this.removeCodeFromUrl();
+						console.log('[WxAuth] 🧹 已从 URL 中移除 code 参数');
+						
+						return false; // 不需要再重定向
+					} else {
+						// 无 code，无缓存，需要发起微信授权重定向
+						console.log('[WxAuth] 🔄 需要获取授权，准备重定向到微信...');
+						
+						// 获取 AppID
+						const signUrl = window.location.href.split('#')[0];
+						const configRes = await this.$api.get('api/wechat/jsconfig', { url: signUrl });
+						
+						if (configRes.code === 1 && configRes.data && configRes.data.appId) {
+							const appId = configRes.data.appId;
+							const redirectUri = encodeURIComponent(window.location.href);
+							const scope = 'snsapi_base'; // 静默授权
+							const oauthUrl = `https://open.weixin.qq.com/connect/oauth2/authorize?appid=${appId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=STATE#wechat_redirect`;
+							
+							console.log('[WxAuth] 🌐 重定向到:', oauthUrl.substring(0, 100) + '...');
+							window.location.href = oauthUrl;
+							return true; // 需要重定向，页面会跳转
+						} else {
+							console.error('[WxAuth] ❌ 获取 AppID 失败');
+						}
+					}
+				} catch (error) {
+					console.error('[WxAuth] ❌ 授权流程异常:', error);
+				}
+				// #endif
+				
+				return false; // 默认不需要重定向
+			},
 			// 获取微信OpenID
 			async getWxOpenId() {
-			try {
-				const cachedOpenId = uni.getStorageSync('wx_openid');
-				if (cachedOpenId) {
-				console.log('[index] 使用缓存的OpenID:', cachedOpenId);
-				return cachedOpenId;
+				try {
+					console.log('[OpenID] 🚀 开始获取流程...');
+					console.log('[OpenID] 🔗 当前完整URL:', window.location.href);
+					
+					// 1. 检查缓存
+					const cachedOpenId = uni.getStorageSync('wx_openid');
+					if (cachedOpenId) {
+						console.log('[OpenID] ✅ 使用缓存的OpenID:', cachedOpenId);
+						return cachedOpenId;
+					}
+					console.log('[OpenID] 📝 无缓存OpenID');
+
+					// 2. 环境判断：仅在 H5 环境且微信浏览器中执行
+					// #ifdef H5
+					const ua = window.navigator.userAgent.toLowerCase();
+					const isWechat = ua.indexOf('micromessenger') !== -1;
+					if (!isWechat) {
+						console.log('[OpenID] ❌ 非微信浏览器，跳过获取');
+						return '';
+					}
+					console.log('[OpenID] ✅ 检测到微信浏览器环境');
+
+					// 3. 检查 URL 中是否带 code
+					const urlParams = new URL(window.location.href).searchParams;
+					const code = urlParams.get('code');
+					console.log('[OpenID] 🔍 URL中的code:', code ? code.substring(0, 10) + '...' : '无');
+
+					if (code) {
+						// 4. 有 code，通过后端换取 openid
+						console.log('[OpenID] 🌐 调用API换取OpenID，code:', code.substring(0, 10) + '...');
+						console.log('[OpenID] ⏰ API调用开始时间:', new Date().toISOString());
+						const res = await this.$api.get('api/wechat/getOpenid', { code });
+						console.log('[OpenID] ⏰ API调用完成时间:', new Date().toISOString());
+						console.log('[OpenID] 📦 API返回结果:', JSON.stringify(res));
+						
+						// 无论成功失败，都从 URL 中移除 code（code 只能使用一次）
+						this.removeCodeFromUrl();
+						
+						if (res.code === 1 && res.data.openid) {
+							const openid = res.data.openid;
+							uni.setStorageSync('wx_openid', openid);
+							console.log('[index] OpenID 获取成功:', openid);
+							return openid;
+						} else {
+							console.error('[index] 换取 OpenID 失败:', res.msg);
+						}
+					} else {
+						// 5. 无 code，且没有缓存，发起微信授权重定向
+						console.log('[index] 发起微信静默授权重定向');
+						// 获取 AppID
+						const signUrl = window.location.href.split('#')[0];
+						const res = await this.$api.get('api/wechat/jsconfig', { url: signUrl });
+						if (res.code === 1 && res.data.appId) {
+							const appId = res.data.appId;
+							const redirectUri = encodeURIComponent(window.location.href);
+							const scope = 'snsapi_base';
+							const oauthUrl = `https://open.weixin.qq.com/connect/oauth2/authorize?appid=${appId}&redirect_uri=${redirectUri}&response_type=code&scope=${scope}&state=STATE#wechat_redirect`;
+							window.location.href = oauthUrl;
+						}
+					}
+					// #endif
+					return '';
+				} catch (error) {
+					console.error('[index] 获取OpenID异常:', error);
+					return '';
 				}
-				
-				// TODO: 接入微信JS-SDK获取OpenID
-				console.log('[index] OpenID获取逻辑待实现');
-				return '';
-			} catch (error) {
-				console.error('[index] 获取OpenID失败:', error);
-				return '';
-			}
+			},
+			
+			// 从 URL 中移除微信回调的 code 和 state 参数
+			// 微信 code 只能使用一次，移除可避免刷新页面时报错
+			removeCodeFromUrl() {
+				try {
+					const url = new URL(window.location.href);
+					// 移除微信回调参数
+					url.searchParams.delete('code');
+					url.searchParams.delete('state');
+					// 使用 replaceState 更新 URL，不会触发页面刷新
+					window.history.replaceState({}, '', url.toString());
+					console.log('[index] 已从 URL 中移除 code 参数');
+				} catch (error) {
+					console.warn('[index] 移除 URL 参数失败:', error);
+				}
 			},
 			navto() {
-				// 打开九紫离火运介绍弹窗
+				// 获取来源参数
+				const appParams = uni.getStorageSync('app_parmas') || {};
+				
+				// 如果是share来源,跳转到对方系统
+				if (appParams.from === 'share') {
+					console.log('[index] share来源,跳转到对方系统');
+					this.redirectToThirdParty(appParams);
+					return;
+				}
+				
+				// jump来源或直接访问,打开九紫离火运介绍弹窗
 				console.log('🔗 [导航] 打开九紫离火运介绍弹窗');
 				this.$refs.introPopup.open();
+			},
+			// 跳转到对方系统(share来源专用)
+			async redirectToThirdParty(params) {
+				try {
+					const res = await this.$api.get('api/user/getShareRedirectUrl', {
+						merchantId: params.merchantId || '',
+						activityCode: params.activityCode || '',
+						agentCode: params.agentCode || '',
+						sign: params.sign || ''
+					});
+					
+					if (res.code === 1 && res.data.redirect_url) {
+						console.log('[index] 跳转到:', res.data.redirect_url);
+						// #ifdef H5
+						window.location.href = res.data.redirect_url;
+						// #endif
+					} else {
+						this.$toast(res.msg || '获取跳转地址失败');
+					}
+				} catch (error) {
+					console.error('[index] 获取跳转地址失败:', error);
+					this.$toast('网络请求失败');
+				}
 			},
 			confirmIntro() {
 				this.$refs.introPopup.close();
@@ -331,7 +523,7 @@
 			newCalculation() {
 				this.$refs.returnUserPopup.close();
 				console.log('[index] 用户选择重新测算');
-				// 跳转到设置信息页
+			// 跳转到设置信息页
 				this.$go('/pages/login/setInfo');
 			}
 		}

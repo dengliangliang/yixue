@@ -294,7 +294,7 @@ class User extends Api
         */
         // 清理 agentCode 中的换行符和空白字符(即使不验签也需要清理)
         $agentCode = preg_replace('/[\r\n\s]/', '', $agentCode);
-        \think\Log::info("[addRecord] 处理记录: customerNo={$customerNo}, merchantId={$merchantId}, openid={$openid}");
+        \think\Log::info("[addRecord] 插入记录(已禁用验签): customerNo={$customerNo}, merchantId={$merchantId}, openid={$openid}");
 
         $yang_li_arr = explode('-', $date);
         // 实例化
@@ -327,9 +327,20 @@ class User extends Api
         } else {
             $user_id = $chk_user['id'];
         }
-
-        // 准备记录数据
-        $recordData = [
+        // 判断该记录是否存在过
+        $chk_record = Db::name('record')
+            ->where([
+                'user_id' => $user_id,
+                'yang_li_date' => $date,
+                'hour' => $hour,
+                'minute' => $minute,
+                'gender' => $gender,
+                'area_id' => $area_id
+            ])->find();
+        if (!empty($chk_record)) {
+            $this->success('添加成功', ['record_id' => $chk_record['id']]);
+        }
+        $add_id = Db::name('record')->insertGetId([
             'user_id' => $user_id,
             'user_name' => $customerNo,
             'yang_li_date' => $date,
@@ -345,35 +356,11 @@ class User extends Api
             'activityCode' => $activityCode,
             'agentCode' => $agentCode,
             'customerNo' => $customerNo,
-            'openid' => $openid
-        ];
+            'openid' => $openid,  // 保存微信OpenID
+            'createtime' => time()
 
-        // 判断该记录是否存在过(通过 customerNo 或 openid 查询)
-        $chk_record = null;
-
-        // 优先通过 customerNo 查询(如果有的话)
-        if (!empty($customerNo) && strpos($customerNo, 'H5_') !== 0) {
-            $chk_record = Db::name('record')->where('customerNo', $customerNo)->order('id desc')->find();
-        }
-
-        // 如果没找到，且有 openid，通过 openid 查询
-        if (empty($chk_record) && !empty($openid)) {
-            $chk_record = Db::name('record')->where('openid', $openid)->order('id desc')->find();
-        }
-
-        if (!empty($chk_record)) {
-            // 记录存在，更新所有字段
-            $recordData['updatetime'] = time();
-            Db::name('record')->where('id', $chk_record['id'])->update($recordData);
-            \think\Log::info("[addRecord] 更新已有记录: record_id={$chk_record['id']}, customerNo={$customerNo}, openid={$openid}");
-            $this->success('添加成功', ['record_id' => $chk_record['id']]);
-        }
-
-        // 新增记录
-        $recordData['createtime'] = time();
-        $add_id = Db::name('record')->insertGetId($recordData);
+        ]);
         if (!empty($add_id)) {
-            \think\Log::info("[addRecord] 新增记录: record_id={$add_id}, customerNo={$customerNo}, openid={$openid}");
             // 优化：先返回record_id，让前端快速跳转，后台异步计算
             // updRecordRes 将在 getSiZhuRes 中按需调用
             $this->success('添加成功', ['record_id' => $add_id, 'need_calc' => true]);

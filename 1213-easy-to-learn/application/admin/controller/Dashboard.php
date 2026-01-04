@@ -35,7 +35,7 @@ class Dashboard extends Backend
             ->field('jointime, status, COUNT(*) AS nums, DATE_FORMAT(FROM_UNIXTIME(jointime), "%Y-%m-%d") AS join_date')
             ->group('join_date')
             ->select();
-        for ($time = $starttime; $time <= $endtime;) {
+        for ($time = $starttime; $time <= $endtime; ) {
             $column[] = date("Y-m-d", $time);
             $time += 86400;
         }
@@ -53,26 +53,41 @@ class Dashboard extends Backend
                 $totalworkingaddon += 1;
             }
         }
+        // 测算记录统计
+        $totalRecord = Db::name('record')->count();
+        $completedUsers = Db::name('record')
+            ->where('result', '已完成')
+            ->group('user_id')
+            ->count();
+        $todayStartTime = strtotime('today');
+        $todayNewRecords = Db::name('record')
+            ->where('createtime', '>=', $todayStartTime)
+            ->count();
+
         $this->view->assign([
-            'totaluser'         => User::count(),
-            'totaladdon'        => $totaladdon,
-            'totaladmin'        => Admin::count(),
-            'totalcategory'     => \app\common\model\Category::count(),
-            'todayusersignup'   => User::whereTime('jointime', 'today')->count(),
-            'todayuserlogin'    => User::whereTime('logintime', 'today')->count(),
-            'sevendau'          => User::whereTime('jointime|logintime|prevtime', '-7 days')->count(),
-            'thirtydau'         => User::whereTime('jointime|logintime|prevtime', '-30 days')->count(),
-            'threednu'          => User::whereTime('jointime', '-3 days')->count(),
-            'sevendnu'          => User::whereTime('jointime', '-7 days')->count(),
-            'dbtablenums'       => count($dbTableList),
-            'dbsize'            => array_sum(array_map(function ($item) {
+            'totaluser' => User::count(),
+            'totaladdon' => $totaladdon,
+            'totaladmin' => Admin::count(),
+            'totalcategory' => \app\common\model\Category::count(),
+            'todayusersignup' => User::whereTime('jointime', 'today')->count(),
+            'todayuserlogin' => User::whereTime('logintime', 'today')->count(),
+            'sevendau' => User::whereTime('jointime|logintime|prevtime', '-7 days')->count(),
+            'thirtydau' => User::whereTime('jointime|logintime|prevtime', '-30 days')->count(),
+            'threednu' => User::whereTime('jointime', '-3 days')->count(),
+            'sevendnu' => User::whereTime('jointime', '-7 days')->count(),
+            'dbtablenums' => count($dbTableList),
+            'dbsize' => array_sum(array_map(function ($item) {
                 return $item['Data_length'] + $item['Index_length'];
             }, $dbTableList)),
             'totalworkingaddon' => $totalworkingaddon,
-            'attachmentnums'    => Attachment::count(),
-            'attachmentsize'    => Attachment::sum('filesize'),
-            'picturenums'       => Attachment::where('mimetype', 'like', 'image/%')->count(),
-            'picturesize'       => Attachment::where('mimetype', 'like', 'image/%')->sum('filesize'),
+            'attachmentnums' => Attachment::count(),
+            'attachmentsize' => Attachment::sum('filesize'),
+            'picturenums' => Attachment::where('mimetype', 'like', 'image/%')->count(),
+            'picturesize' => Attachment::where('mimetype', 'like', 'image/%')->sum('filesize'),
+            // 新增测算统计
+            'totalrecord' => $totalRecord,
+            'completedusers' => $completedUsers,
+            'todaynewrecords' => $todayNewRecords,
         ]);
 
         $this->assignconfig('column', array_keys($userlist));

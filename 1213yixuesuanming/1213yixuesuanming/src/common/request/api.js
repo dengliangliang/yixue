@@ -61,7 +61,8 @@ export const get = (url, data, timeout = 100000) => {
 			icon: "none",
 			duration: 1500
 		})
-		reject(error)
+		// reject(error) // 注意: 此处 reject 不在作用域内，已移除
+		throw error; // 重新抛出错误让调用方处理
 	})
 }
 
@@ -71,7 +72,7 @@ export const post = (url, data, timeout = 100000) => {
 	}
 	const requestStart = Date.now();
 	console.log(`[API] POST 请求开始: ${url}`, '时间:', new Date().toISOString());
-	
+
 	return new Promise((resolve, reject) => {
 		uni.request({
 			url: URL + url,
@@ -82,7 +83,7 @@ export const post = (url, data, timeout = 100000) => {
 			success: (res) => {
 				const duration = Date.now() - requestStart;
 				console.log(`[API] POST 响应完成: ${url}`, '耗时:', duration, 'ms', '状态:', res.data?.code);
-				
+
 				if (res.data.code == 401) {
 					const pages = getCurrentPages();
 					const currentRoute = pages[pages.length - 1].route;
@@ -118,12 +119,13 @@ export const post = (url, data, timeout = 100000) => {
 			}
 		})
 	}).catch(error => {
-		reject(error)
+		// reject(error) // 注意: 此处 reject 不在作用域内，已移除
 		uni.showToast({
 			title: '网络开了小差',
 			icon: "none",
 			duration: 1500
 		})
+		throw error; // 重新抛出错误让调用方处理
 	})
 }
 
@@ -163,7 +165,8 @@ export const file = (url, filePath, formData, timeout = 100000) => {
 			icon: "none",
 			duration: 1500
 		})
-		reject(error)
+		// reject(error) // 注意: 此处 reject 不在作用域内，已移除
+		throw error; // 重新抛出错误让调用方处理
 	})
 }
 

@@ -183,19 +183,19 @@ export default {
 
 .fangwei-cards {
 	display: flex;
-	flex-wrap: wrap;
+	flex-direction: column; /* 分三行展示 */
 	gap: 20rpx;
 }
 
 /* 国风方位卡片 */
 .fangwei-card {
-	flex: 1;
-	min-width: 200rpx;
+	width: 100%;
+	box-sizing: border-box;
 	background: linear-gradient(180deg, #F5E6C8 0%, #EDD9B5 100%);
 	border-radius: 12rpx;
 	padding: 24rpx;
 	display: flex;
-	align-items: center;
+	align-items: center; /* 横向展示内容 */
 	border: 2rpx solid #DAA520;
 	box-shadow: 0 4rpx 12rpx rgba(139, 105, 20, 0.2);
 }
@@ -203,11 +203,12 @@ export default {
 .card-icon {
 	width: 80rpx;
 	height: 80rpx;
+	flex-shrink: 0; /* 保证圆不被挤压 */
 	border-radius: 50%;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	margin-right: 16rpx;
+	margin-right: 32rpx;
 
 	image {
 		width: 48rpx;
@@ -219,13 +220,24 @@ export default {
 .cai-icon { background-color: rgba(255, 215, 0, 0.15); }
 .guiren-icon { background-color: rgba(208, 0, 15, 0.15); }
 
+.card-content {
+	flex: 1;
+	min-width: 0; /* 允许 flex 子项收缩 */
+	display: flex;
+	flex-wrap: wrap; /* 允许换行 */
+	align-items: center;
+	gap: 16rpx;
+}
+
 .card-title {
 	color: #8B4513;
-	margin-bottom: 8rpx;
+	white-space: nowrap; /* 不换行 */
 }
 
 .card-value {
 	color: #4A3728;
+	word-break: break-word; /* 允许长单词换行 */
+	line-height: 1.4;
 }
 
 /* 国风详情盒子 */
@@ -247,10 +259,11 @@ export default {
 }
 
 .detail-label {
-	width: 120rpx;
+	width: 140rpx;
 	color: #8B0000;
 	font-weight: bold;
 	flex-shrink: 0;
+	white-space: nowrap; /* 不换行 */
 }
 
 .detail-desc {

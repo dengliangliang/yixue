@@ -14,6 +14,7 @@ docker-deploy/.env
 1213yixuesuanming/1213yixuesuanming/node_modules/
 1213yixuesuanming/1213yixuesuanming/unpackage/
 1213yixuesuanming/1213yixuesuanming/dist/
+1213yixuesuanming/scripts/
 
 # H5构建文件
 docker-deploy/h5/dist/

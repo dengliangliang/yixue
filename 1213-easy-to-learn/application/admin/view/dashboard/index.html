@@ -131,8 +131,9 @@
     }
 
     .stat-col {
-        margin:0 0 10px 0;
+        margin: 0 0 10px 0;
     }
+
     .stat.lg .name {
         font-size: 16px;
     }
@@ -172,7 +173,7 @@
             <div class="tab-pane fade active in" id="one">
 
                 <div class="row">
-                    <div class="col-sm-3 col-xs-6">
+                    <div class="col-sm-2 col-xs-6">
                         <div class="sm-st clearfix">
                             <span class="sm-st-icon st-red"><i class="fa fa-users"></i></span>
                             <div class="sm-st-info">
@@ -181,30 +182,48 @@
                             </div>
                         </div>
                     </div>
-                    <div class="col-sm-3 col-xs-6">
+                    <div class="col-sm-2 col-xs-6">
+                        <div class="sm-st clearfix">
+                            <span class="sm-st-icon st-blue"><i class="fa fa-list-alt"></i></span>
+                            <div class="sm-st-info">
+                                <span>{$totalrecord}</span>
+                                测算记录数
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-2 col-xs-6">
+                        <div class="sm-st clearfix">
+                            <span class="sm-st-icon st-green"><i class="fa fa-check-circle"></i></span>
+                            <div class="sm-st-info">
+                                <span>{$completedusers}</span>
+                                已完成用户
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-2 col-xs-6">
+                        <div class="sm-st clearfix">
+                            <span class="sm-st-icon orange"><i class="fa fa-plus-circle"></i></span>
+                            <div class="sm-st-info">
+                                <span>{$todayusersignup}</span>
+                                今日新增用户
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-2 col-xs-6">
+                        <div class="sm-st clearfix">
+                            <span class="sm-st-icon pink"><i class="fa fa-calendar-plus-o"></i></span>
+                            <div class="sm-st-info">
+                                <span>{$todaynewrecords}</span>
+                                今日新增记录
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-2 col-xs-6">
                         <div class="sm-st clearfix">
                             <span class="sm-st-icon st-violet"><i class="fa fa-magic"></i></span>
                             <div class="sm-st-info">
                                 <span>{$totaladdon}</span>
                                 {:__('Total addon')}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-sm-3 col-xs-6">
-                        <div class="sm-st clearfix">
-                            <span class="sm-st-icon st-blue"><i class="fa fa-leaf"></i></span>
-                            <div class="sm-st-info">
-                                <span>{$attachmentnums}</span>
-                                {:__('Total attachment')}
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-sm-3 col-xs-6">
-                        <div class="sm-st clearfix">
-                            <span class="sm-st-icon st-green"><i class="fa fa-user"></i></span>
-                            <div class="sm-st-info">
-                                <span>{$totaladmin}</span>
-                                {:__('Total admin')}
                             </div>
                         </div>
                     </div>

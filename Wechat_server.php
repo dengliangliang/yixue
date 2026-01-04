@@ -116,9 +116,6 @@ class Wechat extends Api
             $this->error('缺少 code 参数');
         }
 
-        // 在 try 外部声明变量
-        $openid = null;
-
         try {
             $config = Config::get('wechat');
 
@@ -127,6 +124,7 @@ class Wechat extends Api
             }
 
             // 直接调用微信 OAuth 接口获取 access_token 和 openid
+            // 此方法适用于 snsapi_base 静默授权场景
             $appId = $config['app_id'];
             $appSecret = $config['secret'];
 
@@ -149,6 +147,7 @@ class Wechat extends Api
 
             // 记录日志便于调试
             \think\Log::info('[Wechat Openid] 微信返回原始: ' . $response);
+            \think\Log::info('[Wechat Openid] JSON解析结果: ' . print_r($result, true));
 
             // 检查 JSON 解析是否成功
             if ($result === null && json_last_error() !== JSON_ERROR_NONE) {
@@ -160,22 +159,22 @@ class Wechat extends Api
             }
 
             if (empty($result['openid'])) {
+                \think\Log::error('[Wechat Openid] 返回数据中没有openid，完整数据: ' . json_encode($result));
                 throw new \Exception('返回数据中没有 openid');
             }
 
-            // 成功获取 openid
-            $openid = $result['openid'];
-            \think\Log::info('[Wechat Openid] 成功获取 openid: ' . $openid);
+            \think\Log::info('[Wechat Openid] 成功获取 openid: ' . $result['openid']);
+
+            $this->success('获取成功', [
+                'openid' => $result['openid']
+            ]);
+            return; // 确保方法终止
 
         } catch (\Throwable $e) {
             \think\Log::error('[Wechat Openid] 获取失败: ' . $e->getMessage());
             $this->error('获取 openid 失败: ' . $e->getMessage());
+            return; // 确保方法终止
         }
-
-        // success 放在 try-catch 外部，不会被 catch 捕获
-        $this->success('获取成功', [
-            'openid' => $openid
-        ]);
     }
 
     /**

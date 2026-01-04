@@ -283,12 +283,6 @@
 				
 				// 准备表单数据
 				let app_parmas = uni.getStorageSync('app_parmas') || {}
-				// 清理 agentCode 中的换行符和空白字符，防止验签失败
-				if (app_parmas.agentCode) {
-					app_parmas.agentCode = app_parmas.agentCode.replace(/[\r\n\s]/g, '');
-				}
-				// 获取OpenID
-				const openid = uni.getStorageSync('wx_openid') || '';
 				const formData = {
 					...app_parmas,
 					hour: Number(this.shi),
@@ -296,20 +290,14 @@
 					gender: this.xb_che == '男' ? 1 : 0,
 					area_id: this.city_id,
 					date: `${this.nian}-${this.yue}-${this.ri}`,
-					loc_date: this.loc_date,
-					openid: openid  // 添加OpenID参数
+					loc_date: this.loc_date
 				};
 				
-				// 【优化】并行预请求：在跳转的同时发起 API 请求
-				// 将 API Promise 存储到全局变量，loading 页面直接等待结果
-				console.log('[setInfo] 发起预请求并跳转...');
-				const apiPromise = this.$api.post('api/user/addRecord', formData);
-				
-				// 存储 Promise 和表单数据到全局缓存
-				uni.$apiPromise = apiPromise;
+				// 保存表单数据到临时存储，由 loading.vue 发起请求
 				uni.setStorageSync('pending_form_data', formData);
+				console.log('[setInfo] 表单数据已保存，跳转到加载页面');
 				
-				// 立即跳转到加载页面（烟雾动画）
+				// 立即跳转到加载页面（烟雾动画），API 请求由 loading.vue 完成
 				uni.navigateTo({
 					url: "/pages/login/loading"
 				});

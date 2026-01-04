@@ -13,6 +13,12 @@ return [
         'uat' => 'https://test2.citicpruagents.com.cn/xytapp-uat/ext/components/v1/common/callback',
         'prd' => 'https://sqs.citicpruagents.com.cn/xytapp/ext/components/v1/common/callback',
     ],
+    // share分享链接用户跳转回对方系统的目标页面
+    'share_redirect_urls' => [
+        'sit' => 'https://test2.citicpruagents.com.cn/xytapp-sit/#/canonizationInput',
+        'uat' => 'https://test2.citicpruagents.com.cn/xytapp-uat/#/canonizationInput',
+        'prd' => 'https://sqs.citicpruagents.com.cn/xytapp/#/canonizationInput',
+    ],
     'h5_urls' => [
         'sit' => 'https://yixue.linqingkeji.com/',
         'uat' => 'https://yixue.linqingkeji.com/',

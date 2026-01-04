@@ -1,13 +1,15 @@
 /* ========================================
-   自定义字体配置 - 仅使用已有字体
+   自定义字体配置 - 使用子集化字体
+   子集化后体积：霞鹜文楷 186KB，千图纤墨体 333KB
    ======================================== */
 
 /* ==================== 正文字体 ==================== */
 
-/* 霞鹜文楷 - 正文、描述文字 (25MB) */
+/* 霞鹜文楷 - 正文、描述文字 (子集化: 25MB → 186KB) */
 @font-face {
   font-family: 'XiaWuWenKai';
-  src: url('https://cdn.yixuestatic.linqingkeji.com/src/static/ttf/XiaWuWenKai-Regular.ttf') format('truetype');
+  src: url('https://cdn.yixuestatic.linqingkeji.com/src/static/ttf/XiaWuWenKai-Regular.woff2') format('woff2'),
+    url('https://cdn.yixuestatic.linqingkeji.com/src/static/ttf/XiaWuWenKai-Regular.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -16,7 +18,8 @@
 /* 霞鹜文楷粗体 - 复用Regular作为粗体 */
 @font-face {
   font-family: 'XiaWuWenKai';
-  src: url('https://cdn.yixuestatic.linqingkeji.com/src/static/ttf/XiaWuWenKai-Regular.ttf') format('truetype');
+  src: url('https://cdn.yixuestatic.linqingkeji.com/src/static/ttf/XiaWuWenKai-Regular.woff2') format('woff2'),
+    url('https://cdn.yixuestatic.linqingkeji.com/src/static/ttf/XiaWuWenKai-Regular.ttf') format('truetype');
   font-weight: bold;
   font-style: normal;
   font-display: swap;
@@ -24,7 +27,7 @@
 
 /* ==================== 按钮字体 ==================== */
 
-/* 思源黑体 Bold - 按钮、强调标题 (8.2MB) */
+/* 思源黑体 Bold - 按钮、强调标题 (8.2MB - OTF暂不支持子集化) */
 @font-face {
   font-family: 'SourceHanSans';
   src: url('https://cdn.yixuestatic.linqingkeji.com/src/static/ttf/SourceHanSansCN-Bold.otf') format('opentype');

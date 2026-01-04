@@ -12,6 +12,7 @@
 								v-if="shareUrl"
 								:value="shareUrl" 
 								:size="200" 
+								:useCanvasToTempFilePath="true"
 								@success="onQrCodeSuccess"
 							></l-qrcode>
 						</view>
@@ -107,7 +108,7 @@
 
 <script>
 import html2canvas from 'html2canvas'
-import wxSdk, { isWechat } from '@/common/wechat-jssdk.js'
+import { isWechat } from '@/common/wechat-jssdk.js'
 
 export default {
 	data() {
@@ -136,69 +137,46 @@ export default {
 	onLoad({ record_id }) {
 		this.record_id = record_id;
 		
-		// 构造分享链接
+		// 构造二维码用的分享链接
 		this.initShareUrl();
-		
-		// 初始化微信 JS-SDK
-		this.initWxSdk();
+		// 微信分享由全局 mixin 在 onShow 时自动初始化
 	},
 	methods: {
-		// 构造带 agentCode 的分享链接
+		// 构造完整的分享链接(使用后端share接口,不含#号,确保朋友圈分享显示卡片)
 		initShareUrl() {
 			const app_parmas = uni.getStorageSync('app_parmas') || {};
+			
+			// 获取所有需要的业务参数（从缓存中获取，保持代理人工号不变）
+			const merchantId = app_parmas.merchantId || '';
+			const activityCode = app_parmas.activityCode || '';
 			const agentCode = app_parmas.agentCode || '';
+			const sign = app_parmas.sign || '';
 			
-			// 获取当前页面基础路径 (去掉参数部分)
-			// 注意：UniApp H5 默认可能是 hash 模式也可能是 history 模式
-			let baseUrl = window.location.origin + window.location.pathname;
+			// 构造分享链接 - 使用后端 share 接口（无 # 号）
+			// 这样的链接格式可以让朋友圈分享显示为卡片而非纯链接
+			const baseUrl = 'https://yixueadmin.linqingkeji.com/api/user/share';
 			
-			// 如果是跳转到首页，通常是 /#/pages/index/index
-			// 这里我们构造指向首页的链接
-			const indexUrl = `${window.location.origin}/#/pages/index/index`;
+			// 构建查询参数(只包含有值的参数)
+			// 注意：isShare=true 标记这是分享链接
+			const params = ['isShare=true'];
+			if (merchantId) params.push(`merchantId=${merchantId}`);
+			if (activityCode) params.push(`activityCode=${activityCode}`);
+			if (agentCode) params.push(`agentCode=${encodeURIComponent(agentCode)}`);
+			if (sign) params.push(`sign=${sign}`);
 			
-			if (agentCode) {
-				this.shareUrl = `${indexUrl}?agentCode=${agentCode}`;
-			} else {
-				this.shareUrl = indexUrl;
-			}
+			const queryString = params.join('&');
+			this.shareUrl = `${baseUrl}?${queryString}`;
 			
-			console.log('[share] 动态分享链接:', this.shareUrl);
+			console.log('[share] 📤 动态分享链接(后端接口格式):', this.shareUrl);
+			console.log('[share] 📋 参数详情:', { merchantId, activityCode, agentCode, sign, record_id: this.record_id });
 		},
 
 		// 二维码生成成功回调
 		onQrCodeSuccess(path) {
 			this.qrCodeBase64 = path;
-			console.log('[share] 二维码生成成功');
+			console.log('[share] ✅ 二维码生成成功, 图片大小:', path.length);
 		},
-
-		// 初始化微信 JS-SDK
-		async initWxSdk() {
-			try {
-				// 初始化 SDK
-				const success = await wxSdk.init();
-				
-				if (success) {
-					// ⚠️ 使用CDN完整路径,确保微信可以访问
-					const shareImgUrl = 'https://cdn.yixuestatic.linqingkeji.com/src/static/beijing.jpg';
-					
-					console.log('[share] 🖼️ 分享图片URL:', shareImgUrl);
-					
-					// 设置分享内容
-					wxSdk.setShareInfo({
-						title: this.shareConfig.title,
-						desc: this.shareConfig.desc,
-						link: this.shareUrl || window.location.href,
-						imgUrl: shareImgUrl,
-						success: () => {
-							console.log('[share] ✅ 分享设置成功');
-						}
-					});
-				}
-			} catch (error) {
-				console.error('[share] ❌ 微信SDK初始化失败:', error);
-			}
-		},
-		
+		// showInstruction 方法紧接二维码生成回调后
 		showInstruction() {
 			// 微信环境：直接显示指引弹窗，让用户通过右上角分享
 			// 非微信环境：显示指引弹窗，提示用户长按保存图片
@@ -212,7 +190,7 @@ export default {
 			uni.vibrateShort();
 			
 			this.isGenerating = true;
-			this.$refs.generatingPopup.open('center');
+			// this.$refs.generatingPopup.open('center'); // 移除提示弹窗
 			
 			try {
 				// 获取海报区域
@@ -235,7 +213,7 @@ export default {
 				
 				// 存储图片URL并打开预览弹窗
 				this.previewImageUrl = imageUrl;
-				this.$refs.generatingPopup.close();
+				// this.$refs.generatingPopup.close(); // 已移除提示弹窗
 				
 				// 延时打开预览弹窗，确保生成弹窗已关闭
 				await this.$nextTick();
@@ -244,7 +222,7 @@ export default {
 			} catch (error) {
 				console.error('[share] 长按截图失败:', error);
 				this.$toast('生成海报失败');
-				this.$refs.generatingPopup.close();
+				// this.$refs.generatingPopup.close(); // 已移除提示弹窗
 			} finally {
 				this.isGenerating = false;
 			}

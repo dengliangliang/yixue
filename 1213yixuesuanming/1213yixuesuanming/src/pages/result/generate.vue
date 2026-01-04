@@ -147,7 +147,9 @@ export default {
 			// P9 神煞数据
 			shenShaList: [],
 			// P10 方位数据
-			fangWeiData: {}
+			fangWeiData: {},
+			// 完成状态追踪
+			hasMarkedComplete: false
 		};
 	},
 	computed: {
@@ -315,6 +317,26 @@ export default {
 			}
 			this.currentTab++;
 			console.log('[generate] 已查看页面:', this.viewedPages);
+			
+			// 当用户到达幸运位页面(index=5)时，标记测算完成
+			if (this.currentTab === 5 && !this.hasMarkedComplete && !this.isReview) {
+				this.markAsComplete();
+			}
+		}
+	},
+	// 调用后端接口标记测算完成
+	async markAsComplete() {
+		try {
+			console.log('[generate] 正在标记测算完成, record_id:', this.record_id);
+			const res = await this.$api.post('api/si_zhu/markComplete', {
+				record_id: this.record_id
+			});
+			if (res.code === 1) {
+				this.hasMarkedComplete = true;
+				console.log('[generate] 测算完成标记成功');
+			}
+		} catch (e) {
+			console.error('[generate] 标记完成失败:', e);
 		}
 	},
 		goShare() {

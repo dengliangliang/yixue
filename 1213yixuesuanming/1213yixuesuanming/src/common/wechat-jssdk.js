@@ -19,8 +19,8 @@
  * })
  */
 
-// ⚠️ 修复: 使用命名导入,因为api.js使用的是 export const get
-import { get as apiGet } from '@/common/request/api.js'
+// 使用默认导入,api.js导出了 { get, post, file } 作为默认对象
+import API from '@/common/request/api.js'
 
 // 判断是否在微信浏览器中
 export const isWechat = () => {
@@ -58,26 +58,45 @@ const wxSdk = {
 
         try {
             // 确保微信 JS 文件已加载
-            if (typeof wx === 'undefined') {
-                console.warn('[WxSdk] 微信 JS 文件未加载')
+            // 注意: 微信 JS-SDK 同时暴露 wx 和 jWeixin 两个全局变量
+            // UniApp 会覆盖 wx 对象,因此我们使用 jWeixin
+            if (typeof window.jWeixin === 'undefined') {
+                console.warn('[WxSdk] 微信 JS 文件未加载 (jWeixin undefined)')
                 return false
+            }
+
+            // 🔧 关键：先清理浏览器 URL 中的微信参数
+            // 微信 JS-SDK 验证签名时使用的是浏览器实际 URL，而不是我们传递的 signUrl
+            // 因此必须先更新浏览器地址栏，再调用 wx.config
+            try {
+                const currentUrl = new URL(window.location.href);
+                const hasCode = currentUrl.searchParams.has('code');
+                const hasState = currentUrl.searchParams.has('state');
+
+                if (hasCode || hasState) {
+                    currentUrl.searchParams.delete('code');
+                    currentUrl.searchParams.delete('state');
+                    window.history.replaceState({}, '', currentUrl.toString());
+                    console.log('[WxSdk] 🧹 已从浏览器URL中移除 code/state 参数');
+                }
+            } catch (urlError) {
+                console.warn('[WxSdk] ⚠️ 清理URL参数失败:', urlError);
             }
 
             // 获取签名用的 URL（不含 # 及其后面的部分）
             // 移除微信二次分享时添加的参数
             let signUrl = url || window.location.href.split('#')[0]
 
-            // 移除微信自动添加的参数(from, isappinstalled等)
-            signUrl = signUrl.replace(/[?&](from|isappinstalled)=[^&]*/gi, '')
+            // 移除微信自动添加的参数(from, isappinstalled, code, state等)
+            signUrl = signUrl.replace(/[?&](from|isappinstalled|code|state)=[^&]*/gi, '')
             // 移除末尾的?或&
             signUrl = signUrl.replace(/[?&]$/, '')
 
             console.log('[WxSdk] 🔑 签名URL:', signUrl)
             console.log('[WxSdk] 🌐 当前完整URL:', window.location.href)
 
-            // 调用后端接口获取签名配置  
-            // ⚠️ 修复: 直接调用apiGet而非API.get
-            const res = await apiGet('wechat/jsconfig', { url: signUrl })
+            // 调用后端接口获取签名配置
+            const res = await API.get('api/wechat/jsconfig', { url: signUrl })
 
             if (res.code !== 1 || !res.data) {
                 console.error('[WxSdk] ❌ 获取签名配置失败:', res.msg)
@@ -95,10 +114,11 @@ const wxSdk = {
             console.log('[WxSdk] ✍️ Signature:', config.signature)
             console.log('[WxSdk] 📝 JSApiList:', config.jsApiList)
 
-            // 配置微信 JS-SDK
+            // 配置微信 JS-SDK (使用 jWeixin 避免与 UniApp 的 wx 冲突)
+            const jWeixin = window.jWeixin;
             return new Promise((resolve) => {
-                wx.config({
-                    debug: true, // ⚠️ 开启调试模式,会在客户端弹出详细错误信息
+                jWeixin.config({
+                    debug: false, // 生产环境关闭调试模式
                     appId: config.appId,
                     timestamp: config.timestamp,
                     nonceStr: config.nonceStr,
@@ -114,16 +134,16 @@ const wxSdk = {
                     ]
                 })
 
-                console.log('[WxSdk] 🚀 wx.config 已调用,等待验证...')
+                console.log('[WxSdk] 🚀 jWeixin.config 已调用,等待验证...')
 
-                wx.ready(() => {
+                jWeixin.ready(() => {
                     console.log('[WxSdk] ✅✅✅ 初始化成功! 可以调用分享接口了')
                     console.log('[WxSdk] 📱 当前环境:', navigator.userAgent)
                     this.isReady = true
                     resolve(true)
                 })
 
-                wx.error((err) => {
+                jWeixin.error((err) => {
                     console.error('[WxSdk] ❌❌❌ 初始化失败!')
                     console.error('[WxSdk] 错误详情:', err)
                     console.error('[WxSdk] 错误描述:', err.errMsg || '未知错误')
@@ -190,7 +210,7 @@ const wxSdk = {
         console.log('[WxSdk]   🖼️ 图片:', shareData.imgUrl)
 
         // 新版接口 - 分享给朋友
-        wx.updateAppMessageShareData({
+        window.jWeixin.updateAppMessageShareData({
             title: shareData.title,
             desc: shareData.desc,
             link: shareData.link,
@@ -205,7 +225,7 @@ const wxSdk = {
         })
 
         // 新版接口 - 分享到朋友圈
-        wx.updateTimelineShareData({
+        window.jWeixin.updateTimelineShareData({
             title: shareData.title,
             link: shareData.link,
             imgUrl: shareData.imgUrl,
@@ -219,7 +239,7 @@ const wxSdk = {
         })
 
         // 旧版接口兼容 - 分享给朋友
-        wx.onMenuShareAppMessage({
+        window.jWeixin.onMenuShareAppMessage({
             title: shareData.title,
             desc: shareData.desc,
             link: shareData.link,
@@ -229,7 +249,7 @@ const wxSdk = {
         })
 
         // 旧版接口兼容 - 分享到朋友圈
-        wx.onMenuShareTimeline({
+        window.jWeixin.onMenuShareTimeline({
             title: shareData.title,
             link: shareData.link,
             imgUrl: shareData.imgUrl,
@@ -256,7 +276,7 @@ const wxSdk = {
             return
         }
 
-        wx.previewImage({
+        window.jWeixin.previewImage({
             current,
             urls
         })
@@ -281,7 +301,7 @@ const wxSdk = {
                 return
             }
 
-            wx.chooseImage({
+            window.jWeixin.chooseImage({
                 count: options.count || 9,
                 sizeType: ['original', 'compressed'],
                 sourceType: ['album', 'camera'],
@@ -289,6 +309,62 @@ const wxSdk = {
                 fail: reject
             })
         })
+    },
+
+    /**
+     * 初始化默认分享配置
+     * 使用后端 /api/user/share 接口格式的链接，参数从缓存获取
+     * 确保朋友圈分享显示为卡片而非纯链接
+     * 
+     * @param {Object} options 可选的覆盖配置
+     * @param {string} options.title 分享标题
+     * @param {string} options.desc 分享描述
+     * @param {string} options.imgUrl 分享图片URL
+     * @returns {Promise<boolean>} 是否初始化成功
+     */
+    async initDefaultShare(options = {}) {
+        try {
+            // 先初始化 SDK
+            const success = await this.init();
+            if (!success) {
+                console.warn('[WxSdk] SDK 初始化失败，跳过分享设置');
+                return false;
+            }
+
+            // 从缓存获取业务参数
+            const app_parmas = uni.getStorageSync('app_parmas') || {};
+            const merchantId = app_parmas.merchantId || '';
+            const activityCode = app_parmas.activityCode || '';
+            const agentCode = app_parmas.agentCode || '';
+            const sign = app_parmas.sign || '';
+
+            // 构造分享链接 - 使用后端 share 接口（无 # 号）
+            const baseUrl = 'https://yixueadmin.linqingkeji.com/api/user/share';
+            const params = ['isShare=true'];
+            if (merchantId) params.push(`merchantId=${merchantId}`);
+            if (activityCode) params.push(`activityCode=${activityCode}`);
+            if (agentCode) params.push(`agentCode=${encodeURIComponent(agentCode)}`);
+            if (sign) params.push(`sign=${sign}`);
+
+            const shareLink = `${baseUrl}?${params.join('&')}`;
+
+            // 设置分享内容
+            this.setShareInfo({
+                title: options.title || '我的2026旺运密码已解锁',
+                desc: options.desc || '点击一下,解密你的2026吧~',
+                link: shareLink,
+                imgUrl: options.imgUrl || 'https://cdn.yixuestatic.linqingkeji.com/src/static/beijing.jpg',
+                success: () => {
+                    console.log('[WxSdk] ✅ 默认分享设置成功');
+                }
+            });
+
+            console.log('[WxSdk] 📤 默认分享链接:', shareLink);
+            return true;
+        } catch (error) {
+            console.error('[WxSdk] ❌ 初始化默认分享失败:', error);
+            return false;
+        }
     }
 }
 
