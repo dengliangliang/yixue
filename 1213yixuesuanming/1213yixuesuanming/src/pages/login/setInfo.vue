@@ -1,5 +1,5 @@
 <template>
-	<view class="content" :style="'height:'+windowHeight+'px'">
+	<view class="content" :class="{ 'page-fade-out': isLeaving }" :style="'height:'+windowHeight+'px'">
 		<!-- 祥云动效背景 -->
 		<view class="cloud-container">
 			<view class="cloud cloud-1"></view>
@@ -114,7 +114,12 @@
 				</view>
 				<!-- 选择器 -->
 				<view class="city-picker-body">
-					<picker-view :value="pickerValue" @change="onPickerChange" class="city-picker-view">
+					<picker-view 
+						:value="pickerValue" 
+						@change="onPickerChange" 
+						class="city-picker-view"
+						indicator-style="height: 80rpx;"
+					>
 						<!-- 省份列 -->
 						<picker-view-column>
 							<view v-for="(item, index) in province_list" :key="index" class="picker-item">
@@ -132,13 +137,19 @@
 			</view>
 		</view>
 	</view>
+	
+	<!-- 全局加载遮罩 -->
+	<GlobalLoading :visible="showLoading" :text="loadingText" />
 </template>
 
 <script>
 	import myPicker from '@/components/my-picker.vue';
+	import GlobalLoading from '@/components/GlobalLoading.vue';
+	
 	export default {
 		components: {
 			myPicker,
+			GlobalLoading,
 		},
 		data() {
 			return {
@@ -160,7 +171,11 @@
 				city_list: [],
 				columns: [],
 				city_id: '',
-				pickerValue: [0, 0]
+				pickerValue: [0, 0],
+				// 页面跳转过渡状态
+				showLoading: false,
+				isLeaving: false,
+				loadingText: '正在处理...'
 			}
 		},
 		onReady() {
@@ -226,8 +241,12 @@
 				if (provinceIndex !== this.pickerValue[0]) {
 					const selectedProvince = this.province_list[provinceIndex];
 					if (selectedProvince) {
-						this.loadCity(selectedProvince.id);
-						this.pickerValue = [provinceIndex, 0];
+						// 【修复】等待城市加载完成后再更新索引，确保省市匹配
+						await this.loadCity(selectedProvince.id);
+						// 使用 $nextTick 确保 DOM 更新后再设置索引
+						this.$nextTick(() => {
+							this.pickerValue = [provinceIndex, 0];
+						});
 					}
 				} else {
 					this.pickerValue = [provinceIndex, cityIndex];
@@ -281,14 +300,19 @@
 					return this.$toast('请选择出生日期');
 				}
 				
+				// 显示加载遮罩
+				this.loadingText = '正在获取...';
+				this.showLoading = true;
+				this.isLeaving = true;
+				
 				// 准备表单数据
 				let app_parmas = uni.getStorageSync('app_parmas') || {}
-				// 清理 agentCode 中的换行符和空白字符，防止验签失败
-				if (app_parmas.agentCode) {
-					app_parmas.agentCode = app_parmas.agentCode.replace(/[\r\n\s]/g, '');
-				}
+				// 注意: 不再清理 agentCode, 保持原样回传给三方
+				// 原代码: app_parmas.agentCode = app_parmas.agentCode.replace(/[\r\n\s]/g, '');
 				// 获取OpenID
 				const openid = uni.getStorageSync('wx_openid') || '';
+				// 获取活动开始时间（用户进入index页面的时间）
+				const startTime = uni.getStorageSync('activity_start_time') || '';
 				const formData = {
 					...app_parmas,
 					hour: Number(this.shi),
@@ -297,7 +321,8 @@
 					area_id: this.city_id,
 					date: `${this.nian}-${this.yue}-${this.ri}`,
 					loc_date: this.loc_date,
-					openid: openid  // 添加OpenID参数
+					openid: openid,  // 添加OpenID参数
+					startTime: startTime  // 添加活动开始时间
 				};
 				
 				// 【优化】并行预请求：在跳转的同时发起 API 请求
@@ -309,10 +334,12 @@
 				uni.$apiPromise = apiPromise;
 				uni.setStorageSync('pending_form_data', formData);
 				
-				// 立即跳转到加载页面（烟雾动画）
-				uni.navigateTo({
-					url: "/pages/login/loading"
-				});
+				// 延迟跳转，让遮罩动画完全显示
+				setTimeout(() => {
+					uni.navigateTo({
+						url: "/pages/login/loading"
+					});
+				}, 300);
 			},
 			// 计算并缓存结果（等待完成，避免重复请求）
 			//  计算并缓存结果（等待完成，避免重复请求）
@@ -778,12 +805,43 @@
 	}
 
 	.city-picker-body {
-		height: 480rpx;
+		/* 【修复】调整为5项标准高度，确保选中项居中 */
+		height: 400rpx;
 		background: #fff;
+		position: relative;
+		overflow: hidden;
 	}
 
 	.city-picker-view {
 		height: 100%;
+	}
+
+	/* 【优化】添加选中区域上下渐变遮罩，增强视觉层次 */
+	.city-picker-body::before,
+	.city-picker-body::after {
+		content: '';
+		position: absolute;
+		left: 0;
+		right: 0;
+		height: 160rpx;
+		pointer-events: none;
+		z-index: 10;
+	}
+	.city-picker-body::before {
+		top: 0;
+		background: linear-gradient(to bottom, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0) 100%);
+	}
+	.city-picker-body::after {
+		bottom: 0;
+		background: linear-gradient(to top, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0) 100%);
+	}
+
+	/* 【优化】添加选中区域高亮边框 */
+	.city-picker-view :deep(.uni-picker-view-indicator) {
+		box-sizing: border-box;
+		border-top: 1rpx solid #D0000F;
+		border-bottom: 1rpx solid #D0000F;
+		background: rgba(208, 0, 15, 0.03);
 	}
 
 	.picker-item {
@@ -794,6 +852,8 @@
 		color: #333;
 		height: 80rpx;
 		line-height: 80rpx;
+		/* 【优化】添加过渡动画 */
+		transition: all 0.2s ease;
 	}
 	
 	/* ========== 自定义加载动画样式 ========== */

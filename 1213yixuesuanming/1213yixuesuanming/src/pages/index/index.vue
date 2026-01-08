@@ -1,5 +1,5 @@
 <template>
-	<view class="content">
+	<view class="content" :class="{ 'page-fade-out': isLeaving }">
 		<!-- ========== 吉祥点缀装饰 ========== -->
 		<view class="decor-container">
 			<!-- 马群 - 底部 -->
@@ -24,12 +24,15 @@
 			<image :src="cdnBase + staticPrefix + '火.png'" class="zhuanti-char-img" mode="widthFix" style="animation-delay: 0.6s;"></image>
 		</view>
 		
-		<!-- 按钮 -->
-		 <view class="btn-container animate__animated animate__zoomIn animate__delay-1s">
+		<!-- 按钮 - share 来源延迟渲染 -->
+		 <view v-if="shouldShowButton" class="btn-container animate__animated animate__zoomIn animate__delay-1s">
 			<!-- 按钮图片 -->
 			<image :src="cdnBase + staticPrefix + 'anniu.png'" class="explore-btn-image" mode="widthFix" @click="navto"></image>
 		</view>
 	</view>
+	
+	<!-- 全局加载遮罩 -->
+	<GlobalLoading :visible="showLoading" :text="loadingText" />
 	
 	<!-- 九紫离火运介绍弹窗 -->
 	<uni-popup ref="introPopup" type="center" :mask-click="false">
@@ -113,8 +116,12 @@
 
 <script>
 	import websiteConfig from '@/config/website.js';
+	import GlobalLoading from '@/components/GlobalLoading.vue';
 	
 	export default {
+		components: {
+			GlobalLoading
+		},
 		data() {
 			return {
 				title: 'Hello',
@@ -122,8 +129,15 @@
 				pageLoadStart: 0, // 页面加载开始时间
 				lastRecordId: '', // 上次测算的record_id
 				pageLoadEnd: 0,   // 页面加载完成时间
-				// 装饰方案切换：'A' 简约吉祥, 'B' 热闹喜庆, 'C' 仙鹤主题, '' 无装饰
-				decorScheme: 'C'
+				decorScheme: 'C',
+				// 二次测算检测状态
+				isCheckingUser: true, // 是否正在检测用户状态
+				isReturnUser: false,  // 是否为二次测算用户
+				hasCheckedOnce: false, // 是否已经检测过一次（用于左滑返回时重新检测）
+				// 页面跳转过渡状态
+				showLoading: false,   // 是否显示加载遮罩
+				isLeaving: false,     // 是否正在淡出
+				loadingText: '加载中...' // 加载提示文字
 			}
 		},
 		computed: {
@@ -134,12 +148,35 @@
 			// 静态资源路径前缀
 			staticPrefix() {
 				return websiteConfig.CDN.enabled ? '/src/static/' : '/static/';
+			},
+			// 控制按钮是否渲染：share 来源检测完成后才渲染，其他来源根据逻辑决定
+			shouldShowButton() {
+				const appParams = uni.getStorageSync('app_parmas') || {};
+				
+				// share 来源：检测完成后才显示按钮
+				if (appParams.from === 'share') {
+					return !this.isCheckingUser;
+				}
+				
+				// jump 来源：始终显示
+				if (appParams.from === 'jump') {
+					return true;
+				}
+				
+				// 其他来源：不显示
+				return false;
 			}
 		},
 		onLoad(op) {
 			//  性能监控：记录页面加载开始时间
 			this.pageLoadStart = Date.now();
 			console.log('📊 [性能] 页面开始加载', new Date().toISOString());
+			
+			// 记录用户进入页面的开始时间，用于回传三方接口
+			const now = new Date();
+			const startTime = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
+			uni.setStorageSync('activity_start_time', startTime);
+			console.log('[index] 记录活动开始时间:', startTime);
 			
 			console.log('----', op);
 			if (op.sign) {
@@ -151,7 +188,20 @@
 			this.handleWxAuth().then(needRedirect => {
 				if (!needRedirect) {
 					// 不需要重定向，继续后续流程
-					this.checkReturnUser();
+					// share 来源：检查二次测算
+					if (op.from === 'share') {
+						this.checkReturnUser();
+					} else if (op.from === 'jump') {
+						// jump 来源：不检测，启用按钮
+						this.isCheckingUser = false;
+						this.isReturnUser = false;
+						console.log('[index] jump来源，跳过二次测算检测，启用按钮');
+					} else {
+						// 其他来源：保持禁用状态，不检测不弹窗
+						// isCheckingUser 保持 true，按钮始终禁用
+						this.isReturnUser = false;
+						console.log('[index] 其他来源，按钮始终禁用');
+					}
 					// 微信分享由全局 mixin 在 onShow 时自动初始化
 				}
 				// 如果需要重定向，页面会跳转，不执行后续代码
@@ -169,6 +219,26 @@
 			setTimeout(() => {
 				this.$refs.introPopup.open();
 			}, 1000);
+			}
+		},
+		// 【修复】处理左滑返回场景：重新检测 share 来源的二次用户
+		onShow() {
+			const appParams = uni.getStorageSync('app_parmas') || {};
+			
+			// 仅对 share 来源处理左滑返回场景
+			if (appParams.from === 'share') {
+				// 重置过渡动画状态
+				this.showLoading = false;
+				this.isLeaving = false;
+				
+				// 如果已经检测过，说明是左滑返回，需要重新检测
+				if (this.hasCheckedOnce) {
+					console.log('[index] 左滑返回，重新检测 share 来源的二次用户');
+					// 先禁用按钮
+					this.isCheckingUser = true;
+					// 重新检测
+					this.checkReturnUser();
+				}
 			}
 		},
 		onReady() {
@@ -423,22 +493,65 @@
 				}
 			},
 			navto() {
-				// 获取来源参数
-				const appParams = uni.getStorageSync('app_parmas') || {};
-				
-				// 如果是share来源,跳转到对方系统
-				if (appParams.from === 'share') {
-					console.log('[index] share来源,跳转到对方系统');
-					this.redirectToThirdParty(appParams);
+				// 检测期间禁止点击（仅对 share 来源生效）
+				if (this.isCheckingUser) {
+					console.log('[index] 正在检测用户状态，点击无效');
 					return;
 				}
 				
-				// jump来源或直接访问,打开九紫离火运介绍弹窗
-				console.log('🔗 [导航] 打开九紫离火运介绍弹窗');
-				this.$refs.introPopup.open();
+				// 获取来源参数
+				const appParams = uni.getStorageSync('app_parmas') || {};
+				
+				// jump 来源：直接跳转 setInfo 页面
+				if (appParams.from === 'jump') {
+					console.log('[index] jump来源,跳转到setInfo页面');
+					this.navigateWithTransition('/pages/login/setInfo');
+					return;
+				}
+				
+				// share 来源：根据是否二次测算决定跳转目标
+				if (appParams.from === 'share') {
+					if (this.isReturnUser) {
+						// 二次测算用户 -> 跳转 setInfo（与"重新测算"按钮逻辑一致）
+						console.log('[index] share来源+二次测算用户,跳转到setInfo页面');
+						this.navigateWithTransition('/pages/login/setInfo');
+					} else {
+						// 新用户 -> 跳转三方链接
+						console.log('[index] share来源+新用户,跳转到对方系统');
+						this.redirectToThirdParty(appParams);
+					}
+					return;
+				}
+				
+				// 其他来源（直进等）：始终禁用，不响应点击
+				console.log('[index] 其他来源,按钮禁用,点击无效');
+				return;
 			},
-			// 跳转到对方系统(share来源专用)
+			
+			// 带过渡动画的页面跳转
+			navigateWithTransition(url) {
+				// 显示加载遮罩
+				this.loadingText = '正在进入...';
+				this.showLoading = true;
+				this.isLeaving = true;
+				
+				// 延迟跳转，让动画播放
+				setTimeout(() => {
+					this.$go(url);
+				}, 300);
+			},
 			async redirectToThirdParty(params) {
+				// 【方案三】跳转前再次校验，防止竞态条件
+				if (this.isCheckingUser) {
+					console.log('[index] 跳转前检测未完成，拒绝跳转');
+					return;
+				}
+				
+				// 显示加载遮罩
+				this.loadingText = '正在跳转...';
+				this.showLoading = true;
+				this.isLeaving = true;
+				
 				try {
 					const res = await this.$api.get('api/user/getShareRedirectUrl', {
 						merchantId: params.merchantId || '',
@@ -450,12 +563,19 @@
 					if (res.code === 1 && res.data.redirect_url) {
 						console.log('[index] 跳转到:', res.data.redirect_url);
 						// #ifdef H5
-						window.location.href = res.data.redirect_url;
+						// 延迟跳转，让遮罩完全显示
+						setTimeout(() => {
+							window.location.href = res.data.redirect_url;
+						}, 200);
 						// #endif
 					} else {
+						this.showLoading = false;
+						this.isLeaving = false;
 						this.$toast(res.msg || '获取跳转地址失败');
 					}
 				} catch (error) {
+					this.showLoading = false;
+					this.isLeaving = false;
 					console.error('[index] 获取跳转地址失败:', error);
 					this.$toast('网络请求失败');
 				}
@@ -467,24 +587,18 @@
 			
 			// 检查是否为返回用户
 		async checkReturnUser() {
+			// 开始检测，禁用按钮
+			this.isCheckingUser = true;
+			this.isReturnUser = false;
+			
 			try {
-				// ========== 临时测试代码:直接模拟二次进入用户 ==========
-				// console.log('[index] 【测试模式】直接模拟二次进入用户');
-				// this.lastRecordId = '31'; // 使用一个测试的record_id,请根据实际情况修改
-				// // 延迟弹窗,避免与页面加载动画冲突
-				// setTimeout(() => {
-				// 	this.$refs.returnUserPopup.open();
-				// }, 1500);
-				// return;
-				// ========== 以下是原始代码,已注释 ==========
-				
-				
 				// 从localStorage获取客户号和OpenID
 				const customerId = uni.getStorageSync('customer_id');
 				const openid = uni.getStorageSync('wx_openid');
 
 				if (!customerId && !openid) {
 					console.log('[index] 未找到客户号和OpenID,为新用户');
+					this.isReturnUser = false;
 					return;
 				}
 				console.log('[index] 检测信息 - 客户号:', customerId, 'OpenID:', openid);
@@ -498,16 +612,24 @@
 				if (res.code === 1 && res.data.has_record) {
 					console.log('[index] 检测到测算记录,record_id:', res.data.last_record_id);
 					this.lastRecordId = res.data.last_record_id;
+					this.isReturnUser = true; // 标记为二次测算用户
 					// 延迟弹窗,避免与页面加载动画冲突
 					setTimeout(() => {
 						this.$refs.returnUserPopup.open();
 					}, 1500);
 				} else {
 					console.log('[index] 未找到测算记录');
+					this.isReturnUser = false;
 				}
 			} catch (error) {
 				console.error('[index] 检查返回用户失败:', error);
-				// 静默失败,不影响用户体验
+				// 静默失败,默认作为新用户处理
+				this.isReturnUser = false;
+			} finally {
+				// 检测完成，启用按钮
+				this.isCheckingUser = false;
+				this.hasCheckedOnce = true; // 标记已检测过
+				console.log('[index] 用户检测完成，isReturnUser:', this.isReturnUser);
 			}
 		},
 			

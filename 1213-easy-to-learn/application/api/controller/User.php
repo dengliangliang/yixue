@@ -252,7 +252,7 @@ class User extends Api
      * @param int $hour
      * @param int $gender
      */
-    public function addRecord($customerNo = '', $date, $hour = 0, $minute = 0, $gender = 0, $area_id = 0, $merchantId = '', $activityCode = '', $agentCode = '', $sign = '', $openid = '')
+    public function addRecord($customerNo = '', $date, $hour = 0, $minute = 0, $gender = 0, $area_id = 0, $merchantId = '', $activityCode = '', $agentCode = '', $sign = '', $openid = '', $startTime = '')
     {
         // 只验证必需的三个参数：date, area_id, gender
         if (empty($date) || empty($area_id))
@@ -263,38 +263,17 @@ class User extends Api
             $customerNo = 'H5_' . uniqid();
         }
 
-        // 只有当sign参数存在时才进行验签
-        // ⚠️ 2026-01-02: 暂时禁用验签,简化流程
-        /*
-        if (!empty($sign)) {
-            // 清理 agentCode 中的换行符和空白字符，防止验签失败
-            $agentCode = preg_replace('/[\r\n\s]/', '', $agentCode);
-
-            $config = Config::get('citicpru');
-            $salt = $config['salts'][$config['env']] ?? '';
-            $agentCodeStr = rawurlencode($agentCode);
-            $str = "merchantId=$merchantId&activityCode=$activityCode&agentCode=$agentCodeStr&customerNo=$customerNo";
-            $md5_str = md5($str . $salt);
-
-            // 记录验签信息便于调试
-            \think\Log::info("[addRecord] 验签参数: merchantId={$merchantId}, activityCode={$activityCode}, agentCode长度=" . strlen($agentCode) . ", customerNo={$customerNo}");
-            \think\Log::info("[addRecord] 计算签名={$md5_str}, 传入签名={$sign}");
-
-            if ($md5_str != $sign) {
-                // 如果验签失败，尝试不带 urlencode 的版本（有些系统跳转时不一定做了 urlencode）
-                $str2 = "merchantId=$merchantId&activityCode=$activityCode&agentCode=$agentCode&customerNo=$customerNo";
-                $md5_str2 = md5($str2 . $salt);
-                \think\Log::info("[addRecord] 尝试非编码版本签名={$md5_str2}");
-                if ($md5_str2 != $sign) {
-                    \think\Log::error("[addRecord] 验签失败，所有尝试均不匹配");
-                    $this->error('验签错误');
-                }
-            }
-        }
-        */
-        // 清理 agentCode 中的换行符和空白字符(即使不验签也需要清理)
-        $agentCode = preg_replace('/[\r\n\s]/', '', $agentCode);
-        \think\Log::info("[addRecord] 处理记录: customerNo={$customerNo}, merchantId={$merchantId}, openid={$openid}");
+        // 注意: 不再清理 agentCode，保持原样回传给三方
+        // 原代码: $agentCode = preg_replace('/[\r\n\s]/', '', $agentCode);
+        // 增强日志输出：更易读的时间格式
+        $logTime = date('Y-m-d H:i:s');
+        \think\Log::info("=== [{$logTime}] addRecord 开始 ===");
+        \think\Log::info("[addRecord] 📥 请求参数:");
+        \think\Log::info("  - customerNo: {$customerNo}");
+        \think\Log::info("  - openid: " . (!empty($openid) ? $openid : '【空】'));
+        \think\Log::info("  - merchantId: {$merchantId}");
+        \think\Log::info("  - date: {$date}, hour: {$hour}, minute: {$minute}");
+        \think\Log::info("  - gender: {$gender}, area_id: {$area_id}");
 
         $yang_li_arr = explode('-', $date);
         // 实例化
@@ -345,7 +324,8 @@ class User extends Api
             'activityCode' => $activityCode,
             'agentCode' => $agentCode,
             'customerNo' => $customerNo,
-            'openid' => $openid
+            'openid' => $openid,
+            'start_time' => $startTime
         ];
 
         // 判断该记录是否存在过(通过 customerNo 或 openid 查询)
@@ -362,10 +342,28 @@ class User extends Api
         }
 
         if (!empty($chk_record)) {
-            // 记录存在，更新所有字段
+            // 记录存在，更新字段，但保留原始的 customerNo（避免覆盖三方传入的客户号）
             $recordData['updatetime'] = time();
+
+            // 如果数据库中已有非 H5_ 开头的 customerNo，则保留原始值
+            $originalCustomerNo = $chk_record['customerNo'] ?? '';
+            if (!empty($originalCustomerNo) && strpos($originalCustomerNo, 'H5_') !== 0) {
+                // 保留原始的 customerNo 和 user_name
+                $recordData['customerNo'] = $originalCustomerNo;
+                $recordData['user_name'] = $originalCustomerNo;
+                \think\Log::info("[addRecord] 保留原始 customerNo: {$originalCustomerNo}");
+            }
+
+            // 重置完成状态，允许重新回调
+            $recordData['result'] = '未完成';
+            $recordData['end_time'] = null;
+
             Db::name('record')->where('id', $chk_record['id'])->update($recordData);
-            \think\Log::info("[addRecord] 更新已有记录: record_id={$chk_record['id']}, customerNo={$customerNo}, openid={$openid}");
+            \think\Log::info("[addRecord] ✏️ 更新已有记录:");
+            \think\Log::info("  - record_id: {$chk_record['id']}");
+            \think\Log::info("  - customerNo: {$recordData['customerNo']}");
+            \think\Log::info("  - openid: " . (!empty($openid) ? $openid : '【空】'));
+            \think\Log::info("=== [" . date('Y-m-d H:i:s') . "] addRecord 结束(更新) ===");
             $this->success('添加成功', ['record_id' => $chk_record['id']]);
         }
 
@@ -373,7 +371,12 @@ class User extends Api
         $recordData['createtime'] = time();
         $add_id = Db::name('record')->insertGetId($recordData);
         if (!empty($add_id)) {
-            \think\Log::info("[addRecord] 新增记录: record_id={$add_id}, customerNo={$customerNo}, openid={$openid}");
+            \think\Log::info("[addRecord] ✅ 新增记录成功:");
+            \think\Log::info("  - record_id: {$add_id}");
+            \think\Log::info("  - customerNo: {$customerNo}");
+            \think\Log::info("  - openid: " . (!empty($openid) ? $openid : '【空】'));
+            \think\Log::info("  - createtime: " . date('Y-m-d H:i:s', $recordData['createtime']));
+            \think\Log::info("=== [" . date('Y-m-d H:i:s') . "] addRecord 结束(新增) ===");
             // 优化：先返回record_id，让前端快速跳转，后台异步计算
             // updRecordRes 将在 getSiZhuRes 中按需调用
             $this->success('添加成功', ['record_id' => $add_id, 'need_calc' => true]);

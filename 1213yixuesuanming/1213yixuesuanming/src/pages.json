@@ -24,7 +24,8 @@
 			"path": "pages/login/loading",
 			"style": {
 				"navigationBarTitleText": "解密2026",
-				"navigationStyle": "custom"
+				"navigationStyle": "custom",
+				"backgroundColor": "#F5E6D3"
 			}
 		},
 		{
@@ -45,7 +46,7 @@
 		"navigationBarTextStyle": "black",
 		"navigationBarTitleText": "uni-app",
 		"navigationBarBackgroundColor": "#E2C289",
-		"backgroundColor": "#F8F8F8"
+		"backgroundColor": "#F5E6D3"
 	},
 	"uniIdRouter": {}
 }

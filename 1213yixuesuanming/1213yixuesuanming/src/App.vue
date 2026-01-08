@@ -56,7 +56,29 @@
 		src: url('https://cdn.yixuestatic.linqingkeji.com/src/static/ttf/font2.ttf');
 	}
 
+	/* 全局背景色设置，避免页面跳转白屏闪烁 */
 	page {
 		font-family: YouSheBiaoTiHei;
+		background-color: #F5E6D3; /* 与首页背景色一致 */
+	}
+	
+	uni-page-body {
+		background-color: #F5E6D3;
+	}
+	
+	/* 全局淡出动画类 - 页面跳转时使用 */
+	.page-fade-out {
+		animation: pageLeave 0.3s ease-out forwards;
+	}
+	
+	@keyframes pageLeave {
+		from {
+			opacity: 1;
+			transform: scale(1);
+		}
+		to {
+			opacity: 0;
+			transform: scale(0.98);
+		}
 	}
 </style>

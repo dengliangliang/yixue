@@ -298,6 +298,11 @@ export default {
 			return;
 		}
 		this.currentTab = targetIndex;
+		
+		// 当用户滑动到幸运位页面(index=5)时，标记测算完成（后端会判断是否已回调过）
+		if (targetIndex === 5 && !this.hasMarkedComplete) {
+			this.markAsComplete();
+		}
 	},
 		prevTab() {
 			if (this.currentTab > 0) {
@@ -318,8 +323,8 @@ export default {
 			this.currentTab++;
 			console.log('[generate] 已查看页面:', this.viewedPages);
 			
-			// 当用户到达幸运位页面(index=5)时，标记测算完成
-			if (this.currentTab === 5 && !this.hasMarkedComplete && !this.isReview) {
+			// 当用户到达幸运位页面(index=5)时，标记测算完成（后端会判断是否已回调过）
+			if (this.currentTab === 5 && !this.hasMarkedComplete) {
 				this.markAsComplete();
 			}
 		}

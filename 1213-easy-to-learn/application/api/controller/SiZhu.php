@@ -440,8 +440,13 @@ class SiZhu extends Api
 
         // 仅当未完成时更新，避免重复更新和重复回传
         if ($record['result'] !== '已完成') {
-            Db::name('record')->where('id', $record_id)->update(['result' => '已完成']);
-            \think\Log::info("[markComplete] record_id: {$record_id} 已标记为完成");
+            // 生成结束时间
+            $endTime = date('Y-m-d H:i:s');
+            Db::name('record')->where('id', $record_id)->update([
+                'result' => '已完成',
+                'end_time' => $endTime
+            ]);
+            \think\Log::info("[markComplete] record_id: {$record_id} 已标记为完成, end_time: {$endTime}");
 
             // 触发第三方回传接口 (仅在首次完成时触发)
             $this->notify($record_id);
@@ -1256,13 +1261,17 @@ class SiZhu extends Api
             return false;
         }
 
+        // 注意: agentCode 需要 URL 编码，以匹配三方原始传入的格式
+        $agentCodeEncoded = rawurlencode($record_res['agentCode'] ?? '');
         $data = [
             'uid' => (string) $record_id,
             'merchantId' => $record_res['merchantId'] ?? '',
             'activityCode' => $record_res['activityCode'] ?? '',
-            'agentCode' => $record_res['agentCode'] ?? '',
+            'agentCode' => $agentCodeEncoded,
             'customerNo' => $record_res['customerNo'] ?? '',
-            'result' => $record_res['result'] ?? ''
+            'result' => $record_res['result'] ?? '',
+            'startTime' => $record_res['start_time'] ?? '',
+            'endTime' => $record_res['end_time'] ?? ''
         ];
 
         // 过滤空值 (文档要求：请求报文属性值非空的字段)

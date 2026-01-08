@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>参与客户清单</title>
+    <!-- 引入库 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body,
+        html {
+            width: 100%;
+            height: 100%;
+            font-family: "Microsoft YaHei", sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        .container {
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-image: url('static/shouye3.jpg');
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-attachment: fixed;
+            position: relative;
+        }
+
+        /* 顶部横幅 */
+        .header {
+            width: 100%;
+            height: 180px;
+            background: transparent;
+            position: relative;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding-bottom: 40px;
+            z-index: 10;
+        }
+
+        /* 背景字 26 */
+        .header-bg-text {
+            position: absolute;
+            right: 20px;
+            top: 40px;
+            color: rgba(0, 0, 0, 0.03);
+            font-size: 120px;
+            font-weight: bold;
+            z-index: -1;
+            font-family: Arial, sans-serif;
+        }
+
+        .header-title {
+            color: #fffbe6;
+            /* 高亮白金色 */
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            text-shadow:
+                0 0 10px rgba(255, 215, 0, 0.6),
+                1px 1px 3px rgba(0, 0, 0, 0.8);
+            position: relative;
+            z-index: 2;
+            margin-left: 20px;
+        }
+
+        .header-subtitle {
+            color: #fffbe6;
+            font-size: 13px;
+            letter-spacing: 0.5px;
+            opacity: 0.9;
+            position: relative;
+            z-index: 2;
+            margin-left: 22px;
+            text-shadow: 0 0 5px rgba(255, 215, 0, 0.4);
+        }
+
+        /* 药丸返回按钮 */
+        .btn-return {
+            position: absolute;
+            left: 20px;
+            top: 25px;
+            background: #fff;
+            color: #d0000f;
+            padding: 5px 20px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            border: none;
+            z-index: 100;
+        }
+
+        /* 列表区域 - 白色卡片风格 */
+        .list-container {
+            flex: 1;
+            margin-top: -20px;
+            background-color: #fff;
+            border-radius: 30px 30px 0 0;
+            overflow: hidden;
+            box-shadow: 0 -5px 20px rgba(0, 0, 0, 0.05);
+            padding: 20px;
+            position: relative;
+            z-index: 20;
+        }
+
+        /* 表格样式 */
+        .table-header {
+            background-color: #f16868;
+            border-radius: 8px;
+            display: flex;
+            padding: 12px 10px;
+            color: #fff;
+            font-weight: bold;
+            margin-bottom: 15px;
+            font-size: 15px;
+        }
+
+        .th,
+        .td {
+            flex: 1;
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            word-break: break-all;
+        }
+
+        .th:nth-child(1),
+        .td:nth-child(1) {
+            flex: 0.5;
+        }
+
+        .th:nth-child(2),
+        .td:nth-child(2) {
+            flex: 1.2;
+        }
+
+        .th:nth-child(3),
+        .td:nth-child(3) {
+            flex: 1.5;
+        }
+
+        .th:nth-child(4),
+        .td:nth-child(4) {
+            flex: 1.2;
+        }
+
+        .list-item {
+            display: flex;
+            padding: 18px 10px;
+            border-bottom: 1px solid #f2f2f2;
+            font-size: 14px;
+            color: #333;
+        }
+
+        /* 状态标签样式 */
+        .status-tag {
+            background-color: #e3f2fd;
+            color: #0088ff;
+            padding: 3px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+
+        .status-tag.active {
+            background-color: #e3f2fd;
+            color: #0088ff;
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 100px 0;
+            color: #999;
+        }
+
+        /* 右上角装饰 */
+        .decor-top-right {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 120px;
+            height: auto;
+            opacity: 0.9;
+            z-index: 5;
+            pointer-events: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container animate__animated animate__fadeIn">
+        <!-- 右上角装饰 -->
+        <img src="static/ma1.png" class="decor-top-right animate__animated animate__fadeInRight" alt="装饰">
+
+        <!-- 顶部装饰与返回 -->
+        <div class="header" style="padding-left: 0;">
+            <div class="header-bg-text">26</div>
+            <button class="btn-return" onclick="window.history.back()">返回</button>
+            <h1 class="header-title">参与客户清单</h1>
+            <p class="header-subtitle">List of participating customers</p>
+        </div>
+
+        <!-- 列表容器 -->
+        <div class="list-container">
+            <!-- 表头 -->
+            <div class="table-header">
+                <div class="th">序号</div>
+                <div class="th">客户姓名</div>
+                <div class="th">手机号</div>
+                <div class="th">测评状态</div>
+            </div>
+
+            <!-- 数据行示例 (参考图) -->
+            <div class="list-item animate__animated animate__fadeInUp">
+                <div class="td">1</div>
+                <div class="td">张*三</div>
+                <div class="td">138****8888</div>
+                <div class="td">
+                    <span class="status-tag active">已测评</span>
+                </div>
+            </div>
+
+            <div class="list-item animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
+                <div class="td">2</div>
+                <div class="td">李*</div>
+                <div class="td">139****1234</div>
+                <div class="td">
+                    <span class="status-tag">进行中</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

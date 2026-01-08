@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>解密2026 - 信息填写</title>
+    <!-- 引入库 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body,
+        html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: "Microsoft YaHei", sans-serif;
+            background-color: #1a1a2e;
+        }
+
+        .content {
+            width: 100%;
+            height: 100%;
+            background-image: url('static/shouye3.jpg');
+            background-size: 100% 100%;
+            background-repeat: no-repeat;
+            background-position: center center;
+            background-color: #F5E6D3;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            padding-top: 30vh;
+            /* 进一步拉开顶部距离 */
+        }
+
+        /* 装饰元素 */
+        .decor-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .decor-crane {
+            position: absolute;
+            opacity: 0.85;
+            width: 80px;
+        }
+
+        .decor-crane-left {
+            left: 10px;
+            bottom: 15%;
+        }
+
+        .decor-crane-top {
+            right: 20px;
+            top: 18%;
+        }
+
+        .decor-crane-right {
+            width: 50px;
+            right: 15px;
+            bottom: 22%;
+            transform: scaleX(-1);
+        }
+
+        .decor-horse {
+            position: absolute;
+            width: 140px;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0.75;
+        }
+
+        /* 文字介绍框 */
+        .intro-box {
+            width: 85%;
+            background: rgba(255, 248, 231, 0.9);
+            border: 2px solid #DAA520;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            color: #8b4513;
+            line-height: 1.6;
+            text-align: left;
+            /* 提高层级 */
+            position: relative;
+            z-index: 10;
+        }
+
+        .intro-text {
+            font-size: 16px;
+            white-space: pre-line;
+        }
+
+        /* 表单容器 */
+        .form-container {
+            width: 85%;
+            background: rgba(255, 248, 231, 1);
+            border-radius: 15px;
+            padding: 30px 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            /* 提高层级 */
+            position: relative;
+            z-index: 10;
+        }
+
+        .form-title {
+            font-size: 24px;
+            color: #b22222;
+            font-weight: bold;
+            margin-bottom: 25px;
+            position: relative;
+            display: inline-block;
+        }
+
+        .form-title::after {
+            content: '';
+            position: absolute;
+            bottom: -5px;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: #b22222;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .input-item {
+            width: 100%;
+            height: 50px;
+            border: 1px solid #dcdcdc;
+            border-radius: 25px;
+            padding: 0 50px;
+            font-size: 16px;
+            outline: none;
+            background-color: #fff;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 24px;
+            height: 24px;
+        }
+
+        .submit-btn {
+            width: 100%;
+            height: 50px;
+            background: linear-gradient(135deg, #D0000F 0%, #8B0000 100%);
+            color: #fff;
+            border: none;
+            border-radius: 25px;
+            font-size: 18px;
+            font-weight: bold;
+            margin-top: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(208, 0, 15, 0.3);
+        }
+
+        /* SIT环境标记 */
+        .sit-tag {
+            position: absolute;
+            right: -10px;
+            top: 10px;
+            background-color: #3cb371;
+            color: #fff;
+            padding: 5px 15px;
+            border-radius: 15px 0 0 15px;
+            font-size: 12px;
+            z-index: 3;
+        }
+
+        /* 单Logo容器 - 顶部居中 */
+        .single-logo-container {
+            position: absolute;
+            top: 80px;
+            /* 沿用之前的下移高度 */
+            left: 0;
+            right: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-item {
+            width: 100px;
+            height: 40px;
+            display: block;
+            object-fit: contain;
+            background: transparent;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
+        }
+
+        /* 主题文案容器 */
+        .theme-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0 30px;
+            position: absolute;
+            top: 70px;
+            /* 这里根据构图需要微调，确保位于 Logo 下方但高于文本框 */
+            z-index: 5;
+        }
+
+        .theme-image {
+            max-width: 90%;
+            height: auto;
+            transform: scaleY(1.3) scaleX(1.1);
+            filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.2));
+        }
+
+        /* 验证码按钮样式 */
+        .send-code-btn {
+            width: 120px;
+            height: 50px;
+            background: linear-gradient(135deg, #DAA520 0%, #B8860B 100%);
+            color: #fff;
+            border: none;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(218, 165, 32, 0.3);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .send-code-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="content">
+        <!-- 装饰元素 -->
+        <div class="decor-container">
+            <img src="static/he4.png" class="decor-crane decor-crane-left animate__animated animate__fadeInLeft" alt="">
+            <img src="static/he4.png" class="decor-crane decor-crane-top animate__animated animate__fadeInRight" alt="">
+            <img src="static/he5.png" class="decor-crane decor-crane-right animate__animated animate__fadeInRight"
+                alt="">
+            <img src="static/ma3.png" class="decor-horse animate__animated animate__fadeInUp" alt="">
+        </div>
+
+        <!-- 单Logo容器 -->
+        <div class="single-logo-container animate__animated animate__fadeInDown">
+            <img src="static/logo3.png" class="logo-item" alt="Logo">
+        </div>
+
+        <!-- 主题文案 - 解密2026 -->
+        <div class="theme-container animate__animated animate__fadeInDown" style="animation-delay: 0.3s;">
+            <img src="static/jiemi.png" class="theme-image" alt="解密2026">
+        </div>
+
+        <!-- 文字介绍框 -->
+        <div class="intro-box animate__animated animate__fadeInDown" style="animation-delay: 0.6s; padding: 12px 15px;">
+            <div class="intro-text"
+                style="text-align: center; font-weight: 500; line-height: 1.5; font-size: 13px; color: #5d4037;">
+                九紫离火大运开启 丙午将至美好乍现<br>
+                中信保诚人寿推出《解密2026，探索美好未来》<br>
+                更多2026年关键信息等您来解密
+            </div>
+        </div>
+
+        <!-- 表单容器 -->
+        <div class="form-container animate__animated animate__zoomIn">
+            <div class="form-title">请填写您的信息</div>
+            <form>
+                <div class="input-group">
+                    <!-- 借用一些简单的形状模拟图标，或者使用提供的图片 -->
+                    <svg class="input-icon" viewBox="0 0 24 24" fill="#b22222">
+                        <path
+                            d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" />
+                    </svg>
+                    <input type="text" class="input-item" placeholder="请输入姓名">
+                </div>
+                <div class="input-group">
+                    <svg class="input-icon" viewBox="0 0 24 24" fill="#b22222">
+                        <path
+                            d="M17 1H7c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-2-2-2zm0 18H7V5h10v14z" />
+                    </svg>
+                    <input type="tel" class="input-item" id="phoneInput" placeholder="请输入手机号">
+                </div>
+                <div class="input-group" style="display: flex; gap: 10px;">
+                    <div style="flex: 1; position: relative;">
+                        <img class="input-icon" src="static/icon-shield.svg" alt="验证码">
+                        <input type="text" class="input-item" id="codeInput" placeholder="请输入验证码"
+                            style="padding-right: 15px;">
+                    </div>
+                    <button type="button" class="send-code-btn" id="sendCodeBtn" onclick="sendCode()">获取验证码</button>
+                </div>
+                <button type="button" class="submit-btn" onclick="submitForm()">开启探索之旅</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let countdown = 0;
+        let timer = null;
+
+        // 发送验证码
+        function sendCode() {
+            const phone = document.getElementById('phoneInput').value.trim();
+            const btn = document.getElementById('sendCodeBtn');
+
+            // 验证手机号
+            if (!phone) {
+                alert('请先输入手机号');
+                return;
+            }
+            if (!/^1[3-9]\d{9}$/.test(phone)) {
+                alert('请输入正确的手机号');
+                return;
+            }
+
+            // 开始倒计时
+            countdown = 60;
+            btn.disabled = true;
+            btn.textContent = countdown + 's后重发';
+
+            timer = setInterval(() => {
+                countdown--;
+                if (countdown <= 0) {
+                    clearInterval(timer);
+                    btn.disabled = false;
+                    btn.textContent = '获取验证码';
+                } else {
+                    btn.textContent = countdown + 's后重发';
+                }
+            }, 1000);
+
+            // TODO: 调用发送验证码接口
+            console.log('发送验证码到:', phone);
+            alert('验证码已发送');
+        }
+
+        // 提交表单
+        function submitForm() {
+            const name = document.querySelector('input[placeholder="请输入姓名"]').value.trim();
+            const phone = document.getElementById('phoneInput').value.trim();
+            const code = document.getElementById('codeInput').value.trim();
+
+            if (!name) {
+                alert('请输入姓名');
+                return;
+            }
+            if (!phone || !/^1[3-9]\d{9}$/.test(phone)) {
+                alert('请输入正确的手机号');
+                return;
+            }
+            if (!code) {
+                alert('请输入验证码');
+                return;
+            }
+
+            // TODO: 调用提交接口
+            console.log('提交数据:', { name, phone, code });
+            alert('提交成功');
+        }
+    </script>
+</body>
+
+</html>
