@@ -2,7 +2,7 @@
 	<view class="loading-page">
 		<!-- WebGL 烟雾背景层 - 使用原生HTML canvas以支持WebGL -->
 		<canvas canvas-id="particleCanvas" id="particleCanvas" class="smoke-canvas"></canvas>
-        <canvas canvas-id="lightningCanvas" id="lightningCanvas" class="lightning-canvas"></canvas>
+
 		
 		<!-- 祥云装饰层 - 左右两边各一组 -->
 		<view class="cloud-decor">
@@ -49,11 +49,6 @@
 				record_id: '',
 				apiComplete: false, // API 是否已完成
 				smokeApi: null,
-                // 闪电相关
-                lightningCtx: null,
-                lightningSeed: 0,
-                isLightningActive: false,
-                lightningTimer: null,
                 windowWidth: 0,
                 windowHeight: 0,
                 centerX: 0,
@@ -168,8 +163,6 @@
             this.centerX = windowWidth / 2;
             this.centerY = windowHeight / 2;
 
-            this.initLightning(); // 初始化闪电canvas
-
 			// #ifdef H5
 			// 动态创建 canvas 并注入 DOM，完全绕过 uni-app 的 canvas 处理
 			this.$nextTick(() => {
@@ -220,7 +213,6 @@
 
 		onUnload() {
 			if (this.smokeApi) this.smokeApi.destroy();
-            if (this.lightningTimer) clearTimeout(this.lightningTimer);
 		},
 		methods: {
 			startAnimation() {
@@ -295,8 +287,6 @@
 						},
 						onComplete: () => {
                             // 进入 Phase 2
-                            // 开启随机闪电
-                            this.triggerRandomLightning();
 							// 阶段1完成,计数+1
 							completedPhase1Count++;
 							
@@ -356,128 +346,7 @@
 					});
 				});
 			},
-            // --- 闪电逻辑 ---
-            initLightning() {
-                // #ifdef H5
-                const wrapper = document.getElementById('lightningCanvas');
-                if (wrapper) {
-                    // Uni-app H5 会将 canvas 封装在 uni-canvas 标签内
-                    const canvas = wrapper.getElementsByTagName('canvas')[0] || wrapper;
-                    if (canvas && canvas.getContext) {
-                        this.lightningCtx = canvas.getContext('2d');
-                        canvas.width = this.windowWidth;
-                        canvas.height = this.windowHeight;
-                    }
-                }
-                // #endif
 
-                // #ifndef H5
-                const query = uni.createSelectorQuery().in(this);
-                query.select('#lightningCanvas').fields({ node: true, size: true }, (res) => {
-                    if (res && res.node) {
-                        const canvas = res.node;
-                        this.lightningCtx = canvas.getContext('2d');
-                        canvas.width = this.windowWidth;
-                        canvas.height = this.windowHeight;
-                    }
-                }).exec();
-                // #endif
-            },
-            
-            lightningRandom() {
-                const x = Math.sin(this.lightningSeed += 1000) * 10000;
-                return x - Math.floor(x);
-            },
-            
-            createLightningPath(start, end, gameTime) {
-                this.lightningSeed = gameTime;
-                const variance = Math.max(Math.abs(start[0] - end[0]), Math.abs(start[1] - end[1]));
-                const points = [start];
-                const pointCount = Math.max(5, Math.floor(variance / 15));
-                
-                for (let i = 1; i <= pointCount; i++) {
-                    const nextPoint = [0, 0]; // Initialize nextPoint
-                    // Corrected nextPoint logic
-                    nextPoint[0] = start[0] + (end[0] - start[0]) * (i / pointCount);
-                    nextPoint[1] = start[1] + (end[1] - start[1]) * (i / pointCount);
-                    
-                    if (i < pointCount) {
-                        nextPoint[0] += (this.lightningRandom() - 0.5) * Math.sqrt(variance) * 1.5;
-                        nextPoint[1] += (this.lightningRandom() - 0.5) * Math.sqrt(variance) * 1.5;
-                    } else {
-                        nextPoint[0] = end[0];
-                        nextPoint[1] = end[1];
-                    }
-                    points.push(nextPoint);
-                }
-                return points;
-            },
-            
-            drawLightning(points, alpha = 1) {
-                if (!this.lightningCtx) return;
-                const ctx = this.lightningCtx;
-                
-                ctx.beginPath();
-                ctx.moveTo(points[0][0], points[0][1]);
-                for (let i = 1; i < points.length; i++) {
-                    ctx.lineTo(points[i][0], points[i][1]);
-                }
-                
-                // 外发光层
-                ctx.globalAlpha = alpha * 0.3;
-                ctx.strokeStyle = '#9e00ff';
-                ctx.lineWidth = 6;
-                ctx.stroke();
-                
-                // 核心层
-                ctx.globalAlpha = alpha;
-                ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = 1.5;
-                ctx.stroke();
-                
-                ctx.globalAlpha = 1;
-            },
-            
-            triggerRandomLightning() {
-                if (this.lightningTimer) return;
-                
-                const burst = () => {
-                    // 随机生成 3-5 条闪电同时爆发
-                    const count = 3 + Math.floor(Math.random() * 3);
-                    const shots = [];
-                    for(let i=0; i<count; i++) {
-                        const side = Math.floor(Math.random() * 4);
-                        let start = [0,0];
-                        if (side === 0) start = [Math.random() * this.windowWidth, -20]; // Top
-                        if (side === 1) start = [this.windowWidth + 20, Math.random() * this.windowHeight]; // Right
-                        if (side === 2) start = [Math.random() * this.windowWidth, this.windowHeight + 20]; // Bottom
-                        if (side === 3) start = [-20, Math.random() * this.windowHeight]; // Left
-                        
-                        const end = [this.centerX + (Math.random()-0.5)*100, this.centerY + (Math.random()-0.5)*100];
-                        shots.push(this.createLightningPath(start, end, Date.now() + i*100));
-                    }
-                    
-                    // GSAP 模拟闪烁效果 - 延长至 1.2s，增加余晖感
-                const flashObj = { opacity: 1 };
-                gsap.to(flashObj, {
-                    opacity: 0,
-                    duration: 0.8, // 调回 V6 的紧凑时长
-                    ease: "expo.out",
-                    onUpdate: () => {
-                        if (!this.lightningCtx) return;
-                        this.lightningCtx.clearRect(0, 0, this.windowWidth, this.windowHeight);
-                        shots.forEach(path => this.drawLightning(path, flashObj.opacity));
-                    },
-                    onComplete: () => {
-                        if (this.lightningCtx) this.lightningCtx.clearRect(0, 0, this.windowWidth, this.windowHeight);
-                        // 随机下次爆发时间
-                        this.lightningTimer = setTimeout(burst, 800 + Math.random() * 2000); // 调回 V6 的随机间隔
-                    }
-                });
-                };
-                
-                this.lightningTimer = setTimeout(burst, 1000);
-            },
 			simulateProgress() {
 				const interval = setInterval(() => {
 					if (this.progress < 90) {
@@ -524,15 +393,7 @@
 		align-items: center;
 	}
 
-    .lightning-canvas {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        z-index: 10;
-        pointer-events: none;
-    }
+
     
 	.smoke-canvas {
 		position: absolute;

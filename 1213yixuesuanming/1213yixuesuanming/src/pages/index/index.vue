@@ -747,6 +747,9 @@
 		padding: 0 60rpx;
 		/* 移除固定margin,使用flex自动分配空间 */
 		margin: 0;
+		/* 提升层级，高于装饰元素(z-index:10) */
+		position: relative;
+		z-index: 15;
 	}
 	
 	/* 主题文案图片样式 */
