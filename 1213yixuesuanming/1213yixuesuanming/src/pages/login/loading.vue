@@ -209,68 +209,71 @@
 		},
 		methods: {
 		startHorseAnimation() {
-			// 彻底清理旧实例
 			if (this._horseTimeline) {
 				this._horseTimeline.kill();
 				this._horseTimeline = null;
 			}
 			
-			const screenWidth = uni.getSystemInfoSync().windowWidth || 375;
+			const sw = uni.getSystemInfoSync().windowWidth || 375;
+			const hw = uni.upx2px(350);      // 马的物理宽度
 			const stripOffset = uni.upx2px(1750); 
+			const startY = -uni.upx2px(300); // 极远端高度
+			const endY = -uni.upx2px(60);    // 近端高度
 			
-			console.log('[Horse] 核心重构：使用原生选择器与内部位移方案');
+			console.log('[Horse] 物理位移重构 | 彻底消除残留');
 
-			// 直接使用选择器，规避 Uni-App Ref 引用可能存在的 H5 兼容性坑
-			const container = ".horse-container";
 			const viewport = ".horse-viewport";
 			const strip = ".horse-strip";
 
-			// 1. 静态容器初始化 (铺满底部，不参与位移)
-			gsap.set(container, { 
-				display: 'block',
-				opacity: 1, 
-				visibility: 'visible',
-				zIndex: 100
-			});
-
-			// 2. 视口与长条初始化 (确保初始在场)
+			// 1. 初始化（彻底藏在左侧外，极小）
 			gsap.set(viewport, { 
-				x: -uni.upx2px(400),
-				y: -uni.upx2px(80), // 向上偏移
-				opacity: 1, 
+				x: -hw * 1.2, 
+				y: startY,
+				scale: 0.05,
+				opacity: 0,
 				visibility: 'visible'
 			});
-			gsap.set(strip, { 
-				x: 0, 
-				opacity: 1, 
-				visibility: 'visible'
-			}); 
+			gsap.set(strip, { x: 0 });
 
-			// 3. 创建时间轴（不挂载到 data，挂载到隐藏属性避开 Vue Proxy）
+			// 2. 创建平滑时间轴
 			this._horseTimeline = gsap.timeline({
 				repeat: -1,
-				repeatDelay: 0.1
+				repeatDelay: 0.2
 			});
 
 			this._horseTimeline
-				.fromTo(viewport, 
-					{ x: -uni.upx2px(400) },
-					{ 
-						x: screenWidth + uni.upx2px(100), 
-						duration: 4.5, 
-						ease: "none",
-						onStart: () => console.log('[Horse] 视口开始穿越')
-					}, 
-					0 
-				)
+				// --- A. 横向完整跑穿屏幕 (从 -hw 到 sw + hw) ---
+				.to(viewport, {
+					x: sw + hw, 
+					duration: 4.8, // 稍微拉长一点点，让跑动更自然
+					ease: "none"
+				}, 0)
+				
+				// --- B. 3D 纵深变换 (在前 2.8s 完成) ---
+				.to(viewport, {
+					y: endY, 
+					scale: 1.0, 
+					opacity: 1,
+					duration: 2.8, 
+					ease: "power2.out"
+				}, 0)
+				
+				// --- C. 离场保护：在快跑出屏幕时提前淡出，防止“卡屁股” ---
+				.to(viewport, {
+					opacity: 0,
+					duration: 0.4,
+					ease: "power1.in"
+				}, 4.4) // 在 4.4秒（接近终点）时淡出
+				
+				// --- D. 精灵图切帧 ---
 				.to(strip, {
 					x: -stripOffset, 
 					duration: 0.6,
 					ease: "steps(5)",
-					repeat: 10 // 覆盖 6 秒位移
+					repeat: 14 // 增加循环次数以覆盖更长的位移
 				}, 0);
 
-			console.log('[Horse] 位移引擎已热启动');
+			console.log('[Horse] 离场保护逻辑已生效');
 		},
             
 			startAnimation() {},
