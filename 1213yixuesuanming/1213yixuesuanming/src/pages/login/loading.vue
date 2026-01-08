@@ -12,32 +12,27 @@
 			<image :src="cdnBase + staticPrefix + 'yun2.png'" class="cloud cloud-right-bottom" mode="widthFix"></image>
 		</view>
 		
-		<!-- 中心核心内容 -->
+		<!-- 中心核心内容 - 五色环区域 (粒子渲染在 canvas 上) -->
 		<view class="center-core">
-			<!-- 旋转加载图标 (放大2倍) -->
-			<view class="loading-spinner-wrapper">
-				<view class="loading-spinner"></view>
-			</view>
-			<!-- 奔马动画 - 移到环下方横向奔跑 -->
-			<view class="horse-container">
-				<view class="horse-sprite"></view>
-			</view>
-			<view class="loading-text-box">
-				<text class="loading-text">{{ loadingText }}</text>
-			</view>
+			<!-- 五色环由 WebGL canvas 渲染，此处仅作为定位参考 -->
 		</view>
 		
-		<!-- 五行能量点 (由 GSAP 控制) -->
-		<view v-for="(item, index) in elements" :key="index" 
-			:ref="'element-' + index"
-			class="energy-point"
-			:class="'energy-' + item.type">
+		<!-- 文字 - 五色环正下方 -->
+		<view class="loading-text-box">
+			<text class="loading-text">{{ loadingText }}</text>
 		</view>
+		
+		<!-- 奔马动画 (GSAP + CSS Sprite) - 远→近→远 曲线奔跑 -->
+		<view class="horse-container">
+			<view ref="horseSprite" class="horse-sprite"></view>
+		</view>
+		
+
 	</view>
 </template>
 
 <script>
-	import { initSmoke } from '@/common/smoke_motion.js';
+	import { initImageMorph } from '@/common/image_morph.js';
 	import gsap from 'gsap';
 	import websiteConfig from '@/config/website.js';
 
@@ -47,28 +42,15 @@
 				loadingText: '正在解析命盘...',
 				progress: 0,
 				record_id: '',
-				apiComplete: false, // API 是否已完成
+				apiComplete: false,
 				smokeApi: null,
                 windowWidth: 0,
                 windowHeight: 0,
                 centerX: 0,
-                centerY: 0,
-				elements: [
-					// 1.木/绿 渐变: 萃绿 -> 深绿
-					{ type: 'mu', colors: [[0.5, 0.8, 0.4], [0.3, 0.7, 0.2], [0.1, 0.5, 0.1], [0.05, 0.3, 0.05]], start: { x: -50, y: 20 } },
-					// 2.土/黄 渐变: 亮黄 -> 琥珀
-					{ type: 'tu', colors: [[1.0, 0.9, 0.4], [1.0, 0.7, 0.2], [0.9, 0.5, 0.1], [0.7, 0.4, 0.0]], start: { x: 150, y: 30 } },
-					// 3.火/橙 渐变: 橙红 -> 深红
-					{ type: 'huo', colors: [[1.0, 0.6, 0.3], [1.0, 0.4, 0.1], [0.8, 0.2, 0.05], [0.5, 0.1, 0.0]], start: { x: 50, y: -20 } },
-					// 4.水/蓝 渐变: 天蓝 -> 深海
-					{ type: 'shui', colors: [[0.4, 0.8, 1.0], [0.2, 0.6, 0.9], [0.05, 0.4, 0.8], [0.0, 0.2, 0.6]], start: { x: 50, y: 120 } },
-					// 5.金/棕 渐变: 金色 -> 青铜
-					{ type: 'jin', colors: [[1.0, 0.9, 0.6], [0.9, 0.7, 0.3], [0.7, 0.5, 0.1], [0.5, 0.3, 0.05]], start: { x: -20, y: 80 } }
-				]
+                centerY: 0
 			};
 		},
 		computed: {
-			// 统一的静态资源路径转换
 			cdnBase() {
 				return websiteConfig.CDN.enabled ? websiteConfig.CDN.baseUrl : '';
 			},
@@ -186,15 +168,22 @@
 				container.insertBefore(canvas, container.firstChild);
 				
 				try {
-					// 优化流体参数:折中调整消散率和涡旋强度
-					this.smokeApi = initSmoke(canvas, {
-						DENSITY_DISSIPATION: 0.95,  // 折中值,平衡可见性和堆积
-						CURL: 8,
-						SPLAT_RADIUS: 0.003
-					});
-					this.startAnimation();
+					// --- 五色环粒子动画配置 (WebGL) ---
+                    // Ring: 480rpx target width
+                    const ringTargetPx = (480 / 750) * windowWidth;
+                    const ringScale = ringTargetPx / 400; // 400是采样尺寸
+
+					this.smokeApi = initImageMorph(canvas, {
+                        imageUrl: this.cdnBase + this.staticPrefix + 'donhuajiazai.png',
+                        scale: { x: ringScale, y: ringScale },
+                        rotationSpeed: 0.2,       // 初始旋转速度 (会渐进加速)
+                        morphDuration: 2.5,       // 聚合动画时长 (秒)
+                        particleStep: 2           // 采样步进 (减小=更多粒子=更清晰)
+                    }, {
+                        particleSize: 3.5         // 增大粒子尺寸 (更饱满)
+                    });
 				} catch (e) {
-					console.warn('[loading] WebGL 初始化失败，降级显示', e);
+					console.warn('[loading] WebGL 初始化失败', e);
 				}
 				
 				this.simulateProgress();
@@ -205,7 +194,6 @@
             // For non-H5, the canvas is already in the template, so we can directly get it.
             // However, initSmoke is WebGL specific, so we only call simulateProgress.
 			this.simulateProgress();
-            this.startAnimation(); // Start animation even if smoke is not initialized
 			// #endif
 		},
 
@@ -213,141 +201,103 @@
 
 		onUnload() {
 			if (this.smokeApi) this.smokeApi.destroy();
+            if (this.horseTimeline) this.horseTimeline.kill();
 		},
 		methods: {
-			startAnimation() {
-				const windowWidth = uni.getSystemInfoSync().windowWidth;
-				const windowHeight = uni.getSystemInfoSync().windowHeight;
-				const centerX = windowWidth / 2;
-				const centerY = windowHeight / 2;
-				// 五色环半径（根据 .loading-spinner-wrapper 的 480rpx 计算）
-				const ringRadius = windowWidth * 0.32;
-				
-				// 颜色插值函数：根据进度从颜色数组中计算当前颜色
-				const interpolateColor = (colors, progress) => {
-					const p = Math.min(Math.max(progress, 0), 1) * (colors.length - 1);
-					const idx = Math.floor(p);
-					const t = p - idx;
-					const c1 = colors[Math.min(idx, colors.length - 1)];
-					const c2 = colors[Math.min(idx + 1, colors.length - 1)];
-					return [
-						c1[0] + (c2[0] - c1[0]) * t,
-						c1[1] + (c2[1] - c1[1]) * t,
-						c1[2] + (c2[2] - c1[2]) * t
-					];
-				};
-				
-				// 方案B:同步开始旋转 - 全局完成状态跟踪
-				let completedPhase1Count = 0;  // 已完成阶段1的元素数量
-				const elementObjects = [];     // 存储所有元素的obj引用
-				const elementConfigs = [];     // 存储每个元素的配置
-				
-				this.elements.forEach((el, index) => {
-					const baseAngle = (index / this.elements.length) * Math.PI * 2;
-					
-					// 初始状态：远离中心，带螺旋偏移
-					const obj = { 
-						r: windowWidth * 1.0,
-						orbitAngle: baseAngle - Math.PI * 0.5,
-						phase: 0
-					};
-					
-					elementObjects.push(obj);
-					elementConfigs.push({ el, index, baseAngle });
-					
-					// 阶段1：切入动画（仅执行一次，带延迟）
-					gsap.to(obj, {
-						duration: 2.5,
-						r: ringRadius * 0.65,
-						orbitAngle: baseAngle,  // 到达目标位置(0°, 72°, 144°...)
-						ease: "power2.inOut",
-						delay: index * 0.4,
-						onUpdate: () => {
-							const currX = centerX + Math.cos(obj.orbitAngle) * obj.r;
-							const currY = centerY + Math.sin(obj.orbitAngle) * obj.r;
-							const progress = Math.min(obj.r / (ringRadius * 0.65), 1);
-							const currentColor = interpolateColor(el.colors, 1 - progress);
-							
-							if (this.smokeApi) {
-					// Phase 1: 入场阶段也加入向心力，方向从当前点指向中心
-					const inDirX = centerX - currX;
-					const inDirY = centerY - currY;
-					const inDist = Math.sqrt(inDirX * inDirX + inDirY * inDirY);
-					const inNx = inDirX / (inDist || 1);
-					const inNy = inDirY / (inDist || 1);
-
-					this.smokeApi.splat(
-						currX,
-						currY,
-						inNx * 30 + (Math.random() - 0.5) * 10,
-						inNy * 30 + (Math.random() - 0.5) * 10,
-						currentColor
-					);
-				}
-						},
-						onComplete: () => {
-                            // 进入 Phase 2
-							// 阶段1完成,计数+1
-							completedPhase1Count++;
-							
-							// 如果所有元素都完成了阶段1,启动统一的旋转动画
-							if (completedPhase1Count === this.elements.length) {
-								console.log('[loading] 所有元素已到位,开始同步旋转');
-								
-								// 为每个元素启动旋转动画,使用不同duration打破精确同步
-								const durations = [5.0, 5.1, 5.2, 5.3, 5.4];
-								
-								elementObjects.forEach((elementObj, idx) => {
-									const config = elementConfigs[idx];
-									let frameCount = 0;
-									
-									gsap.to(elementObj, {
-										duration: durations[idx],
-										orbitAngle: `+=${Math.PI * 2}`,
-										ease: "none",
-										repeat: -1,
-										onUpdate: () => {
-											const orbitX = centerX + Math.cos(elementObj.orbitAngle) * ringRadius * 0.65;
-											const orbitY = centerY + Math.sin(elementObj.orbitAngle) * ringRadius * 0.65;
-											const rawColor = config.el.colors[config.el.colors.length - 1];
-											
-											// V4 核心修改：移除 frameCount % 6 节流记录，改为逐帧平滑喷射。
-											// 为了补偿频率提升，将单次喷射的颜色强度降低为原来的约 1/3 (折中值，兼顾可见度)。
-											const smoothColor = [rawColor[0] * 0.35, rawColor[1] * 0.35, rawColor[2] * 0.35];
-
-											if (this.smokeApi) {
-								// 计算向心分量：从当前点指向中心 (centerX, centerY)
-								const dirX = centerX - orbitX;
-								const dirY = centerY - orbitY;
-								const dist = Math.sqrt(dirX * dirX + dirY * dirY);
-								const nx = dirX / (dist || 1);
-								const ny = dirY / (dist || 1);
-
-								// 混合速度：70% 切向 + 30% 向心，确保烟云向内“卷入”
-								const tangentialSpeed = 50;
-								const radialSpeed = 25;
-								
-								const dx = (-Math.sin(elementObj.orbitAngle) * tangentialSpeed) + (nx * radialSpeed);
-								const dy = (Math.cos(elementObj.orbitAngle) * tangentialSpeed) + (ny * radialSpeed);
-								
-								this.smokeApi.splat(
-									orbitX,
-									orbitY,
-									dx,
-									dy,
-									smoothColor
-								);
-											}
-										}
-									});
-								});
-							}
-						}
-					});
-				});
-			},
+            // GSAP 马匹曲线路径动画 - 方案 A: 动作与位移全量同步
+            startHorseAnimation() {
+                const horseEl = this.$refs.horseSprite?.$el || this.$refs.horseSprite;
+                if (!horseEl) {
+                    console.warn('[Horse] 未找到 horse-sprite 元素');
+                    return;
+                }
+                
+                // 计算位置参数
+                const screenWidth = this.windowWidth || window.innerWidth;
+                const horseWidth = 175; // rpx 转换后的大概值
+                const startX = -horseWidth * 2;
+                const middleX = screenWidth / 2 - horseWidth / 2;
+                const endX = screenWidth + horseWidth;
+                
+                // 彻底清除之前的动画
+                if (this.horseTimeline) this.horseTimeline.kill();
+                gsap.killTweensOf(horseEl);
+                
+                // 初始状态设置 (使用 autoAlpha 替代 opacity+visibility)
+                gsap.set(horseEl, { 
+                    transformOrigin: 'center bottom',
+                    willChange: 'transform, opacity',
+                    force3D: true,
+                    x: startX,
+                    y: -50,
+                    scale: 0.35,
+                    autoAlpha: 0,
+                    backgroundPosition: '0% 0%'
+                });
+                
+                // 创建主时间轴
+                this.horseTimeline = gsap.timeline({ 
+                    repeat: -1,
+                    repeatDelay: 0.4, // 稍微增大间隔减少视觉压力
+                    onStart: () => console.log('[Horse] 全同步动画开始'),
+                    onRepeat: () => {
+                        console.log('[Horse] 循环重置');
+                        // 强制重置背景位置，防止切帧累积误差
+                        gsap.set(horseEl, { backgroundPosition: '0% 0%' });
+                    }
+                });
+                
+                // 1. 同步切帧动画 (作为一个嵌套在主轴内的 Tween)
+                // 注意：不要使用 repeat: -1，否则主轴将无法触发 repeat 机制。
+                // 我们设置一个足够大的重复次数（如 10 次，覆盖 6 秒），确保在位移全程马都在跑。
+                this.horseTimeline.to(horseEl, {
+                    backgroundPosition: "-500% 0", // 移动5帧
+                    ease: "steps(5)",
+                    duration: 0.6,
+                    repeat: 10,
+                    immediateRender: true
+                }, 0); // 在主轴 0 秒处开始
+                
+                // 2. 位移动画阶段
+                this.horseTimeline.fromTo(horseEl, 
+                    {
+                        x: startX,
+                        y: -50,
+                        scale: 0.35,
+                        autoAlpha: 0
+                    },
+                    {
+                        duration: 2.5,
+                        x: middleX,
+                        y: -80,
+                        scale: 1.0,
+                        autoAlpha: 1,
+                        ease: 'power2.inOut',
+                        immediateRender: false
+                    },
+                    0 // 从 0 秒开始
+                );
+                
+                this.horseTimeline.to(horseEl, {
+                    duration: 2.0,
+                    x: endX,
+                    y: -80,
+                    scale: 1.2, // 离屏时稍微变大增强临场感
+                    autoAlpha: 0,
+                    ease: 'power2.inOut'
+                });
+                
+                console.log('[Horse] 方案 A：全同步 Timeline 已准备就绪');
+            },
+            
+			startAnimation() {},
 
 			simulateProgress() {
+                // 启动马匹动画
+                this.$nextTick(() => {
+                    this.startHorseAnimation();
+                });
+                
 				const interval = setInterval(() => {
 					if (this.progress < 90) {
 						this.progress += Math.random() * 15;
@@ -355,11 +305,9 @@
 					}
 					
 					if (this.progress >= 90 && this.apiComplete) {
-						// API 已完成且进度已满，可以跳转
 						clearInterval(interval);
 						this.finishLoading();
 					} else if (this.progress >= 90 && !this.apiComplete) {
-						// 进度已满但 API 未完成，保持在 90%，继续等待
 						this.loadingText = '正在获取测算结果...';
 					}
 				}, 600);
@@ -447,73 +395,35 @@
 	}
 
 	.center-core {
-		position: relative;
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
 		z-index: 10;
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-		width: 100%;  /* 确保占满父容器宽度，使子元素能够正确居中 */
-		pointer-events: none; /* 让触摸事件穿透到canvas */
-	}
-
-	.loading-spinner-wrapper {
 		width: 480rpx;
 		height: 480rpx;
-		position: relative;
-		margin-bottom: 40rpx;
-	}
-
-	.loading-spinner {
-		width: 100%;
-		height: 100%;
-		background-image: url(https://cdn.yixuestatic.linqingkeji.com/src/static/donhuajiazai.png);
-		background-size: contain;
-		background-repeat: no-repeat;
-		background-position: center;
-		animation: rotate 3s linear infinite;
-		border: none;
-		box-shadow: none;
-	}
-
-
-	.horse-container {
-		position: fixed; /* 改为固定定位实现全屏宽度 */
-		left: 0;
-		right: 0;
-		bottom: 180rpx; /* 定位在屏幕下方 */
-		height: 150rpx; /* ma9.png 每帧 256x129, 对应宽高比约 2:1 */
-		overflow: visible; /* 允许小马动画溢出 */
-		z-index: 15;
-	}
-
-	.horse-sprite {
-		position: absolute;
-		width: 300rpx; /* 宽度保持 300rpx */
-		height: 150rpx; /* 高度设为 150rpx 以保持 2:1 比例，防止拉伸 */
-		background-image: url(https://cdn.yixuestatic.linqingkeji.com/src/static/ma9.png);
-		/* ma9.png: 1024x258, 双排 2x4 帧 */
-		/* 背景缩放: 4帧宽(4*300rpx) x 2排高(2*150rpx) = 1200rpx x 300rpx */
-		background-size: 1200rpx 300rpx;
-		background-repeat: no-repeat;
-		background-position: 0 0;
-		/* 使用 steps(1) 配合精确百分比实现离散切换，解决闪烁和帧显示不全 */
-		animation: horseSpriteRun 1.0s steps(1) infinite, horseRunAcross 4s linear infinite;
+		pointer-events: none;
 	}
 
 	.loading-text-box {
-		text-align: center !important;
-		color: #FFFACD !important;  /* 柠檬绸色(LemonChiffon) - 更浅更亮的金色 */
-		width: 100% !important;  /* 确保容器占满父元素宽度 */
-		display: flex !important;
-		justify-content: center !important;  /* 使用flex居中 */
+		position: absolute;
+		top: calc(50% + 280rpx); /* 五色环下方 */
+		left: 0;
+		right: 0;
+		z-index: 10;
+		text-align: center;
 		
 		.loading-text {
-			display: inline-block !important;
-			font-size: 32rpx !important;
-			font-weight: bold !important;
-			letter-spacing: 4rpx !important;
-			margin-right: -4rpx !important;  /* 抵消letter-spacing在最后一个字符后的额外间距 */
-			text-shadow: 0 2rpx 4rpx rgba(0,0,0,0.5) !important;
+			font-size: 40rpx; /* 增大字体 */
+			font-weight: bold;
+			letter-spacing: 4rpx;
+			/* 亮金色发光字体 */
+			color: #f5f5dc;
+			text-shadow: 
+				0 0 10rpx rgba(251, 229, 182, 0.8),
+				0 0 20rpx rgba(218, 165, 32, 0.6),
+				0 0 30rpx rgba(218, 165, 32, 0.4),
+				0 2rpx 4rpx rgba(0,0,0,0.3);
 		}
 	}
 
@@ -526,44 +436,52 @@
 		border-radius: 50%;
 		pointer-events: none;
 		z-index: 5;
-		opacity: 0; /* 仅作为逻辑参考点，视觉由渲染决定 */
+		opacity: 0;
 	}
 
-	@keyframes rotate {
-		from { transform: rotate(0deg); }
-		to { transform: rotate(360deg); }
+	/* 奔马动画容器 - 增大高度避免被遮挡 */
+	.horse-container {
+		position: fixed;
+		left: 0;
+		right: 0;
+		bottom: 0;
+		height: 400rpx; /* 增大容器高度从300到5400 */
+		overflow: visible;
+		z-index: 15;
+		pointer-events: none;
 	}
 
-	@keyframes horseRun {
-		0% { background-image: url(https://cdn.yixuestatic.linqingkeji.com/src/static/ma1.png); }
-		16% { background-image: url(https://cdn.yixuestatic.linqingkeji.com/src/static/ma2.png); }
-		33% { background-image: url(https://cdn.yixuestatic.linqingkeji.com/src/static/ma3.png); }
-		50% { background-image: url(https://cdn.yixuestatic.linqingkeji.com/src/static/ma4.png); }
-		66% { background-image: url(https://cdn.yixuestatic.linqingkeji.com/src/static/ma5.png); }
-		83% { background-image: url(https://cdn.yixuestatic.linqingkeji.com/src/static/ma6.png); }
-		100% { background-image: url(https://cdn.yixuestatic.linqingkeji.com/src/static/ma7.png); }
+	.horse-sprite {
+		position: absolute;
+		left: 0; /* GSAP x/y 的基准点 */
+		bottom: 0;
+		/* 
+		 * 精灵图修正: 5638x752, 6帧
+		 * 每帧实际宽度: 5638/6 = 939.67px (不能整除!)
+		 * 每帧高度: 752px
+		 * 宽高比: 939.67:752 ≈ 1.25:1
+		 * 显示尺寸: 宽度350rpx, 高度=350/1.25=280rpx
+		 */
+		width: 350rpx;
+		height: 280rpx;
+		/* 
+		 * 关键修复: 使用 600% 宽度 (6帧) 确保精确切割
+		 * 这样每帧正好占 100%/6 = 16.67% 的显示宽度
+		 * 避免因像素对齐导致的边缘渗色问题
+		 */
+		background-image: url(https://cdn.yixuestatic.linqingkeji.com/src/static/ma/sprite-sheet.png);
+		background-size: 600% 100%; /* 6帧宽 × 完整高度 */
+		background-repeat: no-repeat;
+		background-position: 0 0;
+		/* 初始隐藏，由GSAP控制显示 */
+		opacity: 0;
+		visibility: hidden;
+		/* 强制开启3D硬件加速 */
+		transform: translateZ(0);
+		backface-visibility: hidden;
 	}
 
-	@keyframes horseRunAcross {
-		0% { 
-			left: -300rpx; /* 匹配放大后的马匹宽度 */
-		}
-		100% { 
-			left: 100%; 
-		}
-	}
 
-	/* 双排精灵图动画修复: 使用 steps(1) 在每 12.5% 时间点精准跳帧 */
-	@keyframes horseSpriteRun {
-		0%    { background-position: 0 0; }
-		12.5% { background-position: -300rpx 0; }
-		25%   { background-position: -600rpx 0; }
-		37.5% { background-position: -900rpx 0; }
-		50%   { background-position: 0 -150rpx; }
-		62.5% { background-position: -300rpx -150rpx; }
-		75%   { background-position: -600rpx -150rpx; }
-		87.5% { background-position: -900rpx -150rpx; }
-	}
 </style>
 
 
