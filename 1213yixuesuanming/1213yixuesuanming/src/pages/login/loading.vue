@@ -22,11 +22,12 @@
 			<text class="loading-text">{{ loadingText }}</text>
 		</view>
 		
-		<!-- 奔马动画 (GSAP + CSS Sprite) - 远→近→远 曲线奔跑 -->
+		<!-- 奔马动画 - 移至末尾确保层级 -->
 		<view class="horse-container">
-			<view ref="horseSprite" class="horse-sprite"></view>
+			<view class="horse-viewport">
+				<view class="horse-strip"></view>
+			</view>
 		</view>
-		
 
 	</view>
 </template>
@@ -185,7 +186,10 @@
 				} catch (e) {
 					console.warn('[loading] WebGL 初始化失败', e);
 				}
+				// 3. 同时启动马匹动画 (不再等待粒子聚合完成)
+				this.startHorseAnimation();
 				
+				// 4. 重置进度模拟
 				this.simulateProgress();
 			});
 			// #endif
@@ -204,100 +208,74 @@
             if (this.horseTimeline) this.horseTimeline.kill();
 		},
 		methods: {
-            // GSAP 马匹曲线路径动画 - 方案 A: 动作与位移全量同步
-            startHorseAnimation() {
-                const horseEl = this.$refs.horseSprite?.$el || this.$refs.horseSprite;
-                if (!horseEl) {
-                    console.warn('[Horse] 未找到 horse-sprite 元素');
-                    return;
-                }
-                
-                // 计算位置参数
-                const screenWidth = this.windowWidth || window.innerWidth;
-                const horseWidth = 175; // rpx 转换后的大概值
-                const startX = -horseWidth * 2;
-                const middleX = screenWidth / 2 - horseWidth / 2;
-                const endX = screenWidth + horseWidth;
-                
-                // 彻底清除之前的动画
-                if (this.horseTimeline) this.horseTimeline.kill();
-                gsap.killTweensOf(horseEl);
-                
-                // 初始状态设置 (使用 autoAlpha 替代 opacity+visibility)
-                gsap.set(horseEl, { 
-                    transformOrigin: 'center bottom',
-                    willChange: 'transform, opacity',
-                    force3D: true,
-                    x: startX,
-                    y: -50,
-                    scale: 0.35,
-                    autoAlpha: 0,
-                    backgroundPosition: '0% 0%'
-                });
-                
-                // 创建主时间轴
-                this.horseTimeline = gsap.timeline({ 
-                    repeat: -1,
-                    repeatDelay: 0.4, // 稍微增大间隔减少视觉压力
-                    onStart: () => console.log('[Horse] 全同步动画开始'),
-                    onRepeat: () => {
-                        console.log('[Horse] 循环重置');
-                        // 强制重置背景位置，防止切帧累积误差
-                        gsap.set(horseEl, { backgroundPosition: '0% 0%' });
-                    }
-                });
-                
-                // 1. 同步切帧动画 (作为一个嵌套在主轴内的 Tween)
-                // 注意：不要使用 repeat: -1，否则主轴将无法触发 repeat 机制。
-                // 我们设置一个足够大的重复次数（如 10 次，覆盖 6 秒），确保在位移全程马都在跑。
-                this.horseTimeline.to(horseEl, {
-                    backgroundPosition: "-500% 0", // 移动5帧
-                    ease: "steps(5)",
-                    duration: 0.6,
-                    repeat: 10,
-                    immediateRender: true
-                }, 0); // 在主轴 0 秒处开始
-                
-                // 2. 位移动画阶段
-                this.horseTimeline.fromTo(horseEl, 
-                    {
-                        x: startX,
-                        y: -50,
-                        scale: 0.35,
-                        autoAlpha: 0
-                    },
-                    {
-                        duration: 2.5,
-                        x: middleX,
-                        y: -80,
-                        scale: 1.0,
-                        autoAlpha: 1,
-                        ease: 'power2.inOut',
-                        immediateRender: false
-                    },
-                    0 // 从 0 秒开始
-                );
-                
-                this.horseTimeline.to(horseEl, {
-                    duration: 2.0,
-                    x: endX,
-                    y: -80,
-                    scale: 1.2, // 离屏时稍微变大增强临场感
-                    autoAlpha: 0,
-                    ease: 'power2.inOut'
-                });
-                
-                console.log('[Horse] 方案 A：全同步 Timeline 已准备就绪');
-            },
+		startHorseAnimation() {
+			// 彻底清理旧实例
+			if (this._horseTimeline) {
+				this._horseTimeline.kill();
+				this._horseTimeline = null;
+			}
+			
+			const screenWidth = uni.getSystemInfoSync().windowWidth || 375;
+			const stripOffset = uni.upx2px(1750); 
+			
+			console.log('[Horse] 核心重构：使用原生选择器与内部位移方案');
+
+			// 直接使用选择器，规避 Uni-App Ref 引用可能存在的 H5 兼容性坑
+			const container = ".horse-container";
+			const viewport = ".horse-viewport";
+			const strip = ".horse-strip";
+
+			// 1. 静态容器初始化 (铺满底部，不参与位移)
+			gsap.set(container, { 
+				display: 'block',
+				opacity: 1, 
+				visibility: 'visible',
+				zIndex: 100
+			});
+
+			// 2. 视口与长条初始化 (确保初始在场)
+			gsap.set(viewport, { 
+				x: -uni.upx2px(400),
+				y: -uni.upx2px(80), // 向上偏移
+				opacity: 1, 
+				visibility: 'visible'
+			});
+			gsap.set(strip, { 
+				x: 0, 
+				opacity: 1, 
+				visibility: 'visible'
+			}); 
+
+			// 3. 创建时间轴（不挂载到 data，挂载到隐藏属性避开 Vue Proxy）
+			this._horseTimeline = gsap.timeline({
+				repeat: -1,
+				repeatDelay: 0.1
+			});
+
+			this._horseTimeline
+				.fromTo(viewport, 
+					{ x: -uni.upx2px(400) },
+					{ 
+						x: screenWidth + uni.upx2px(100), 
+						duration: 4.5, 
+						ease: "none",
+						onStart: () => console.log('[Horse] 视口开始穿越')
+					}, 
+					0 
+				)
+				.to(strip, {
+					x: -stripOffset, 
+					duration: 0.6,
+					ease: "steps(5)",
+					repeat: 10 // 覆盖 6 秒位移
+				}, 0);
+
+			console.log('[Horse] 位移引擎已热启动');
+		},
             
 			startAnimation() {},
 
 			simulateProgress() {
-                // 启动马匹动画
-                this.$nextTick(() => {
-                    this.startHorseAnimation();
-                });
-                
 				const interval = setInterval(() => {
 					if (this.progress < 90) {
 						this.progress += Math.random() * 15;
@@ -439,49 +417,42 @@
 		opacity: 0;
 	}
 
-	/* 奔马动画容器 - 增大高度避免被遮挡 */
+	/* 奔马动画容器 - 全屏位移层 */
 	.horse-container {
 		position: fixed;
 		left: 0;
 		right: 0;
-		bottom: 0;
-		height: 400rpx; /* 增大容器高度从300到5400 */
+		bottom: 80rpx; /* 调整离底部的距离 */
+		height: 400rpx;
 		overflow: visible;
 		z-index: 15;
 		pointer-events: none;
+		will-change: transform;
 	}
 
-	.horse-sprite {
+	/* 方案 1 核心：切帧视口 */
+	.horse-viewport {
 		position: absolute;
-		left: 0; /* GSAP x/y 的基准点 */
+		left: 0;
 		bottom: 0;
-		/* 
-		 * 精灵图修正: 5638x752, 6帧
-		 * 每帧实际宽度: 5638/6 = 939.67px (不能整除!)
-		 * 每帧高度: 752px
-		 * 宽高比: 939.67:752 ≈ 1.25:1
-		 * 显示尺寸: 宽度350rpx, 高度=350/1.25=280rpx
-		 */
-		width: 350rpx;
-		height: 280rpx;
-		/* 
-		 * 关键修复: 使用 600% 宽度 (6帧) 确保精确切割
-		 * 这样每帧正好占 100%/6 = 16.67% 的显示宽度
-		 * 避免因像素对齐导致的边缘渗色问题
-		 */
+		width: 350rpx;  /* 单帧宽度 */
+		height: 280rpx; /* 单帧高度 */
+		overflow: hidden; /* 关键：裁剪长条 */
+		will-change: transform;
+	}
+
+	/* 方案 1 核心：精灵图长条 */
+	.horse-strip {
+		position: absolute;
+		left: 0;
+		top: 0;
+		width: 2100rpx; /* 6帧总宽: 350rpx * 6 */
+		height: 100%;
 		background-image: url(https://cdn.yixuestatic.linqingkeji.com/src/static/ma/sprite-sheet.png);
-		background-size: 600% 100%; /* 6帧宽 × 完整高度 */
+		background-size: 100% 100%; /* 整个长条填充 */
 		background-repeat: no-repeat;
-		background-position: 0 0;
-		/* 初始隐藏，由GSAP控制显示 */
-		opacity: 0;
-		visibility: hidden;
-		/* 强制开启3D硬件加速 */
+		will-change: transform;
 		transform: translateZ(0);
 		backface-visibility: hidden;
 	}
-
-
 </style>
-
-
