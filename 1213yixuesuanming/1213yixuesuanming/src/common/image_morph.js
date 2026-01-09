@@ -26,7 +26,9 @@ uniform float u_progress;    // 聚合进度 0->1
 uniform float u_rotation;    // 旋转角度 (弧度)
 uniform vec2 u_canvasSize;   // Canvas 尺寸
 uniform float u_pointSize;   // 粒子大小
+uniform float u_scatter;     // 扩散进度 0->1
 uniform vec2 u_scale;        // 缩放
+uniform vec2 u_centerOffset; // 中心偏移 (像素)
 
 // 传递给片段着色器
 varying vec3 v_color;
@@ -35,15 +37,29 @@ void main() {
     // 1. 聚合插值
     vec2 pos = mix(a_startPos, a_targetPos, u_progress);
     
-    // 2. 旋转 (顺时针 = 负角度)
+    // 2. 散开效果 (分裂四散)
+    if (u_scatter > 0.0) {
+        // 沿目标位置的径向方向弹出
+        // 如果 targetPos 是 (0,0) 则不处理
+        float dist = length(a_targetPos);
+        if (dist > 0.1) {
+            vec2 dir = a_targetPos / dist;
+            pos += dir * u_scatter * 1200.0; // 扩散距离
+        }
+    }
+
+    // 3. 旋转 (顺时针 = 负角度)
     float c = cos(u_rotation);
     float s = sin(u_rotation);
     pos = vec2(pos.x * c - pos.y * s, pos.x * s + pos.y * c);
     
-    // 3. 缩放
+    // 4. 缩放
     pos *= u_scale;
     
-    // 4. 转换到裁剪空间 (-1 to 1)
+    // 5. 应用中心偏移
+    pos += u_centerOffset;
+    
+    // 6. 转换到裁剪空间 (-1 to 1)
     vec2 clipPos = pos / (u_canvasSize * 0.5);
     
     gl_Position = vec4(clipPos, 0.0, 1.0);
@@ -228,7 +244,9 @@ export function initImageMorph(canvas, config, options = {}) {
     const uRotation = gl.getUniformLocation(program, 'u_rotation');
     const uCanvasSize = gl.getUniformLocation(program, 'u_canvasSize');
     const uPointSize = gl.getUniformLocation(program, 'u_pointSize');
+    const uScatter = gl.getUniformLocation(program, 'u_scatter');
     const uScale = gl.getUniformLocation(program, 'u_scale');
+    const uCenterOffset = gl.getUniformLocation(program, 'u_centerOffset');
 
     // 配置参数
     const morphDuration = config.morphDuration || 2.5; // 聚合时长 (秒)
@@ -239,12 +257,14 @@ export function initImageMorph(canvas, config, options = {}) {
     const scaleY = config.scale?.y || 1.0;
     const particleSize = options.particleSize || 2.5;
     const particleStep = config.particleStep || 3;
+    const centerOffset = config.centerOffset || { x: 0, y: 0 };
 
     // 状态
     let buffers = { startPos: null, targetPos: null, colors: null };
     let particleCount = 0;
     let isReady = false;
     let progress = 0;
+    let scatter = 0;
     let rotation = 0;
     let rotationTime = 0; // 记录旋转开始后的时间
     let animationId = null;
@@ -315,10 +335,12 @@ export function initImageMorph(canvas, config, options = {}) {
 
         // 设置 Uniforms
         gl.uniform1f(uProgress, progress);
+        gl.uniform1f(uScatter, scatter);
         gl.uniform1f(uRotation, rotation);
         gl.uniform2f(uCanvasSize, canvas.width, canvas.height);
         gl.uniform1f(uPointSize, particleSize);
         gl.uniform2f(uScale, scaleX, scaleY);
+        gl.uniform2f(uCenterOffset, centerOffset.x, centerOffset.y);
 
         // 绑定 startPos
         gl.bindBuffer(gl.ARRAY_BUFFER, buffers.startPos);
@@ -344,6 +366,22 @@ export function initImageMorph(canvas, config, options = {}) {
     render();
 
     return {
+        scatter: (duration = 1.0) => {
+            console.log('[image_morph] 启动分裂四散效果');
+            const start = Date.now();
+            const animateScatter = () => {
+                const now = Date.now();
+                const t = (now - start) / (duration * 1000);
+                if (t >= 1.0) {
+                    scatter = 1.0;
+                    return;
+                }
+                // 使用 easeInCirc 让炸开的感觉更爽
+                scatter = 1.0 - Math.sqrt(1.0 - Math.pow(t, 2));
+                requestAnimationFrame(animateScatter);
+            };
+            animateScatter();
+        },
         destroy: () => {
             if (animationId) cancelAnimationFrame(animationId);
         }

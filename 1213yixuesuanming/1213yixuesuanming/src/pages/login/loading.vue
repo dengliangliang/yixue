@@ -177,9 +177,10 @@
 					this.smokeApi = initImageMorph(canvas, {
                         imageUrl: this.cdnBase + this.staticPrefix + 'donhuajiazai.png',
                         scale: { x: ringScale, y: ringScale },
-                        rotationSpeed: 0.2,       // 初始旋转速度 (会渐进加速)
-                        morphDuration: 2.5,       // 聚合动画时长 (秒)
-                        particleStep: 2           // 采样步进 (减小=更多粒子=更清晰)
+                        centerOffset: { x: 0, y: windowHeight * 0.05 },
+                        rotationSpeed: 0.2,       
+                        morphDuration: 2.5,       
+                        particleStep: 2           
                     }, {
                         particleSize: 3.5         // 增大粒子尺寸 (更饱满)
                     });
@@ -287,6 +288,12 @@
 					
 					if (this.progress >= 90 && this.apiComplete) {
 						clearInterval(interval);
+						
+						// 【新增】分裂成粒子四散开的效果
+						if (this.smokeApi && this.smokeApi.scatter) {
+							this.smokeApi.scatter(1.5); // 1.5秒散开
+						}
+						
 						this.finishLoading();
 					} else if (this.progress >= 90 && !this.apiComplete) {
 						this.loadingText = '正在获取测算结果...';
@@ -300,7 +307,7 @@
 					uni.redirectTo({
 						url: `/pages/result/generate?record_id=${this.record_id}`
 					});
-				}, 800);
+				}, 1500); // 增加延时，确保消散动画播放完整
 			},
 			handleTouch(e) {
 				// 额外的手动交互
@@ -377,7 +384,7 @@
 
 	.center-core {
 		position: absolute;
-		top: 50%;
+		top: 45%; /* 上移，减少上方空白 */
 		left: 50%;
 		transform: translate(-50%, -50%);
 		z-index: 10;
@@ -388,7 +395,7 @@
 
 	.loading-text-box {
 		position: absolute;
-		top: calc(50% + 280rpx); /* 五色环下方 */
+		top: calc(45% + 250rpx); /* 同步上移缩短间距 */
 		left: 0;
 		right: 0;
 		z-index: 10;
