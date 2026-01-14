@@ -1040,7 +1040,7 @@ class SiZhu extends Api
                 $date_arr[2] = $date_arr[3];
             }
         }
-        $lunar = Lunar::fromYmd($date_arr[0], $date_arr[1], $date_arr[2], $hour, $minute);
+        $lunar = Lunar::fromYmdHms($date_arr[0], $date_arr[1], $date_arr[2], $hour, $minute, 0);
         //echo $lunar->toFullString()."\n";
         return [
             'year_text' => $lunar->toString(),
@@ -1049,7 +1049,7 @@ class SiZhu extends Api
             'year_gan_name' => mb_substr($lunar->getYearInGanZhi(), 0, 1),
             'year_zhi_name' => mb_substr($lunar->getYearInGanZhi(), -1),
             'month' => $lunar->getMonthInGanZhi(),
-            'day' => $lunar->getDayInGanZhi(),
+            'day' => $lunar->getDayInGanZhiExact(),
             'time' => $lunar->getTimeInGanZhi(),
             'time_text' => mb_substr($lunar->getTimeInGanZhi(), -1),
             'yin_li_month' => $date_arr[1],
@@ -1072,7 +1072,7 @@ class SiZhu extends Api
                 $date_arr[2] = $date_arr[3];
             }
         }
-        $lunar = Lunar::fromYmd($date_arr[0], $date_arr[1], $date_arr[2], $record_res['zhen_hour'], $record_res['zhen_minute']);
+        $lunar = Lunar::fromYmdHms($date_arr[0], $date_arr[1], $date_arr[2], $record_res['zhen_hour'], $record_res['zhen_minute'], 0);
         //$baZi = $lunar->getEightChar();
         //print_r($baZi->getYearGan() . ' ' . $baZi->getMonthGan() . ' ' . $baZi->getDayGan() . ' ' . $baZi->getTimeGan());
         $yun = $lunar->getEightChar()->getYun($record_res['gender'], 2);

@@ -299,10 +299,7 @@ class User extends Api
         if (empty($area_res['zhen_second'])) {
             $zhen_second = Db::name('area')->where('pid', $area_res['pid'])->value('zhen_second');
         }
-        $now_time = $before_time + $zhen_second + 900;
-        if (date('H', $now_time) == '23') {
-            $now_time += 86400;
-        }
+        $now_time = $before_time + $zhen_second;
         $solar = Solar::fromYmdHms(date('Y', $now_time), date('m', $now_time), date('d', $now_time), date('H', $now_time), date('i', $now_time), date('s', $now_time));
         // 转农历
         $solar = $solar->getLunar();
@@ -598,7 +595,7 @@ class User extends Api
                 $date_arr[2] = $date_arr[3];
             }
         }
-        $lunar = Lunar::fromYmd($date_arr[0], $date_arr[1], $date_arr[2], $hour, $minute);
+        $lunar = Lunar::fromYmdHms($date_arr[0], $date_arr[1], $date_arr[2], $hour, $minute, 0);
         //echo $lunar->toFullString()."\n";exit;
         return [
             'year_text' => $lunar->toString(),
@@ -607,7 +604,7 @@ class User extends Api
             'year_gan_name' => mb_substr($lunar->getYearInGanZhi(), 0, 1),
             'year_zhi_name' => mb_substr($lunar->getYearInGanZhi(), -1),
             'month' => $lunar->getMonthInGanZhi(),
-            'day' => $lunar->getDayInGanZhi(),
+            'day' => $lunar->getDayInGanZhiExact(),
             'time' => $lunar->getTimeInGanZhi(),
             'time_text' => mb_substr($lunar->getTimeInGanZhi(), -1),
             'yin_li_month' => $date_arr[1],
@@ -630,7 +627,7 @@ class User extends Api
                 $date_arr[2] = $date_arr[3];
             }
         }
-        $lunar = Lunar::fromYmd($date_arr[0], $date_arr[1], $date_arr[2], $record_res['zhen_hour'], $record_res['zhen_minute']);
+        $lunar = Lunar::fromYmdHms($date_arr[0], $date_arr[1], $date_arr[2], $record_res['zhen_hour'], $record_res['zhen_minute'], 0);
         //$baZi = $lunar->getEightChar();
         //print_r($baZi->getYearGan() . ' ' . $baZi->getMonthGan() . ' ' . $baZi->getDayGan() . ' ' . $baZi->getTimeGan());
         $yun = $lunar->getEightChar()->getYun($record_res['gender'], 2);
