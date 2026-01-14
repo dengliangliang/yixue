@@ -12,9 +12,15 @@
 			<image :src="cdnBase + staticPrefix + 'yun2.png'" class="cloud cloud-right-bottom" mode="widthFix"></image>
 		</view>
 		
-		<!-- 中心核心内容 - 五色环区域 (粒子渲染在 canvas 上) -->
+		<!-- 中心核心内容 - 五色环区域 -->
 		<view class="center-core">
-			<!-- 五色环由 WebGL canvas 渲染，此处仅作为定位参考 -->
+			<!-- 【优化C】静态五色环图片 - 粒子聚合后显示清晰旋转图 -->
+			<image 
+				v-show="showStaticRing" 
+				:src="cdnBase + staticPrefix + 'donhuajiazai.png'" 
+				class="static-ring" 
+				mode="aspectFit"
+			></image>
 		</view>
 		
 		<!-- 文字 - 五色环正下方 -->
@@ -38,13 +44,14 @@
 	import websiteConfig from '@/config/website.js';
 
 	export default {
-		data() {
+			data() {
 			return {
 				loadingText: '正在解析命盘...',
 				progress: 0,
 				record_id: '',
 				apiComplete: false,
 				smokeApi: null,
+				showStaticRing: false,  // 【优化C】控制静态五色环显示
                 windowWidth: 0,
                 windowHeight: 0,
                 centerX: 0,
@@ -71,12 +78,16 @@
 			// 【优化】优先使用预请求的 Promise（由 setInfo 发起）
 			if (uni.$apiPromise) {
 				console.log('[loading] 使用预请求的 API Promise');
+				console.log('[loading] 等待 API 响应...');
 				try {
-					const { data, code, msg } = await uni.$apiPromise;
+					const result = await uni.$apiPromise;
+					console.log('[loading] API 响应完成:', result);
+					const { data, code, msg } = result;
 					// 清理预请求 Promise
 					uni.$apiPromise = null;
 					
 					if (code != 1) {
+						console.error('[loading] API 返回错误:', code, msg);
 						this.$toast(msg);
 						setTimeout(() => uni.navigateBack(), 1500);
 						return;
@@ -84,7 +95,7 @@
 					
 					this.record_id = data.record_id;
 					this.apiComplete = true;
-					console.log('[loading] 预请求完成, record_id:', this.record_id);
+					console.log('[loading] ✅ 预请求完成, record_id:', this.record_id, 'apiComplete:', this.apiComplete);
 					
 					// 异步保存，不阻塞
 					const formData = uni.getStorageSync('pending_form_data');
@@ -184,8 +195,23 @@
                     }, {
                         particleSize: 3.5         // 增大粒子尺寸 (更饱满)
                     });
+					
+					// 【优化】粒子聚合末期（2.4秒）切换到静态图，让粒子看起来直接聚合成静态图
+					// morphDuration=2.5s, 提前100ms切换使过渡更自然
+					setTimeout(() => {
+						console.log('[loading] ↓↓↓ 粒子聚合末期，无缝切换到静态图片 ↓↓↓');
+						this.showStaticRing = true;
+						
+						// 隐藏粒子 canvas
+						if (this.smokeApi && this.smokeApi.hide) {
+							this.smokeApi.hide();
+						}
+					}, 2400);
+					
 				} catch (e) {
 					console.warn('[loading] WebGL 初始化失败', e);
+					// WebGL 失败时直接显示静态图
+					this.showStaticRing = true;
 				}
 				// 3. 同时启动马匹动画 (不再等待粒子聚合完成)
 				this.startHorseAnimation();
@@ -226,12 +252,12 @@
 			const viewport = ".horse-viewport";
 			const strip = ".horse-strip";
 
-			// 1. 初始化（彻底藏在左侧外，极小）
+			// 1. 初始化（藏在左侧外，scale足够大让首帧完整可见）
 			gsap.set(viewport, { 
 				x: -hw * 1.2, 
 				y: startY,
-				scale: 0.05,
-				opacity: 0,
+				scale: 0.5,  // 初始scale 0.5，让首帧马完整可见
+				opacity: 0.3,  // 初始透明度0.3，让首帧可见
 				visibility: 'visible'
 			});
 			gsap.set(strip, { x: 0 });
@@ -250,12 +276,12 @@
 					ease: "none"
 				}, 0)
 				
-				// --- B. 3D 纵深变换 (在前 2.8s 完成) ---
+				// --- B. 3D 纵深变换 (在前 1.5s 更快完成，让马更快完整可见) ---
 				.to(viewport, {
 					y: endY, 
 					scale: 1.0, 
 					opacity: 1,
-					duration: 2.8, 
+					duration: 1.5, 
 					ease: "power2.out"
 				}, 0)
 				
@@ -391,6 +417,26 @@
 		width: 480rpx;
 		height: 480rpx;
 		pointer-events: none;
+		
+		/* 【优化】静态五色环 - 粒子聚合后显示的清晰旋转图 */
+		.static-ring {
+			width: 100%;
+			height: 100%;
+			animation: staticRingRotate 12s linear infinite;
+			/* 增强图片清晰度 */
+			image-rendering: -webkit-optimize-contrast;
+			image-rendering: crisp-edges;
+			will-change: transform;
+			-webkit-transform: translateZ(0);
+			transform: translateZ(0);
+			-webkit-backface-visibility: hidden;
+			backface-visibility: hidden;
+		}
+	}
+	
+	@keyframes staticRingRotate {
+		from { transform: rotate(0deg); }
+		to { transform: rotate(360deg); }
 	}
 
 	.loading-text-box {
@@ -446,23 +492,30 @@
 		left: 0;
 		bottom: 0;
 		width: 350rpx;  /* 单帧宽度 */
-		height: 280rpx; /* 单帧高度 */
+		height: 350rpx; /* 增大高度避免切割 */
 		overflow: hidden; /* 关键：裁剪长条 */
 		will-change: transform;
+		/* 左右水平渐变：只让左边（马尾）淡出，右边（马头）保持清晰 */
+		-webkit-mask-image: linear-gradient(to right, transparent 0%, black 15%, black 100%);
+		mask-image: linear-gradient(to right, transparent 0%, black 15%, black 100%);
 	}
 
 	/* 方案 1 核心：精灵图长条 */
 	.horse-strip {
 		position: absolute;
 		left: 0;
-		top: 0;
+		top: 50%; /* 【方案B】垂直居中对齐 */
+		transform: translateY(-50%) translateZ(0);
 		width: 2100rpx; /* 6帧总宽: 350rpx * 6 */
-		height: 100%;
+		height: 350rpx; /* 【方案B】与视口高度匹配 */
 		background-image: url(https://cdn.yixuestatic.linqingkeji.com/src/static/ma/sprite-sheet.png);
 		background-size: 100% 100%; /* 整个长条填充 */
 		background-repeat: no-repeat;
 		will-change: transform;
-		transform: translateZ(0);
 		backface-visibility: hidden;
+		/* 【优化】提升精灵图渲染清晰度 */
+		image-rendering: -webkit-optimize-contrast; /* Safari */
+		image-rendering: crisp-edges; /* 保持边缘清晰 */
+		-webkit-backface-visibility: hidden;
 	}
 </style>

@@ -109,6 +109,7 @@ export default {
 .shensha-tag {
 	color: #8B0000;
 	font-weight: bold;
+	font-family: 'QianTuXianMo', 'Microsoft YaHei', sans-serif; /* 千图纤墨体 */
 }
 
 .shensha-list {
@@ -136,6 +137,7 @@ export default {
 	color: #fff;
 	font-size: 28rpx;
 	font-weight: bold;
+	font-family: 'QianTuXianMo', 'Microsoft YaHei', sans-serif; /* 千图纤墨体 */
 	margin-right: 16rpx;
 }
 
@@ -158,6 +160,7 @@ export default {
 .shensha-desc {
 	line-height: 48rpx;
 	color: #4A3728;
+	font-family: 'QianTuXianMo', 'Microsoft YaHei', sans-serif; /* 千图纤墨体 */
 }
 
 .no-shensha {

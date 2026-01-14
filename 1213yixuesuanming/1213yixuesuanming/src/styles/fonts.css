@@ -36,6 +36,16 @@
   font-display: swap;
 }
 
+/* 千图纤墨体 - 正文描述文字 (子集化: 原大小 → 333KB) */
+@font-face {
+  font-family: 'QianTuXianMo';
+  src: url('https://cdn.yixuestatic.linqingkeji.com/src/static/ttf/千图纤墨体.woff2') format('woff2'),
+    url('https://cdn.yixuestatic.linqingkeji.com/src/static/ttf/千图纤墨体.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* ==================== 应用字体到元素 ==================== */
 
 /* 全局正文使用霞鹜文楷 */

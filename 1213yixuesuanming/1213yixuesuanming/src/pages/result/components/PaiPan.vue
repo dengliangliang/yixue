@@ -228,6 +228,7 @@ export default {
 	font-size: 28rpx;
 	color: #8B0000;
 	font-weight: 600;
+	font-family: 'font2', 'Microsoft YaHei', sans-serif; /* font2字体 */
 }
 
 .info-value {
@@ -235,7 +236,7 @@ export default {
 	font-size: 28rpx;
 	color: #4A3728;
 	text-align: center;
-	font-weight: 500;
+	/* font-weight: 500 移除避免合成粗体 */
 }
 
 /* 国风专业排盘表格 - 木色背景 */
@@ -285,9 +286,10 @@ export default {
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	font-size: 26rpx;
+	font-size: 28rpx;
 	color: #8B0000;
-	font-weight: 500;
+	font-weight: 600;
+	font-family: 'font2', 'Microsoft YaHei', sans-serif; /* font2字体 */
 	background: linear-gradient(90deg, #E5CCA0 0%, #EDD9B5 100%);
 }
 
@@ -458,6 +460,7 @@ export default {
 	color: #666;
 	line-height: 48rpx;
 	text-align: justify;
+	font-family: 'QianTuXianMo', 'Microsoft YaHei', sans-serif; /* 千图纤墨体 */
 }
 
 /* 五行颜色 - 参照图片样式 */

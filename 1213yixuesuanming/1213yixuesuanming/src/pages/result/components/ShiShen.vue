@@ -133,6 +133,7 @@ export default {
 	color: #fff;
 	font-size: 28rpx;
 	font-weight: bold;
+	font-family: 'QianTuXianMo', 'Microsoft YaHei', sans-serif; /* 千图纤墨体 */
 	margin-right: 20rpx;
 }
 
@@ -147,6 +148,7 @@ export default {
 .shishen-desc {
 	line-height: 48rpx;
 	color: #4A3728;
+	font-family: 'QianTuXianMo', 'Microsoft YaHei', sans-serif; /* 千图纤墨体 */
 }
 
 /* 国风组合盒子 */
@@ -178,6 +180,7 @@ export default {
 .zuhe-name {
 	font-size: 32rpx;
 	font-weight: bold;
+	font-family: 'QianTuXianMo', 'Microsoft YaHei', sans-serif; /* 千图纤墨体 */
 	color: #D0000F;
 	margin-bottom: 12rpx;
 }
@@ -185,6 +188,7 @@ export default {
 .zuhe-desc {
 	line-height: 48rpx;
 	color: #4A3728;
+	font-family: 'QianTuXianMo', 'Microsoft YaHei', sans-serif; /* 千图纤墨体 */
 }
 
 .zuhe-summary {
@@ -194,11 +198,13 @@ export default {
 	border-radius: 8rpx;
 	margin-bottom: 16rpx;
 	border: 1rpx solid rgba(218, 165, 32, 0.3);
+	font-family: 'QianTuXianMo', 'Microsoft YaHei', sans-serif; /* 千图纤墨体 */
 }
 
 .zuhe-result {
 	line-height: 48rpx;
 	color: #8B0000;
+	font-family: 'QianTuXianMo', 'Microsoft YaHei', sans-serif; /* 千图纤墨体 */
 }
 
 /* 祥云装饰样式 */

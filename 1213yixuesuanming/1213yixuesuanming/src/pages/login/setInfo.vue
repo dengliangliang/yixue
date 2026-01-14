@@ -209,7 +209,15 @@
 				}
 			},
 			async loadCity(id) {
-				// 优先使用城市缓存
+				// 【优化】优先使用CDN预加载的城市数据缓存
+				const citiesData = uni.getStorageSync('cache_citiesData');
+				if (citiesData && citiesData[id]) {
+					console.log('[setInfo] 使用CDN预加载的城市数据');
+					this.city_list = citiesData[id];
+					return;
+				}
+				
+				// 次优先：使用单个城市缓存
 				const cacheKey = 'cache_cityList_' + id;
 				let cityData = uni.getStorageSync(cacheKey);
 				
@@ -219,6 +227,8 @@
 					return;
 				}
 				
+				// 回退：API请求
+				console.log('[setInfo] 缓存未命中，请求API');
 				const {
 					data,
 					code,
@@ -334,12 +344,12 @@
 				uni.$apiPromise = apiPromise;
 				uni.setStorageSync('pending_form_data', formData);
 				
-				// 延迟跳转，让遮罩动画完全显示
+				// 【优化A】缩短遮罩延迟（300ms→100ms）
 				setTimeout(() => {
 					uni.navigateTo({
 						url: "/pages/login/loading"
 					});
-				}, 300);
+				}, 100);
 			},
 			// 计算并缓存结果（等待完成，避免重复请求）
 			//  计算并缓存结果（等待完成，避免重复请求）

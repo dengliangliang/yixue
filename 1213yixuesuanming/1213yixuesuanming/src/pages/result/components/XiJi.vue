@@ -290,5 +290,6 @@ export default {
 
 .box-content {
 	color: #4A3728;
+	font-family: 'QianTuXianMo', 'Microsoft YaHei', sans-serif; /* 千图纤墨体 */
 }
 </style>

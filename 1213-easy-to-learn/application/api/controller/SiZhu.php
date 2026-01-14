@@ -420,7 +420,31 @@ class SiZhu extends Api
         }
 
         \think\Log::info("[getResult] 总耗时: " . round((microtime(true) - $startTime) * 1000, 2) . "ms");
+
+        // 【修复】递归清除所有文本字段中的HTML标签（如<b>、<strong>等）
+        // 数据库中存储的文案可能包含加粗标签，导致前端显示不一致
+        $result = $this->stripHtmlTagsRecursive($result);
+
         $this->success('获取成功', $result);
+    }
+
+    /**
+     * 递归清除数组中所有字符串的HTML标签
+     * @param mixed $data 输入数据（数组或字符串）
+     * @return mixed 清除HTML标签后的数据
+     */
+    private function stripHtmlTagsRecursive($data)
+    {
+        if (is_array($data)) {
+            foreach ($data as $key => $value) {
+                $data[$key] = $this->stripHtmlTagsRecursive($value);
+            }
+            return $data;
+        } elseif (is_string($data)) {
+            // 去除所有HTML标签（如<b>、<strong>、<i>等）
+            return strip_tags($data);
+        }
+        return $data;
     }
 
     /**
@@ -651,18 +675,18 @@ class SiZhu extends Api
             ->where('record_id', $record_id)
             ->where('shen_in', 4)
             ->update([
-                'shen_name' => $da_yun['gan_shi_shen'],
-                'wu_xing' => $da_yun['gan_xing'],
-                'gan_zhi_name' => mb_substr($da_yun['gan_zhi'], 0, 1)
-            ]);
+                    'shen_name' => $da_yun['gan_shi_shen'],
+                    'wu_xing' => $da_yun['gan_xing'],
+                    'gan_zhi_name' => mb_substr($da_yun['gan_zhi'], 0, 1)
+                ]);
         Db::name('record_shen')
             ->where('record_id', $record_id)
             ->where('shen_in', 9)
             ->update([
-                'shen_name' => $da_yun['zhi_shi_shen'],
-                'wu_xing' => $da_yun['zhi_xing'],
-                'gan_zhi_name' => mb_substr($da_yun['gan_zhi'], -1)
-            ]);
+                    'shen_name' => $da_yun['zhi_shi_shen'],
+                    'wu_xing' => $da_yun['zhi_xing'],
+                    'gan_zhi_name' => mb_substr($da_yun['gan_zhi'], -1)
+                ]);
         $record_shen_res = Db::name('record_shen')->where('record_id', $record_id)->select();
         $all_wu_xing_num = array_count_values(array_column($record_shen_res, 'wu_xing'));
         $xing_arr = ['金', '木', '水', '火', '土'];

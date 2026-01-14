@@ -366,6 +366,18 @@ export function initImageMorph(canvas, config, options = {}) {
     render();
 
     return {
+        // 【方案A】隐藏粒子canvas，让静态图片清晰显示
+        hide: () => {
+            console.log('[image_morph] 隐藏粒子canvas');
+            if (animationId) cancelAnimationFrame(animationId);
+            animationId = null;
+            // 清空canvas
+            gl.clearColor(0, 0, 0, 0);
+            gl.clear(gl.COLOR_BUFFER_BIT);
+            // 隐藏canvas元素
+            canvas.style.opacity = '0';
+            canvas.style.pointerEvents = 'none';
+        },
         scatter: (duration = 1.0) => {
             console.log('[image_morph] 启动分裂四散效果');
             const start = Date.now();

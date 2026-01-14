@@ -53,7 +53,7 @@
 
 		<!-- 方位详解 -->
 		<view class="fangwei-detail mt-24">
-			<view class="detail-title fz_28 fz_b mb-16">方位详解</view>
+			<view class="detail-title fz_28 fz_b mb-16 source-han-font">方位详解</view>
 			<view class="detail-item" v-if="fangWeiData.shiyeWei">
 				<text class="detail-label">事业方位</text>
 				<text class="detail-desc">{{ fangWeiData.shiyeDesc || '正官所在方位，利于事业发展' }}</text>
@@ -95,7 +95,7 @@
 
 <script>
 export default {
-	name: 'FangWei',
+	name: 'XingYunWei',
 	props: {
 		// 方位数据
 		fangWeiData: {
@@ -238,6 +238,7 @@ export default {
 	color: #4A3728;
 	word-break: break-word; /* 允许长单词换行 */
 	line-height: 1.4;
+	font-family: 'QianTuXianMo', 'Microsoft YaHei', sans-serif; /* 思源黑体 */
 }
 
 /* 国风详情盒子 */
@@ -270,6 +271,7 @@ export default {
 	flex: 1;
 	color: #4A3728;
 	line-height: 44rpx;
+	font-family: 'QianTuXianMo', 'Microsoft YaHei', sans-serif; /* 思源黑体 */
 }
 
 /* 国风罗盘盒子 */
@@ -354,5 +356,10 @@ export default {
 	height: 100%;
 	object-fit: cover;
 	object-position: center;
+}
+
+/* 使用思源黑体确保字体粗细一致*/
+.source-han-font {
+	font-family: 'QianTuXianMo', 'Microsoft YaHei', sans-serif !important;
 }
 </style>

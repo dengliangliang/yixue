@@ -199,6 +199,7 @@ export default {
 	line-height: 48rpx;
 	color: #4A3728;
 	font-weight: 500;
+	font-family: 'QianTuXianMo', 'Microsoft YaHei', sans-serif; /* 千图纤墨体 */
 }
 
 .binfu-label {
@@ -241,6 +242,7 @@ export default {
 	flex: 1;
 	line-height: 50rpx;
 	font-size: 28rpx;
+	font-family: 'QianTuXianMo', 'Microsoft YaHei', sans-serif; /* 千图纤墨体 */
 }
 
 /* 旧样式保留兼容 */

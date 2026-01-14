@@ -263,8 +263,21 @@ class User extends Api
             $customerNo = 'H5_' . uniqid();
         }
 
-        // 注意: 不再清理 agentCode，保持原样回传给三方
-        // 原代码: $agentCode = preg_replace('/[\r\n\s]/', '', $agentCode);
+        // 修复：对 agentCode 进行循环 URL 解码，处理任意深度的编码
+        // 问题原因：不同入口传入的 agentCode 可能是未编码、单次编码或双重编码状态
+        // 使用 rawurldecode 而不是 urldecode，因为 urldecode 会将 + 号解码为空格
+        // 而 agentCode 是 Base64 编码，其中的 + 号应保持原样
+        $maxIterations = 5; // 防止无限循环
+        $iteration = 0;
+        $decoded = rawurldecode($agentCode);
+        while ($decoded !== $agentCode && $iteration < $maxIterations) {
+            $agentCode = $decoded;
+            $decoded = rawurldecode($agentCode);
+            $iteration++;
+        }
+        if ($iteration > 0) {
+            \think\Log::info("[addRecord] agentCode 解码次数: {$iteration}");
+        }
         // 增强日志输出：更易读的时间格式
         $logTime = date('Y-m-d H:i:s');
         \think\Log::info("=== [{$logTime}] addRecord 开始 ===");
@@ -357,12 +370,22 @@ class User extends Api
             // 重置完成状态，允许重新回调
             $recordData['result'] = '未完成';
             $recordData['end_time'] = null;
+            // 同时清除旧的排盘结果，以便重新计算
+            $recordData['max_wu_xing'] = null;
+            $recordData['min_wu_xing'] = null;
 
             Db::name('record')->where('id', $chk_record['id'])->update($recordData);
+
+            // 【关键修复】删除旧的 record_shen 数据，否则 getSiZhuRes 会使用旧数据
+            // 这是导致"二次测算使用旧排盘"的根本原因
+            $deletedCount = Db::name('record_shen')->where('record_id', $chk_record['id'])->delete();
+            \think\Log::info("[addRecord] 🗑️ 已删除旧的 record_shen 数据: {$deletedCount} 条");
+
             \think\Log::info("[addRecord] ✏️ 更新已有记录:");
             \think\Log::info("  - record_id: {$chk_record['id']}");
             \think\Log::info("  - customerNo: {$recordData['customerNo']}");
             \think\Log::info("  - openid: " . (!empty($openid) ? $openid : '【空】'));
+            \think\Log::info("  - 新数据: date={$date}, area_id={$area_id}, gender={$gender}");
             \think\Log::info("=== [" . date('Y-m-d H:i:s') . "] addRecord 结束(更新) ===");
             $this->success('添加成功', ['record_id' => $chk_record['id']]);
         }

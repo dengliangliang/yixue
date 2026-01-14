@@ -259,6 +259,9 @@
 			
 			// 注意：微信分享初始化已移到 handleWxAuth 完成后执行
 			// 这样可以确保 URL 中的 code 参数已被移除，避免签名错误
+			
+			// 【优化E】预加载 loading 页面资源（减少切换白屏）
+			this.preloadLoadingAssets();
 		},
 		methods: {
 			// 获取系统信息
@@ -269,7 +272,7 @@
 					}
 				});
 			},
-			// 异步预加载省市数据（不阻塞页面渲染）
+			// 异步预加载省市数据（不阻塞页面渲染）- 使用CDN静态JSON
 			async preloadAreaData() {
 				const startTime = Date.now();
 				try {
@@ -277,52 +280,105 @@
 					
 					// 检查是否已有缓存
 					const cachedProvince = uni.getStorageSync('cache_provinceList');
-					if (cachedProvince && cachedProvince.length > 0) {
-						console.log(' [数据] 省份数据已缓存，跳过', {
-							数量: cachedProvince.length,
+					const cachedCities = uni.getStorageSync('cache_citiesData');
+					if (cachedProvince && cachedProvince.length > 0 && cachedCities) {
+						console.log('✅ [数据] 省市数据已缓存，跳过', {
+							省份数量: cachedProvince.length,
 							耗时: (Date.now() - startTime) + 'ms'
 						});
 						return;
 					}
 					
-					// 请求省份列表
-					console.log('🌐 [API] 开始请求省份数据...');
-					const apiStartTime = Date.now();
+					// 从CDN加载静态JSON（比API快10倍以上）
+					console.log('🚀 [CDN] 开始从CDN加载静态省市数据...');
+					const cdnBase = 'https://cdn.yixuestatic.linqingkeji.com/src/static/data';
+					const cdnStartTime = Date.now();
 					
-					const res = await this.$api.post('api/user/getProvinceList');
+					// 并行加载省份和城市数据
+					const [provinceResp, citiesResp] = await Promise.all([
+						uni.request({ url: `${cdnBase}/province.json`, method: 'GET' }),
+						uni.request({ url: `${cdnBase}/cities.json`, method: 'GET' })
+					]);
 					
-					const apiTime = Date.now() - apiStartTime;
-					console.log('🌐 [API] 省份数据请求完成', {
-						耗时: apiTime + 'ms',
-						状态: res.code == 1 ? '成功' : '失败'
+					const cdnTime = Date.now() - cdnStartTime;
+					console.log('🚀 [CDN] 数据加载完成', { 耗时: cdnTime + 'ms' });
+					
+					// 解析并缓存数据 - 兼容 uni.request 返回格式
+					// uni.request 返回格式: [{ data: 实际数据, ... }, extra] 或直接是响应对象
+					let provinceData, citiesData;
+					
+					// 解析省份数据
+					if (Array.isArray(provinceResp) && provinceResp[0]) {
+						provinceData = provinceResp[0].data;  // uni.request 格式: [response, extra]
+					} else if (provinceResp && provinceResp.data) {
+						provinceData = provinceResp.data;     // 单个响应对象
+					}
+					
+					// 解析城市数据
+					if (Array.isArray(citiesResp) && citiesResp[0]) {
+						citiesData = citiesResp[0].data;
+					} else if (citiesResp && citiesResp.data) {
+						citiesData = citiesResp.data;
+					}
+					
+					console.log('🚀 [CDN] 数据解析', { 
+						省份数量: provinceData?.length, 
+						城市数据: citiesData ? '已加载' : '未加载' 
 					});
+
 					
-					if (res.code == 1) {
-						uni.setStorageSync('cache_provinceList', res.data);
+					if (provinceData && provinceData.length > 0) {
+						uni.setStorageSync('cache_provinceList', provinceData);
+						uni.setStorageSync('cache_citiesData', citiesData);
 						const totalTime = Date.now() - startTime;
-						console.log(' [数据] 省份数据缓存完成', {
-							数量: res.data.length,
-							API耗时: apiTime + 'ms',
+						console.log('✅ [数据] 省市数据缓存完成', {
+							省份数量: provinceData.length,
+							CDN耗时: cdnTime + 'ms',
 							总耗时: totalTime + 'ms'
 						});
-						
-						// 如果API请求时间过长，输出警告
-						if (apiTime > 1000) {
-							console.warn('⚠️ [API警告] 省份数据请求耗时过长:', apiTime + 'ms');
-							console.warn('💡 [建议] 检查服务器性能或网络状况');
-						}
 					} else {
-						console.error('❌ [数据] 省份数据请求失败', res);
+						console.error('❌ [数据] CDN省市数据加载失败，回退到API');
+						// 回退到API请求
+						const res = await this.$api.post('api/user/getProvinceList');
+						if (res.code == 1) {
+							uni.setStorageSync('cache_provinceList', res.data);
+						}
 					}
 				} catch (e) {
 					const totalTime = Date.now() - startTime;
-					console.error('❌ [数据] 预加载失败', {
+					console.error('❌ [数据] 预加载失败，回退到API', {
 						错误: e.message || e,
 						耗时: totalTime + 'ms'
 					});
+					// 回退到API请求
+					try {
+						const res = await this.$api.post('api/user/getProvinceList');
+						if (res.code == 1) {
+							uni.setStorageSync('cache_provinceList', res.data);
+						}
+					} catch (apiErr) {
+						console.error('❌ [数据] API也失败了', apiErr);
+					}
 				}
 			},
-			
+
+			// 【优化E】预加载 loading 页面所需资源
+			preloadLoadingAssets() {
+				const cdnBase = 'https://cdn.yixuestatic.linqingkeji.com/src/static';
+				const assets = [
+					`${cdnBase}/donhuajiazai.png`,  // 五色环
+					`${cdnBase}/yun1.png`,          // 祥云1
+					`${cdnBase}/yun2.png`,          // 祥云2
+					`${cdnBase}/ma/sprite-sheet.png`  // 马匹精灵图
+				];
+				
+				console.log('🔄 [预加载] 开始预加载 loading 页面资源');
+				assets.forEach(url => {
+					const img = new Image();
+					img.src = url;
+				});
+			},
+
 			/**
 			 * 处理微信授权流程
 			 * 统一管理 OAuth 重定向和 OpenID 获取

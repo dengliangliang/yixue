@@ -65,7 +65,7 @@
 			<!-- P10: 幸运位 -->
 			<swiper-item>
 				<scroll-view scroll-y class="swiper-content">
-					<FangWei :fangWeiData="fangWeiData" />
+					<XingYunWei :fangWeiData="fangWeiData" />
 				</scroll-view>
 			</swiper-item>
 		</swiper>
@@ -96,7 +96,7 @@ import BinFu from './components/BinFu.vue';
 import XiJi from './components/XiJi.vue';
 import ShiShen from './components/ShiShen.vue';
 import ShenSha from './components/ShenSha.vue';
-import FangWei from './components/FangWei.vue';
+import XingYunWei from './components/XingYunWei.vue';
 import websiteConfig from '@/config/website.js';
 
 export default {
@@ -106,7 +106,7 @@ export default {
 		XiJi,
 		ShiShen,
 		ShenSha,
-		FangWei
+		XingYunWei
 	},
 	data() {
 		return {
@@ -172,16 +172,12 @@ export default {
 			console.log('[generate] 开始加载数据, record_id:', this.record_id);
 			
 			try {
-				// 加载排盘数据
-				const paiPanStart = Date.now();
+				// 【修复】串行请求：先 getSiZhuRes 计算并更新 max_wu_xing，再 getResult 查询数据
+				// 原因：并行请求会导致 getResult 内部调用 getSiZhuRes 时请求被终止
 				await this.loadPaiPanData();
-				console.log('[generate] 排盘数据加载完成, 耗时:', Date.now() - paiPanStart, 'ms');
+				console.log('[generate] getSiZhuRes 完成, 耗时:', Date.now() - startTime, 'ms');
 				
-				// 加载结果数据(包含二期扩展数据)
-				const resultStart = Date.now();
 				await this.loadResultData();
-				console.log('[generate] 结果数据加载完成, 耗时:', Date.now() - resultStart, 'ms');
-				
 				console.log('[generate] 全部数据加载完成, 总耗时:', Date.now() - startTime, 'ms');
 			} catch (e) {
 				console.error('[generate] 加载数据失败:', e);
