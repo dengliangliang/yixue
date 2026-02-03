@@ -2,6 +2,27 @@
 	import { getCurrentInstance } from 'vue';
 	export default {
 		onLaunch: function() {
+			// #ifdef H5
+			// 禁止微信浏览器修改字体大小
+			(function() {
+				if (typeof WeixinJSBridge == "object" && typeof WeixinJSBridge.invoke == "function") {
+					handleFontSize();
+				} else {
+					if (document.addEventListener) {
+						document.addEventListener("WeixinJSBridgeReady", handleFontSize, false);
+					} else if (document.attachEvent) {
+						document.attachEvent("WeixinJSBridgeReady", handleFontSize);
+						document.attachEvent("onWeixinJSBridgeReady", handleFontSize);
+					}
+				}
+				function handleFontSize() {
+					WeixinJSBridge.invoke('setFontSizeCallback', { 'fontSize': 0 });
+					WeixinJSBridge.on('menu:setfont', function() {
+						WeixinJSBridge.invoke('setFontSizeCallback', { 'fontSize': 0 });
+					});
+				}
+			})();
+			// #endif
 			const launchTime = Date.now();
 			console.log(' [应用] App Launch', new Date().toISOString());
 			
@@ -46,6 +67,13 @@
 </script>
 
 <style lang="scss">
+	/* #ifdef H5 */
+	body {
+		-webkit-text-size-adjust: 100% !important;
+		text-size-adjust: 100% !important;
+		-moz-text-size-adjust: 100% !important;
+	}
+	/* #endif */
 	/*每个页面公共css */
 	@import url("common/style/index.css");
 	/* 注意要写在第一行，同时给style标签加入lang="scss"属性 */

@@ -5,21 +5,19 @@
 
 /* ==================== 正文字体 ==================== */
 
-/* 霞鹜文楷 - 正文、描述文字 (子集化: 25MB → 186KB) */
+/* font2 - 正文、描述文字 */
 @font-face {
-  font-family: 'XiaWuWenKai';
-  src: url('https://cdn.yixuestatic.linqingkeji.com/src/static/ttf/XiaWuWenKai-Regular.woff2') format('woff2'),
-    url('https://cdn.yixuestatic.linqingkeji.com/src/static/ttf/XiaWuWenKai-Regular.ttf') format('truetype');
+  font-family: 'font2';
+  src: url('https://cdn.yixuestatic.linqingkeji.com/src/static/ttf/font2.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
 }
 
-/* 霞鹜文楷粗体 - 复用Regular作为粗体 */
+/* font2粗体 - 复用Regular作为粗体 */
 @font-face {
-  font-family: 'XiaWuWenKai';
-  src: url('https://cdn.yixuestatic.linqingkeji.com/src/static/ttf/XiaWuWenKai-Regular.woff2') format('woff2'),
-    url('https://cdn.yixuestatic.linqingkeji.com/src/static/ttf/XiaWuWenKai-Regular.ttf') format('truetype');
+  font-family: 'font2';
+  src: url('https://cdn.yixuestatic.linqingkeji.com/src/static/ttf/font2.ttf') format('truetype');
   font-weight: bold;
   font-style: normal;
   font-display: swap;
@@ -48,25 +46,25 @@
 
 /* ==================== 应用字体到元素 ==================== */
 
-/* 全局正文使用霞鹜文楷 */
+/* 全局正文使用font2字体 */
 body,
 page {
-  font-family: 'XiaWuWenKai', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-family: 'font2', 'PingFang SC', 'Microsoft YaHei', sans-serif;
 }
 
 /* 普通文字、描述文字 */
 .text-body {
-  font-family: 'XiaWuWenKai', 'PingFang SC', sans-serif;
+  font-family: 'font2', 'PingFang SC', sans-serif;
 }
 
-/* 优雅标题 - 使用霞鹜文楷 */
+/* 优雅标题 - 使用font2 */
 .text-elegant {
-  font-family: 'XiaWuWenKai', 'KaiTi', serif;
+  font-family: 'font2', 'KaiTi', serif;
 }
 
-/* 手写风格 - 使用霞鹜文楷 */
+/* 手写风格 - 使用font2 */
 .text-handwriting {
-  font-family: 'XiaWuWenKai', 'KaiTi', cursive;
+  font-family: 'font2', 'KaiTi', cursive;
 }
 
 /* 按钮文字 - 思源黑体粗体 */
@@ -108,14 +106,14 @@ page {
   font-weight: bold;
 }
 
-/* 特殊：九紫离火等艺术字 - 使用霞鹜文楷 */
+/* 特殊：九紫离火等艺术字 - 使用font2 */
 .zhuanti-char {
-  font-family: 'XiaWuWenKai', 'KaiTi', serif !important;
+  font-family: 'font2', 'KaiTi', serif !important;
 }
 
 /* 输入框保持系统字体 */
 input,
 textarea,
 .input-field {
-  font-family: 'XiaWuWenKai', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  font-family: 'font2', 'PingFang SC', 'Microsoft YaHei', sans-serif;
 }

@@ -313,7 +313,7 @@ const wxSdk = {
 
     /**
      * 初始化默认分享配置
-     * 使用后端 /api/user/share 接口格式的链接，参数从缓存获取
+     * 使用后端 /api/user/shareInternal 接口格式的链接，参数从缓存获取
      * 确保朋友圈分享显示为卡片而非纯链接
      * 
      * @param {Object} options 可选的覆盖配置
@@ -338,12 +338,13 @@ const wxSdk = {
             const agentCode = app_parmas.agentCode || '';
             const sign = app_parmas.sign || '';
 
-            // 构造分享链接 - 使用后端 share 接口（无 # 号）
-            const baseUrl = 'https://yixueadmin.linqingkeji.com/api/user/share';
+            // 构造分享链接 - 使用后端 shareInternal 接口（专门处理我们自己的分享）
+            // shareInternal 会对 agentCode 进行双重编码，确保传给三方时编码层次正确
+            const baseUrl = 'https://yixueadmin.linqingkeji.com/api/user/shareInternal';
             const params = ['isShare=true'];
             if (merchantId) params.push(`merchantId=${merchantId}`);
             if (activityCode) params.push(`activityCode=${activityCode}`);
-            if (agentCode) params.push(`agentCode=${encodeURIComponent(agentCode)}`);
+            if (agentCode) params.push(`agentCode=${agentCode}`);
             if (sign) params.push(`sign=${sign}`);
 
             const shareLink = `${baseUrl}?${params.join('&')}`;

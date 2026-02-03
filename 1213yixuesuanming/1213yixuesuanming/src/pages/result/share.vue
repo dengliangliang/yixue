@@ -142,7 +142,7 @@ export default {
 		// 微信分享由全局 mixin 在 onShow 时自动初始化
 	},
 	methods: {
-		// 构造完整的分享链接(使用后端share接口,不含#号,确保朋友圈分享显示卡片)
+		// 构造二维码用的分享链接
 		initShareUrl() {
 			const app_parmas = uni.getStorageSync('app_parmas') || {};
 			
@@ -152,22 +152,23 @@ export default {
 			const agentCode = app_parmas.agentCode || '';
 			const sign = app_parmas.sign || '';
 			
-			// 构造分享链接 - 使用后端 share 接口（无 # 号）
-			// 这样的链接格式可以让朋友圈分享显示为卡片而非纯链接
-			const baseUrl = 'https://yixueadmin.linqingkeji.com/api/user/share';
+			// 构造分享链接 - 使用后端 shareInternal 接口（专门处理我们自己的分享）
+			// shareInternal 会对 agentCode 进行双重编码，确保传给三方时编码层次正确
+			const baseUrl = 'https://yixueadmin.linqingkeji.com/api/user/shareInternal';
 			
 			// 构建查询参数(只包含有值的参数)
 			// 注意：isShare=true 标记这是分享链接
+			// agentCode 不需要前端编码，后端 shareInternal 会统一处理
 			const params = ['isShare=true'];
 			if (merchantId) params.push(`merchantId=${merchantId}`);
 			if (activityCode) params.push(`activityCode=${activityCode}`);
-			if (agentCode) params.push(`agentCode=${encodeURIComponent(agentCode)}`);
+			if (agentCode) params.push(`agentCode=${agentCode}`);
 			if (sign) params.push(`sign=${sign}`);
 			
 			const queryString = params.join('&');
 			this.shareUrl = `${baseUrl}?${queryString}`;
 			
-			console.log('[share] 📤 动态分享链接(后端接口格式):', this.shareUrl);
+			console.log('[share] 📤 动态分享链接(shareInternal接口):', this.shareUrl);
 			console.log('[share] 📋 参数详情:', { merchantId, activityCode, agentCode, sign, record_id: this.record_id });
 		},
 

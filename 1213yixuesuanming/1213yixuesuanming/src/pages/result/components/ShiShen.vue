@@ -25,16 +25,13 @@
 				<image src="/static/icon-combine.png" class="zuhe-icon" mode="aspectFill"></image>
 				<text class="fz_30 fz_b c_huo">流年与原局组合</text>
 			</view>
+			<view class="zuhe-summary fz_26">
+				<text class="c_9">根据您八字原局和丙午流年组合，则变化为：</text>
+			</view>
 			<view class="zuhe-content">
 				<view class="zuhe-name">{{ zuHeName }}</view>
 				<view class="zuhe-desc fz_28">{{ zuHeDesc }}</view>
 			</view>
-			<view class="zuhe-summary fz_26">
-				<text class="c_9">2026年本是您的</text>
-				<text class="c_huo fz_b">{{ liuNianShiShen }}</text>
-				<text class="c_9">，会出现{{ liuNianShortDesc }}，但根据您八字原局和丙午流年组合，则变化为：</text>
-			</view>
-			<view class="zuhe-result fz_28 fz_b">{{ zuHeDesc }}</view>
 		</view>
 	</view>
 </template>

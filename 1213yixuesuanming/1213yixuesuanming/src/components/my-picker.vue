@@ -181,16 +181,77 @@
 				let val = e.detail.value;
 				console.log('bindChange--', val);
 				let year = val[0] + this.oldYear
-				let month = val[1] + 1
-				let day = val[2] + 1
+				let month, day, daysCount;
 				let hour = val[3] || '00';
 				let minute = val[4] || '00';
+				let isLeapMonth = false;
 
-				this.selectValue = val
 				if (this.isActive) {
-					this.setDateGL(year, month, day, hour, minute)
+					// 公历处理
+					month = val[1] + 1;
+					// 动态更新公历天数
+					daysCount = conversion.solarDays(year, month);
+					if (this.days.length != daysCount) {
+						let daysList = [];
+						for (let i = 1; i <= daysCount; i++) {
+							daysList.push(i + '日');
+						}
+						this.days = daysList;
+					}
+					// 修正天数索引防止越界（如31日切到2月）
+					if (val[2] >= daysCount) val[2] = daysCount - 1;
+					day = val[2] + 1;
+
+					this.selectValue = val;
+					this.setDateGL(year, month, day, hour, minute);
 				} else {
-					this.setDateYL(year, month, day, hour, minute)
+					// 农历处理
+					// 1. 根据年份更新月份列表（处理闰月）
+					let leap = conversion.leapMonth(year);
+					let newMonths = [];
+					for (let i = 1; i <= 12; i++) {
+						newMonths.push(conversion.toChinaMonth(i));
+						if (i == leap) newMonths.push("闰" + conversion.toChinaMonth(i));
+					}
+					
+					// 只有当月份列表长度变化或内容不一致时才更新，避免闪烁
+					if (JSON.stringify(this.months) !== JSON.stringify(newMonths)) {
+						this.months = newMonths;
+						if (val[1] >= newMonths.length) val[1] = newMonths.length - 1;
+					}
+
+					// 2. 解析当前选中的实际月份和是否闰月
+					let monthIndex = val[1];
+					if (leap > 0 && monthIndex == leap) {
+						month = leap;
+						isLeapMonth = true;
+					} else if (leap > 0 && monthIndex > leap) {
+						month = monthIndex;
+					} else {
+						month = monthIndex + 1;
+					}
+
+					// 3. 动态更新农历天数
+					if (isLeapMonth) {
+						daysCount = conversion.leapDays(year);
+					} else {
+						daysCount = conversion.monthDays(year, month);
+					}
+
+					if (this.days.length != daysCount) {
+						let daysList = [];
+						for (let i = 1; i <= daysCount; i++) {
+							daysList.push(conversion.toChinaDay(i));
+						}
+						this.days = daysList;
+					}
+					
+					// 修正天数索引
+					if (val[2] >= daysCount) val[2] = daysCount - 1;
+					day = val[2] + 1;
+
+					this.selectValue = val;
+					this.setDateYL(year, month, day, hour, minute, isLeapMonth);
 				}
 
 			},
@@ -219,8 +280,8 @@
 				this.data = data;
 				console.log('setDateGL--', data);
 			},
-			setDateYL(year, month, day, hour, minute) { //设置阴历数据
-				let dt = conversion.lunar2solar(year, month, day)
+			setDateYL(year, month, day, hour, minute, isLeapMonth) { //设置阴历数据
+				let dt = conversion.lunar2solar(year, month, day, isLeapMonth)
 				let data = {
 					hour: hour.toString().padStart(2, '0'),
 					minute: minute.toString().padStart(2, '0'),

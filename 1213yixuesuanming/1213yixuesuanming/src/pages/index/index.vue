@@ -46,31 +46,33 @@
 			<!-- 标题 -->
 			<view class="intro-title">九紫离火运</view>
 			
-			<!-- 介绍内容 -->
-			<view class="intro-content">
-				<view class="intro-paragraph">
-					<text class="intro-text">九紫即九紫右弼星,被视为最吉利的当运之星,它代表着财富、贵人、喜庆等吉祥之意;"离"火,代表万物光明,一切符合离火元素的事物,都可能会"应运而发"。</text>
+			<scroll-view scroll-y="true" class="intro-scroll-area">
+				<!-- 介绍内容 -->
+				<view class="intro-content">
+					<view class="intro-paragraph">
+						<text class="intro-text">九紫即九紫右弼星,被视为最吉利的当运之星,它代表着财富、贵人、喜庆等吉祥之意;"离"火,代表万物光明,一切符合离火元素的事物,都可能会"应运而发"。</text>
+					</view>
+					
+					<view class="intro-list">
+						<view class="intro-item">
+							<text class="intro-bullet">•</text>
+							<text class="intro-text">离火运会推动电力、通讯、新能源、强人际关系网经营等火属性的行业。</text>
+						</view>
+						<view class="intro-item">
+							<text class="intro-bullet">•</text>
+							<text class="intro-text">"火"是文明的起源,代表着文化,也将会带动文化产业出现大变革。</text>
+						</view>
+						<view class="intro-item">
+							<text class="intro-bullet">•</text>
+							<text class="intro-text">离者,丽也。其代表物是"朱雀"。在离火运的带动之下,让人变美的行业迎来突破性的发展。</text>
+						</view>
+						<view class="intro-item">
+							<text class="intro-bullet">•</text>
+							<text class="intro-text">离卦,代表着中年女性。离火运时期,那些思想活跃,热情有礼的中年女性,将大放异彩,受到重视。</text>
+						</view>
+					</view>
 				</view>
-				
-				<view class="intro-list">
-					<view class="intro-item">
-						<text class="intro-bullet">•</text>
-						<text class="intro-text">离火运会推动电力、通讯、新能源、强人际关系网经营等火属性的行业。</text>
-					</view>
-					<view class="intro-item">
-						<text class="intro-bullet">•</text>
-						<text class="intro-text">"火"是文明的起源,代表着文化,也将会带动文化产业出现大变革。</text>
-					</view>
-					<view class="intro-item">
-						<text class="intro-bullet">•</text>
-						<text class="intro-text">离者,丽也。其代表物是"朱雀"。在离火运的带动之下,让人变美的行业迎来突破性的发展。</text>
-					</view>
-					<view class="intro-item">
-						<text class="intro-bullet">•</text>
-						<text class="intro-text">离卦,代表着中年女性。离火运时期,那些思想活跃,热情有礼的中年女性,将大放异彩,受到重视。</text>
-					</view>
-				</view>
-			</view>
+			</scroll-view>
 			
 			<!-- 确认按钮 -->
 			<view class="intro-btn" @click="confirmIntro">
@@ -1189,13 +1191,18 @@
 		max-width: 90vw;
 		background: linear-gradient(180deg, #FFF8E7 0%, #F5E6C8 100%);
 		border-radius: 24rpx;
-		padding: 50rpx 40rpx;
+		/* 修改padding以适应flex布局 */
+		padding: 40rpx 40rpx 30rpx 40rpx;
 		box-shadow: 
 			0 8rpx 24rpx rgba(139, 69, 19, 0.3),
 			inset 0 2rpx 8rpx rgba(255, 255, 255, 0.5);
 		border: 4rpx solid #DAA520;
 		position: relative;
 		overflow: hidden;
+		/* 增加Flex布局和最大高度限制 */
+		display: flex;
+		flex-direction: column;
+		max-height: 80vh; /* 限制弹窗最大高度，留出空间 */
 	}
 	
 	/* 弹窗暗纹图片样式 */
@@ -1237,9 +1244,17 @@
 	}
 	
 	/* 调整原内容的层级，确保在暗纹之上 */
-	.intro-title, .intro-content, .intro-btn, .return-user-btns {
+	.intro-scroll-area, .intro-btn, .return-user-btns {
 		position: relative;
 		z-index: 5;
+	}
+
+	/* 滚动区域样式 */
+	.intro-scroll-area {
+		flex: 1 1 auto; /* 关键：自动伸缩，防止高度塌陷 */
+		overflow-y: auto; /* 确保内容溢出时可滚动 */
+		min-height: 0; /* 允许flex子项收缩 */
+		margin-bottom: 30rpx; /* 标题内容与按钮之间的间距 */
 	}
 	
 	/* 弹窗标题 - 与解密图片相同的浅金色渐变和立体阴影 */
@@ -1261,7 +1276,7 @@
 	
 	/* 介绍内容区域 */
 	.intro-content {
-		margin-bottom: 40rpx;
+		/* margin-bottom移到intro-scroll-area */
 		line-height: 1.8;
 	}
 	
@@ -1315,6 +1330,7 @@
 			0 4rpx 12rpx rgba(139, 0, 0, 0.4),
 			inset 0 2rpx 4rpx rgba(255, 215, 0, 0.2);
 		transition: transform 0.2s;
+		flex-shrink: 0; /* 防止按钮被压缩 */
 		
 		&:active {
 			transform: scale(0.98);
@@ -1333,6 +1349,7 @@
 		display: flex;
 		gap: 20rpx;
 		margin-top: 40rpx;
+		flex-shrink: 0;
 	}
 	
 	/* 次要按钮样式 */

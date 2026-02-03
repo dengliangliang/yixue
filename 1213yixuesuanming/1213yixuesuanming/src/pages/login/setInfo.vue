@@ -103,32 +103,30 @@
 		
 		<myPicker ref="calendar" @chushihua="(e)=>is_show=e" @confirm="confirm" />
 		
-		<!-- 自定义省市选择弹窗（替代u-picker） -->
-		<view v-if="isCityShow" class="city-picker-mask" @click="isCityShow=false">
-			<view class="city-picker-container" @click.stop>
-				<!-- 标题栏 -->
-				<view class="city-picker-header">
-					<text class="city-picker-cancel" @click="isCityShow=false">取消</text>
-					<text class="city-picker-title">选择地址</text>
-					<text class="city-picker-confirm" @click="confirmCity">确定</text>
-				</view>
-				<!-- 选择器 -->
-				<view class="city-picker-body">
+		<!-- 自定义省市选择弹窗（完全模仿日历组件结构） -->
+		<view class="mask" v-if="isCityShow" @click.stop="isCityShow=false">
+			<view class="calendar">
+				<view class="content" @click.stop>
+					<view class="w_100 flex_between px-38 pt-15 pb-20 city-header-row">
+						<view @click="isCityShow=false" class="c_9 fz_30">取消</view>
+						<view class="city-title">选择地址</view>
+						<view style="color:#D0000F;" @click="confirmCity" class="fz_30">确定</view>
+					</view>
 					<picker-view 
+						class="px-24" 
+						:indicator-style="'height:' + pickerItemHeight + 'px;'" 
 						:value="pickerValue" 
-						@change="onPickerChange" 
-						class="city-picker-view"
-						indicator-style="height: 80rpx;"
+						@change="onPickerChange"
 					>
 						<!-- 省份列 -->
 						<picker-view-column>
-							<view v-for="(item, index) in province_list" :key="index" class="picker-item">
+							<view class="item" v-for="(item, index) in province_list" :key="index">
 								{{item.name}}
 							</view>
 						</picker-view-column>
 						<!-- 城市列 -->
 						<picker-view-column>
-							<view v-for="(item, index) in city_list" :key="index" class="picker-item">
+							<view class="item" v-for="(item, index) in city_list" :key="index">
 								{{item.name}}
 							</view>
 						</picker-view-column>
@@ -175,7 +173,9 @@
 				// 页面跳转过渡状态
 				showLoading: false,
 				isLeaving: false,
-				loadingText: '正在处理...'
+				loadingText: '正在处理...',
+				// 【优化】动态计算picker高度，模仿日历组件的像素取整逻辑
+				pickerItemHeight: 40 // 默认值，onLoad会重算
 			}
 		},
 		onReady() {
@@ -183,6 +183,15 @@
 		},
 		onLoad(op) {
 			if (op.sign) uni.setStorageSync('app_parmas', op)
+			
+			// 【模仿日历组件】计算 80rpx 对应的整数像素值
+			// 1. 获取屏幕宽度
+			const sysInfo = uni.getSystemInfoSync();
+			// 2. 计算 1rpx 对应的 px (sysInfo.windowWidth / 750)
+			// 3. 计算 80rpx，并 Math.round 取整
+			const rpxRatio = sysInfo.windowWidth / 750;
+			this.pickerItemHeight = Math.round(100 * rpxRatio);
+			console.log('[setInfo] Picker动态高度:', this.pickerItemHeight, 'px (from 80rpx)');
 		},
 		methods: {
 			async loadData() {
@@ -244,21 +253,26 @@
 			},
 			async onPickerChange(e) {
 				const val = e.detail.value || [];
-				const provinceIndex = val[0] || 0;
-				const cityIndex = val[1] || 0;
+				let provinceIndex = val[0] || 0;
+				let cityIndex = val[1] || 0;
 				
-				// 如果省份变化，重新加载城市并重置城市索引
+				// 【修复】索引越界保护
+				if (provinceIndex >= this.province_list.length) provinceIndex = 0;
+				
+				// 如果省份变化，重新加载城市
 				if (provinceIndex !== this.pickerValue[0]) {
 					const selectedProvince = this.province_list[provinceIndex];
 					if (selectedProvince) {
-						// 【修复】等待城市加载完成后再更新索引，确保省市匹配
+						// 1.加载城市数据
 						await this.loadCity(selectedProvince.id);
-						// 使用 $nextTick 确保 DOM 更新后再设置索引
+						
+						// 2.使用$nextTick确保DOM更新，重置城市索引为0
 						this.$nextTick(() => {
 							this.pickerValue = [provinceIndex, 0];
 						});
 					}
 				} else {
+					// 仅城市变化，正常更新
 					this.pickerValue = [provinceIndex, cityIndex];
 				}
 			},
@@ -786,84 +800,96 @@
 		}
 	}
 
-	.city-picker-header {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		padding: 24rpx 32rpx;
-		border-bottom: 1rpx solid #eee;
-		background: #FFF1F1;
-	}
 
-	.city-picker-cancel {
-		font-size: 28rpx;
-		color: #999;
-		padding: 10rpx 20rpx;
-	}
-
-	.city-picker-title {
-		font-size: 32rpx;
-		font-weight: 600;
-		color: #333;
-	}
-
-	.city-picker-confirm {
-		font-size: 28rpx;
-		color: #D0000F;
-		font-weight: 600;
-		padding: 10rpx 20rpx;
-	}
-
-	.city-picker-body {
-		/* 【修复】调整为5项标准高度，确保选中项居中 */
-		height: 400rpx;
-		background: #fff;
-		position: relative;
-		overflow: hidden;
-	}
-
-	.city-picker-view {
-		height: 100%;
-	}
-
-	/* 【优化】添加选中区域上下渐变遮罩，增强视觉层次 */
-	.city-picker-body::before,
-	.city-picker-body::after {
-		content: '';
-		position: absolute;
+	/* ========== 仿日历组件样式 (my-picker.vue) ========== */
+	.mask {
+		position: fixed;
 		left: 0;
 		right: 0;
-		height: 160rpx;
-		pointer-events: none;
-		z-index: 10;
-	}
-	.city-picker-body::before {
 		top: 0;
-		background: linear-gradient(to bottom, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0) 100%);
-	}
-	.city-picker-body::after {
 		bottom: 0;
-		background: linear-gradient(to top, rgba(255,255,255,0.95) 0%, rgba(255,255,255,0) 100%);
-	}
-
-	/* 【优化】添加选中区域高亮边框 */
-	.city-picker-view :deep(.uni-picker-view-indicator) {
+		width: 750rpx;
 		box-sizing: border-box;
-		border-top: 1rpx solid #D0000F;
-		border-bottom: 1rpx solid #D0000F;
-		background: rgba(208, 0, 15, 0.03);
+		background: rgba(0, 0, 0, 0.3);
+		z-index: 9999;
 	}
 
-	.picker-item {
+	.calendar {
 		display: flex;
-		align-items: center;
+		align-items: flex-end;
 		justify-content: center;
-		font-size: 32rpx;
-		color: #333;
-		height: 80rpx;
-		line-height: 80rpx;
-		/* 【优化】添加过渡动画 */
-		transition: all 0.2s ease;
+		height: 100%;
+
+		.content {
+			display: flex;
+			flex-direction: column;
+			justify-content: center;
+			align-items: center;
+			width: 100%;
+			background-color: #fff;
+			border-top-left-radius: 24rpx;
+			border-top-right-radius: 24rpx;
+
+			/* 头部样式 */
+			.city-header-row {
+				width: 100%;
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				padding: 30rpx 38rpx 40rpx; /* px-38 pt-15 pb-20 (approx) */
+				box-sizing: border-box;
+			}
+			
+			.c_9 { color: #999; }
+			.fz_30 { font-size: 30rpx; }
+			.city-title { font-size: 32rpx; font-weight: bold; color: #333; }
+
+			/* 这里的核心样式完全复制 my-picker.vue */
+			::v-deep picker-view {
+				width: 100%;
+				height: 480rpx;
+				margin-top: 20rpx;
+				padding: 0 24rpx; /* px-24 */
+				box-sizing: border-box;
+
+				.item {
+					display: flex;
+					align-items: center;
+					justify-content: center;
+					color: #333333;
+					font-size: 32rpx;
+					font-weight: 500;
+				}
+
+				.uni-picker-view-wrapper {
+					::v-deep uni-picker-view-column {
+						display: flex;
+						align-items: center;
+						justify-content: center;
+						color: #333333;
+						font-size: 32rpx;
+						font-weight: 500;
+
+						.uni-picker-view-group {
+							.uni-picker-view-content {
+								text-align: center;
+								/* 核心：行高110rpx，配合JS的100rpx高度计算，达到日历组件的效果 */
+								line-height: 110rpx;
+
+								.item {
+									display: flex;
+									align-items: center;
+									justify-content: center;
+									color: #333333;
+									font-size: 32rpx;
+									font-weight: 500;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 	
 	/* ========== 自定义加载动画样式 ========== */

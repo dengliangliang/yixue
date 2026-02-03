@@ -2,7 +2,7 @@
  * 全局微信分享 Mixin
  * 
  * 在每个页面的 onReady 生命周期初始化微信分享（只初始化一次）
- * 分享链接使用后端 /api/user/share 接口格式（无 # 号）
+ * 分享链接使用后端 /api/user/shareInternal 接口格式（无 # 号）
  * 确保朋友圈分享显示为卡片而非纯链接
  */
 import wxSdk from '@/common/wechat-jssdk.js'
